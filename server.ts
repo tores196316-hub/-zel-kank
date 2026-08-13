@@ -15,6 +15,9 @@ async function startServer() {
   const app = express();
   const PORT = parseInt(process.env.PORT || '3000', 10);
 
+  // Trust reverse proxy (Railway, Cloud Run, Cloudflare, Nginx)
+  app.set('trust proxy', 1);
+
   // Essential Middlewares
   app.use(cors());
   app.use(express.json({ limit: '10mb' }));
