@@ -10,7 +10,7 @@ interface GalleryPageProps {
 }
 
 export const GalleryPage: React.FC<GalleryPageProps> = ({ navigate }) => {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const { showToast } = useToast();
 
   const [images, setImages] = useState<UploadResult[]>([]);
@@ -89,6 +89,7 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({ navigate }) => {
         )
       );
       showToast(res.is_favorite ? 'Favorilere eklendi.' : 'Favorilerden çıkarıldı.', 'info');
+      refreshUser().catch(() => {});
     } catch (err) {
       showToast('İşlem başarısız.', 'error');
     }
@@ -122,6 +123,7 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({ navigate }) => {
       await imageApi.deleteImage(id);
       showToast('Resim silindi.', 'success');
       setImages((prev) => prev.filter((item) => item.image.id !== id));
+      refreshUser().catch(() => {});
     } catch (err: any) {
       showToast(err.message || 'Resim silinemedi.', 'error');
     }

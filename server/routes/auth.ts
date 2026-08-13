@@ -66,6 +66,11 @@ router.post('/register', authRateLimiter, async (req: AuthRequest, res: Response
       role: newUser.role,
     });
 
+    const planName = newUser.plan || 'free';
+    const planLimits = db.getPlanLimits(planName);
+    const stats = db.getUserStats(newUser.id);
+    const todayUploads = db.getUserDailyUploadCount(newUser.id);
+
     return res.json({
       message: 'Kayıt başarılı! Hoş geldiniz.',
       token,
@@ -74,7 +79,13 @@ router.post('/register', authRateLimiter, async (req: AuthRequest, res: Response
         email: newUser.email,
         username: newUser.username,
         role: newUser.role,
+        plan: planName,
         created_at: newUser.created_at,
+        image_count: 0,
+        stats,
+        plan_limits: planLimits,
+        today_uploads: todayUploads,
+        storage_bytes: 0,
       },
     });
   } catch (err: any) {
@@ -117,6 +128,11 @@ router.post('/login', authRateLimiter, async (req: AuthRequest, res: Response) =
 
     db.addLog('info', `Kullanıcı giriş yaptı: ${user.username}`);
 
+    const planName = user.plan || (user.role === 'admin' ? 'admin' : 'free');
+    const planLimits = db.getPlanLimits(planName);
+    const stats = db.getUserStats(user.id);
+    const todayUploads = db.getUserDailyUploadCount(user.id);
+
     return res.json({
       message: 'Giriş başarılı!',
       token,
@@ -125,7 +141,13 @@ router.post('/login', authRateLimiter, async (req: AuthRequest, res: Response) =
         email: user.email,
         username: user.username,
         role: user.role,
+        plan: planName,
         created_at: user.created_at,
+        image_count: stats.total_images,
+        stats,
+        plan_limits: planLimits,
+        today_uploads: todayUploads,
+        storage_bytes: stats.total_bytes,
       },
     });
   } catch (err: any) {

@@ -3,6 +3,7 @@ import { Download, Copy, Share2, Trash2, Flag, Eye, Calendar, HardDrive, Maximiz
 import { imageApi } from '../lib/api';
 import { UploadResult } from '../types';
 import { useToast } from '../components/Toast';
+import { useAuth } from '../context/AuthContext';
 
 interface ImageDetailPageProps {
   imageId: string;
@@ -11,6 +12,7 @@ interface ImageDetailPageProps {
 
 export const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId, navigate }) => {
   const { showToast } = useToast();
+  const { refreshUser } = useAuth();
   const [data, setData] = useState<(UploadResult & { is_owner: boolean }) | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -85,6 +87,7 @@ export const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId, navig
     try {
       await imageApi.deleteImage(imageId);
       showToast('Resim başarıyla silindi.', 'success');
+      refreshUser().catch(() => {});
       navigate('/galerim');
     } catch (err: any) {
       showToast(err.message || 'Resim silinemedi.', 'error');

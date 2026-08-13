@@ -3,6 +3,7 @@ import { Upload, X, Check, Copy, ExternalLink, Image as ImageIcon, AlertCircle, 
 import { imageApi, getStoredToken } from '../lib/api';
 import { Folder, UploadProgressFile, UploadResult } from '../types';
 import { useToast } from '../components/Toast';
+import { useAuth } from '../context/AuthContext';
 
 interface UploadPageProps {
   navigate: (path: string) => void;
@@ -10,6 +11,7 @@ interface UploadPageProps {
 
 export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
   const { showToast } = useToast();
+  const { refreshUser } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
@@ -180,6 +182,7 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
 
     if (results.length > 0) {
       showToast(`${results.length} resim başarıyla yüklendi!`, 'success');
+      refreshUser().catch(() => {});
     }
   };
 
@@ -188,6 +191,7 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
       const res = await uploadSingleFile(item, selectedFolderId || null);
       setCompletedResults((prev) => [...prev, res]);
       showToast(`"${item.file.name}" yüklendi!`, 'success');
+      refreshUser().catch(() => {});
     } catch (err) {}
   };
 
