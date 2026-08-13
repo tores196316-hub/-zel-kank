@@ -13,6 +13,15 @@ export interface UserRecord {
   role: 'admin' | 'user';
   created_at: string;
   status: 'active' | 'banned';
+  plan?: 'free' | 'premium' | 'vip' | 'admin';
+}
+
+export interface FolderRecord {
+  id: string;
+  user_id: string;
+  name: string;
+  color?: string;
+  created_at: string;
 }
 
 export interface ImageRecord {
@@ -32,6 +41,8 @@ export interface ImageRecord {
   is_public: boolean;
   status: 'active' | 'deleted' | 'flagged';
   delete_token: string;
+  is_favorite?: boolean;
+  folder_id?: string | null;
 }
 
 export interface ReportRecord {
@@ -61,26 +72,36 @@ export interface SiteSettingsRecord {
   maintenance_mode: boolean;
   announcement_enabled: boolean;
   announcement_text: string;
+  allowed_formats?: string[];
+  header_ad_code?: string;
+  sidebar_ad_code?: string;
+  image_page_ad_code?: string;
 }
 
 export interface DatabaseSchema {
   users: UserRecord[];
   images: ImageRecord[];
+  folders: FolderRecord[];
   reports: ReportRecord[];
   announcements: AnnouncementRecord[];
   settings: SiteSettingsRecord;
   logs: { id: string; level: string; message: string; timestamp: string }[];
+  view_logs: { image_id: string; ip: string; timestamp: number }[];
 }
 
 const defaultSettings: SiteSettingsRecord = {
-  site_title: 'Hızlı Yükle',
+  site_title: 'AnlıkResim',
   site_description: 'Hızlı, güvenli ve yüksek kaliteli resim yükleme ve paylaşım platformu',
   max_file_size_mb: 20,
   allow_guest_upload: true,
   allow_user_registration: true,
   maintenance_mode: false,
   announcement_enabled: true,
-  announcement_text: 'Hızlı Yükle v2.0 yayında! Artık sürükle-bırak ve toplu yükleme desteği mevcut.',
+  announcement_text: 'AnlıkResim V2 yayında! Sürükle-bırak, klasörler, favoriler ve gelişmiş paylaşım kodları aktif.',
+  allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'gif'],
+  header_ad_code: '',
+  sidebar_ad_code: '',
+  image_page_ad_code: '',
 };
 
 class Database {
@@ -90,10 +111,12 @@ class Database {
     this.data = {
       users: [],
       images: [],
+      folders: [],
       reports: [],
       announcements: [],
       settings: defaultSettings,
       logs: [],
+      view_logs: [],
     };
     this.init();
   }
@@ -107,6 +130,9 @@ class Database {
       if (fs.existsSync(DB_FILE)) {
         const fileContent = fs.readFileSync(DB_FILE, 'utf-8');
         this.data = JSON.parse(fileContent);
+        if (!this.data.folders) this.data.folders = [];
+        if (!this.data.view_logs) this.data.view_logs = [];
+        if (!this.data.settings) this.data.settings = defaultSettings;
       } else {
         this.seedInitialData();
         this.save();
@@ -304,6 +330,104 @@ class Database {
     this.data.announcements = this.data.announcements.filter((a) => a.id !== id);
     this.save();
     return true;
+  }
+
+  // Folders
+  public getFoldersByUserId(userId: string): FolderRecord[] {
+    return (this.data.folders || []).filter((f) => f.user_id === userId);
+  }
+
+  public createFolder(folder: FolderRecord): FolderRecord {
+    if (!this.data.folders) this.data.folders = [];
+    this.data.folders.push(folder);
+    this.save();
+    return folder;
+  }
+
+  public deleteFolder(id: string, userId: string): boolean {
+    if (!this.data.folders) return false;
+    const initialLen = this.data.folders.length;
+    this.data.folders = this.data.folders.filter((f) => !(f.id === id && f.user_id === userId));
+    
+    // Remove folder_id reference from images in this folder
+    this.data.images.forEach((img) => {
+      if (img.user_id === userId && img.folder_id === id) {
+        img.folder_id = null;
+      }
+    });
+
+    this.save();
+    return this.data.folders.length < initialLen;
+  }
+
+  // Favorites & Folder Updates
+  public toggleFavorite(imageId: string, userId: string): boolean {
+    const img = this.data.images.find((i) => i.id === imageId && i.user_id === userId && i.status !== 'deleted');
+    if (img) {
+      img.is_favorite = !img.is_favorite;
+      this.save();
+      return img.is_favorite;
+    }
+    return false;
+  }
+
+  public setImageFolder(imageId: string, userId: string, folderId: string | null): boolean {
+    const img = this.data.images.find((i) => i.id === imageId && i.user_id === userId && i.status !== 'deleted');
+    if (img) {
+      img.folder_id = folderId;
+      this.save();
+      return true;
+    }
+    return false;
+  }
+
+  // Throttled View Increment (1 view per IP per image every 5 minutes)
+  public incrementImageViewsThrottled(id: string, ip: string): void {
+    if (!this.data.view_logs) this.data.view_logs = [];
+    const now = Date.now();
+    const fiveMinutes = 5 * 60 * 1000;
+
+    const existingLog = this.data.view_logs.find((v) => v.image_id === id && v.ip === ip);
+    if (existingLog) {
+      if (now - existingLog.timestamp > fiveMinutes) {
+        existingLog.timestamp = now;
+        this.incrementImageViews(id);
+      }
+    } else {
+      this.data.view_logs.push({ image_id: id, ip, timestamp: now });
+      this.incrementImageViews(id);
+      // Clean up view logs older than 1 hour
+      if (this.data.view_logs.length > 500) {
+        this.data.view_logs = this.data.view_logs.filter((v) => now - v.timestamp < 3600000);
+      }
+    }
+  }
+
+  // User Stats & Today Stats
+  public getUserStats(userId: string) {
+    const userImages = this.getImagesByUserId(userId);
+    const totalBytes = userImages.reduce((acc, img) => acc + (img.size || 0), 0);
+    const totalViews = userImages.reduce((acc, img) => acc + (img.views || 0), 0);
+    const favoriteCount = userImages.filter((img) => img.is_favorite).length;
+
+    return {
+      total_images: userImages.length,
+      total_bytes: totalBytes,
+      total_views: totalViews,
+      favorite_count: favoriteCount,
+      last_upload_at: userImages[0] ? userImages[0].created_at : null,
+    };
+  }
+
+  public getTodayStats() {
+    const today = new Date().toISOString().split('T')[0];
+    const todayImages = this.data.images.filter((img) => img.status !== 'deleted' && img.created_at.startsWith(today)).length;
+    const todayUsers = this.data.users.filter((u) => u.created_at.startsWith(today)).length;
+
+    return {
+      today_images: todayImages,
+      today_users: todayUsers,
+    };
   }
 
   // Logs

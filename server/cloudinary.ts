@@ -145,3 +145,11 @@ export async function checkCloudinaryHealth(): Promise<{ configured: boolean; co
     };
   }
 }
+
+export function getCloudinaryThumbnailUrl(url: string, width = 400, height = 400): string {
+  if (!url) return '';
+  if (url.includes('res.cloudinary.com') && url.includes('/upload/')) {
+    return url.replace('/upload/', `/upload/c_fill,w_${width},h_${height},q_auto,f_auto/`);
+  }
+  return url;
+}

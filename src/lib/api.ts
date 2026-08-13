@@ -1,4 +1,4 @@
-import { AdminStats, Announcement, ImageMetadata, Report, SiteSettings, UploadResult, User } from '../types';
+import { AdminStats, Announcement, Folder, ImageMetadata, Report, SiteSettings, UploadResult, User } from '../types';
 
 const TOKEN_KEY = 'hizliyukle_auth_token';
 
@@ -72,11 +72,21 @@ export const authApi = {
 
 // Image API
 export const imageApi = {
-  uploadFile: (file: File, onProgress?: (percent: number) => void): Promise<UploadResult> => {
+  uploadFile: (
+    file: File,
+    onProgress?: (percent: number) => void,
+    folderId?: string | null,
+    xhrRef?: { current: XMLHttpRequest | null }
+  ): Promise<UploadResult> => {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
+      if (xhrRef) xhrRef.current = xhr;
+
       const formData = new FormData();
       formData.append('files', file);
+      if (folderId) {
+        formData.append('folder_id', folderId);
+      }
 
       xhr.upload.addEventListener('progress', (e) => {
         if (e.lengthComputable && onProgress) {
@@ -102,6 +112,10 @@ export const imageApi = {
         reject(new Error('Ağ hatası oluştu. Lütfen bağlantınızı kontrol edin.'));
       });
 
+      xhr.addEventListener('abort', () => {
+        reject(new Error('Yükleme kullanıcı tarafından iptal edildi.'));
+      });
+
       xhr.open('POST', '/api/images/upload');
 
       const token = getStoredToken();
@@ -113,12 +127,36 @@ export const imageApi = {
     });
   },
 
-  getMyImages: () => request<{ images: UploadResult[] }>('/api/images/my'),
+  getMyImages: () => request<{ images: UploadResult[]; folders?: Folder[] }>('/api/images/my'),
 
   getImageDetail: (id: string) => request<UploadResult & { is_owner: boolean }>(`/api/images/${id}`),
 
   deleteImage: (id: string, deleteToken?: string) =>
     request<{ message: string }>(`/api/images/${id}${deleteToken ? `?delete_token=${deleteToken}` : ''}`, {
+      method: 'DELETE',
+    }),
+
+  toggleFavorite: (id: string) =>
+    request<{ is_favorite: boolean }>(`/api/images/${id}/favorite`, {
+      method: 'POST',
+    }),
+
+  setImageFolder: (id: string, folderId: string | null) =>
+    request<{ message: string }>(`/api/images/${id}/folder`, {
+      method: 'PUT',
+      body: JSON.stringify({ folder_id: folderId }),
+    }),
+
+  getFolders: () => request<{ folders: Folder[] }>('/api/images/folders'),
+
+  createFolder: (name: string, color?: string) =>
+    request<{ message: string; folder: Folder }>('/api/images/folders', {
+      method: 'POST',
+      body: JSON.stringify({ name, color }),
+    }),
+
+  deleteFolder: (id: string) =>
+    request<{ message: string }>(`/api/images/folders/${id}`, {
       method: 'DELETE',
     }),
 

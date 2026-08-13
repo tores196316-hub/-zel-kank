@@ -144,7 +144,7 @@ router.get('/me', authenticateToken, (req: AuthRequest, res: Response) => {
     return res.json({ user: null });
   }
 
-  const myImagesCount = db.getImagesByUserId(dbUser.id).length;
+  const stats = db.getUserStats(dbUser.id);
 
   return res.json({
     user: {
@@ -152,8 +152,10 @@ router.get('/me', authenticateToken, (req: AuthRequest, res: Response) => {
       email: dbUser.email,
       username: dbUser.username,
       role: dbUser.role,
+      plan: dbUser.plan || (dbUser.role === 'admin' ? 'admin' : 'free'),
       created_at: dbUser.created_at,
-      image_count: myImagesCount,
+      image_count: stats.total_images,
+      stats,
     },
   });
 });

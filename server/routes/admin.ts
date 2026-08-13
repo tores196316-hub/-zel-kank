@@ -18,10 +18,13 @@ router.get('/stats', async (req: AuthRequest, res: Response) => {
 
     const totalStorageBytes = images.reduce((acc, img) => acc + (img.size || 0), 0);
     const totalViews = images.reduce((acc, img) => acc + (img.views || 0), 0);
+    const todayStats = db.getTodayStats();
 
     return res.json({
       total_users: users.length,
       total_images: images.length,
+      today_images: todayStats.today_images,
+      today_users: todayStats.today_users,
       total_storage_bytes: totalStorageBytes,
       total_views: totalViews,
       total_reports: reports.filter((r) => r.status === 'pending').length,

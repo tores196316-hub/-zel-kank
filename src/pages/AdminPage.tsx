@@ -231,30 +231,40 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
           </div>
 
           {/* Metric Cards Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div className="bg-slate-800/40 border border-slate-700/60 p-5 rounded-2xl space-y-1">
-              <span className="text-2xl font-extrabold text-white block">{stats.total_users}</span>
-              <span className="text-xs text-slate-400 font-medium">Toplam Kullanıcı</span>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+            <div className="bg-slate-800/40 border border-slate-700/60 p-4 rounded-2xl space-y-1">
+              <span className="text-xl font-extrabold text-white block">{stats.total_users}</span>
+              <span className="text-[11px] text-slate-400 font-medium">Toplam Kullanıcı</span>
             </div>
 
-            <div className="bg-slate-800/40 border border-slate-700/60 p-5 rounded-2xl space-y-1">
-              <span className="text-2xl font-extrabold text-blue-400 block">{stats.total_images}</span>
-              <span className="text-xs text-slate-400 font-medium">Yüklenen Resim</span>
+            <div className="bg-slate-800/40 border border-slate-700/60 p-4 rounded-2xl space-y-1">
+              <span className="text-xl font-extrabold text-blue-400 block">{stats.total_images}</span>
+              <span className="text-[11px] text-slate-400 font-medium">Toplam Resim</span>
             </div>
 
-            <div className="bg-slate-800/40 border border-slate-700/60 p-5 rounded-2xl space-y-1">
-              <span className="text-2xl font-extrabold text-emerald-400 block">{formatSize(stats.total_storage_bytes)}</span>
-              <span className="text-xs text-slate-400 font-medium">Depolama Alanı</span>
+            <div className="bg-slate-800/40 border border-slate-700/60 p-4 rounded-2xl space-y-1">
+              <span className="text-xl font-extrabold text-emerald-400 block">{stats.today_images ?? 0}</span>
+              <span className="text-[11px] text-slate-400 font-medium">Bugün Yüklenen</span>
             </div>
 
-            <div className="bg-slate-800/40 border border-slate-700/60 p-5 rounded-2xl space-y-1">
-              <span className="text-2xl font-extrabold text-amber-400 block">{stats.total_views}</span>
-              <span className="text-xs text-slate-400 font-medium">Görüntüleme</span>
+            <div className="bg-slate-800/40 border border-slate-700/60 p-4 rounded-2xl space-y-1">
+              <span className="text-xl font-extrabold text-indigo-400 block">{stats.today_users ?? 0}</span>
+              <span className="text-[11px] text-slate-400 font-medium">Bugün Kaydolan</span>
             </div>
 
-            <div className="bg-slate-800/40 border border-slate-700/60 p-5 rounded-2xl space-y-1">
-              <span className="text-2xl font-extrabold text-rose-400 block">{stats.total_reports}</span>
-              <span className="text-xs text-slate-400 font-medium">Bekleyen Rapor</span>
+            <div className="bg-slate-800/40 border border-slate-700/60 p-4 rounded-2xl space-y-1">
+              <span className="text-xl font-extrabold text-purple-400 block">{formatSize(stats.total_storage_bytes)}</span>
+              <span className="text-[11px] text-slate-400 font-medium">Depolama Alanı</span>
+            </div>
+
+            <div className="bg-slate-800/40 border border-slate-700/60 p-4 rounded-2xl space-y-1">
+              <span className="text-xl font-extrabold text-amber-400 block">{stats.total_views}</span>
+              <span className="text-[11px] text-slate-400 font-medium">Görüntüleme</span>
+            </div>
+
+            <div className="bg-slate-800/40 border border-slate-700/60 p-4 rounded-2xl space-y-1">
+              <span className="text-xl font-extrabold text-rose-400 block">{stats.total_reports}</span>
+              <span className="text-[11px] text-slate-400 font-medium">Bekleyen Rapor</span>
             </div>
           </div>
         </div>

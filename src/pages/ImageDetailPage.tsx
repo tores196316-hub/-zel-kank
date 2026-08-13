@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Download, Copy, Share2, Trash2, Flag, Eye, Calendar, HardDrive, Maximize2, Check, ArrowLeft, ExternalLink } from 'lucide-react';
+import { Download, Copy, Share2, Trash2, Flag, Eye, Calendar, HardDrive, Maximize2, Check, ArrowLeft, ExternalLink, Heart, Sparkles } from 'lucide-react';
 import { imageApi } from '../lib/api';
 import { UploadResult } from '../types';
 import { useToast } from '../components/Toast';
@@ -47,6 +47,20 @@ export const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId, navig
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     showToast(`${label} panoya kopyalandı!`, 'success');
+  };
+
+  const handleToggleFavorite = async () => {
+    if (!data) return;
+    try {
+      const res = await imageApi.toggleFavorite(data.image.id);
+      setData({
+        ...data,
+        image: { ...data.image, is_favorite: res.is_favorite },
+      });
+      showToast(res.is_favorite ? 'Favorilere eklendi ❤️' : 'Favorilerden çıkarıldı.', 'info');
+    } catch (err) {
+      showToast('Favori durumu güncellenemedi.', 'error');
+    }
   };
 
   const handleDownload = () => {
@@ -103,7 +117,7 @@ export const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId, navig
     return (
       <div className="max-w-4xl mx-auto px-4 py-20 text-center space-y-4">
         <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto" />
-        <p className="text-slate-400 text-sm">Resim bilgileri yükleniyor...</p>
+        <p className="text-slate-400 text-sm">Resim detayları yükleniyor...</p>
       </div>
     );
   }
@@ -147,6 +161,20 @@ export const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId, navig
         <div className="flex items-center gap-2">
           {data.is_owner && (
             <button
+              onClick={handleToggleFavorite}
+              className={`px-3 py-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1.5 transition-colors ${
+                data.image.is_favorite
+                  ? 'bg-rose-600/20 border-rose-500/40 text-rose-400'
+                  : 'bg-slate-800 border-slate-700 text-slate-300 hover:text-white'
+              }`}
+            >
+              <Heart className={`w-3.5 h-3.5 ${data.image.is_favorite ? 'fill-current' : ''}`} />
+              {data.image.is_favorite ? 'Favori' : 'Favorilere Ekle'}
+            </button>
+          )}
+
+          {data.is_owner && (
+            <button
               onClick={handleDelete}
               className="px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 text-xs font-semibold flex items-center gap-1.5 transition-colors"
             >
@@ -166,7 +194,7 @@ export const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId, navig
       </div>
 
       {/* Main Centered Image Display */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-4 sm:p-8 flex flex-col items-center justify-center min-h-[350px] shadow-2xl">
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-4 sm:p-8 flex flex-col items-center justify-center min-h-[350px] shadow-2xl relative">
         <div className="max-w-full overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/60 p-2">
           <img
             src={data.direct_url}
@@ -243,6 +271,25 @@ export const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId, navig
                 <button
                   onClick={() => copyToClipboard(data.direct_url, 'Direkt Bağlantı')}
                   className="px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold flex items-center gap-1 shrink-0"
+                >
+                  <Copy className="w-3.5 h-3.5" /> Kopyala
+                </button>
+              </div>
+            </div>
+
+            {/* Markdown Link */}
+            <div className="space-y-1">
+              <label className="text-[11px] text-slate-400 font-medium">Markdown Kodu (GitHub/Notion)</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  readOnly
+                  value={data.markdown}
+                  className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 font-mono"
+                />
+                <button
+                  onClick={() => copyToClipboard(data.markdown, 'Markdown Kodu')}
+                  className="px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold flex items-center gap-1 shrink-0"
                 >
                   <Copy className="w-3.5 h-3.5" /> Kopyala
                 </button>

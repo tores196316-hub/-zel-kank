@@ -1,8 +1,8 @@
 import { Router, Response } from 'express';
 import multer from 'multer';
 import path from 'path';
-import { db, ImageRecord } from '../db.js';
-import { uploadToCloudinary, deleteFromCloudinary } from '../cloudinary.js';
+import { db, ImageRecord, FolderRecord } from '../db.js';
+import { uploadToCloudinary, deleteFromCloudinary, getCloudinaryThumbnailUrl } from '../cloudinary.js';
 import { authenticateToken, requireAuth, AuthRequest } from '../middleware/auth.js';
 import { uploadRateLimiter } from '../middleware/rateLimiter.js';
 
@@ -13,6 +13,19 @@ const storage = multer.memoryStorage();
 
 const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
 const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
+
+function verifyImageMagicBytes(buffer: Buffer): boolean {
+  if (!buffer || buffer.length < 4) return false;
+  // JPEG: FF D8 FF
+  if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) return true;
+  // PNG: 89 50 4E 47
+  if (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47) return true;
+  // GIF: 47 49 46 38 ('GIF8')
+  if (buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x38) return true;
+  // WEBP: RIFF...WEBP
+  if (buffer.length >= 12 && buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46) return true;
+  return false;
+}
 
 const upload = multer({
   storage,
@@ -36,11 +49,13 @@ function buildUploadResult(img: ImageRecord, appUrl: string) {
   const baseUrl = appUrl || process.env.APP_URL || 'http://localhost:3000';
   const shareUrl = `${baseUrl}/i/${img.id}`;
   const directUrl = img.cloudinary_url;
+  const thumbnailUrl = getCloudinaryThumbnailUrl(directUrl, 400, 400);
 
   return {
     image: img,
     share_url: shareUrl,
     direct_url: directUrl,
+    thumbnail_url: thumbnailUrl,
     html_code: `<a href="${shareUrl}" target="_blank"><img src="${directUrl}" alt="${img.original_filename}" /></a>`,
     markdown_code: `[![${img.original_filename}](${directUrl})](${shareUrl})`,
     bbcode: `[URL=${shareUrl}][IMG]${directUrl}[/IMG][/URL]`,
@@ -61,6 +76,7 @@ router.post('/upload', uploadRateLimiter, authenticateToken, upload.array('files
       return res.status(400).json({ error: 'Lütfen yüklenecek en az bir resim seçin.' });
     }
 
+    const targetFolderId = req.body.folder_id || null;
     const maxBytes = (settings.max_file_size_mb || 20) * 1024 * 1024;
     const results = [];
 
@@ -70,6 +86,13 @@ router.post('/upload', uploadRateLimiter, authenticateToken, upload.array('files
       if (file.size > maxBytes) {
         return res.status(400).json({
           error: `"${file.originalname}" dosyası çok büyük. Maksimum dosya boyutu ${settings.max_file_size_mb} MB olmalıdır.`,
+        });
+      }
+
+      // Backend Header Magic Bytes Verification
+      if (!verifyImageMagicBytes(file.buffer)) {
+        return res.status(400).json({
+          error: `"${file.originalname}" geçerli bir resim dosyası değil. Dosya içeriği başlığı doğrulanamadı.`,
         });
       }
 
@@ -97,6 +120,8 @@ router.post('/upload', uploadRateLimiter, authenticateToken, upload.array('files
         is_public: true,
         status: 'active',
         delete_token: deleteToken,
+        is_favorite: false,
+        folder_id: targetFolderId,
       };
 
       db.createImage(imageRecord);
@@ -117,14 +142,66 @@ router.post('/upload', uploadRateLimiter, authenticateToken, upload.array('files
   }
 });
 
+// Folders Management
+router.get('/folders', authenticateToken, requireAuth, (req: AuthRequest, res: Response) => {
+  const folders = db.getFoldersByUserId(req.user!.id);
+  return res.json({ folders });
+});
+
+router.post('/folders', authenticateToken, requireAuth, (req: AuthRequest, res: Response) => {
+  const { name, color } = req.body;
+  if (!name || String(name).trim().length === 0) {
+    return res.status(400).json({ error: 'Klasör adı zorunludur.' });
+  }
+
+  const newFolder: FolderRecord = {
+    id: 'fld_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+    user_id: req.user!.id,
+    name: String(name).trim(),
+    color: color || '#3b82f6',
+    created_at: new Date().toISOString(),
+  };
+
+  db.createFolder(newFolder);
+  return res.json({ message: 'Klasör oluşturuldu.', folder: newFolder });
+});
+
+router.delete('/folders/:id', authenticateToken, requireAuth, (req: AuthRequest, res: Response) => {
+  const { id } = req.params;
+  const deleted = db.deleteFolder(id, req.user!.id);
+  if (deleted) {
+    return res.json({ message: 'Klasör silindi.' });
+  }
+  return res.status(404).json({ error: 'Klasör bulunamadı.' });
+});
+
+// Favorite Toggle
+router.post('/:id/favorite', authenticateToken, requireAuth, (req: AuthRequest, res: Response) => {
+  const { id } = req.params;
+  const isFavorite = db.toggleFavorite(id, req.user!.id);
+  return res.json({ is_favorite: isFavorite });
+});
+
+// Assign Folder to Image
+router.put('/:id/folder', authenticateToken, requireAuth, (req: AuthRequest, res: Response) => {
+  const { id } = req.params;
+  const { folder_id } = req.body;
+  const success = db.setImageFolder(id, req.user!.id, folder_id || null);
+  if (success) {
+    return res.json({ message: 'Klasör güncellendi.' });
+  }
+  return res.status(404).json({ error: 'Resim bulunamadı veya yetkiniz yok.' });
+});
+
 // Get User's Gallery
 router.get('/my', authenticateToken, requireAuth, (req: AuthRequest, res: Response) => {
   try {
     const images = db.getImagesByUserId(req.user!.id);
+    const folders = db.getFoldersByUserId(req.user!.id);
     const appUrl = (req.protocol + '://' + req.get('host')) || process.env.APP_URL || 'http://localhost:3000';
 
     const formatted = images.map((img) => buildUploadResult(img, appUrl));
-    return res.json({ images: formatted });
+    return res.json({ images: formatted, folders });
   } catch (err: any) {
     return res.status(500).json({ error: 'Galeri yüklenirken bir hata oluştu.' });
   }
@@ -140,7 +217,8 @@ router.get('/:id', authenticateToken, (req: AuthRequest, res: Response) => {
       return res.status(404).json({ error: 'Aradığınız resim bulunamadı veya silinmiş.' });
     }
 
-    db.incrementImageViews(id);
+    const clientIp = (req.headers['x-forwarded-for'] as string) || req.ip || '127.0.0.1';
+    db.incrementImageViewsThrottled(id, clientIp);
 
     const appUrl = (req.protocol + '://' + req.get('host')) || process.env.APP_URL || 'http://localhost:3000';
     const isOwner = req.user ? req.user.id === img.user_id || req.user.role === 'admin' : false;
