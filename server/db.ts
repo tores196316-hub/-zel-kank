@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
@@ -267,8 +268,11 @@ class Database {
     if (!this.data.logs) this.data.logs = [];
     if (!this.data.view_logs) this.data.view_logs = [];
 
-    const adminPasswordHash = bcrypt.hashSync('admin123', 10);
-    const demoPasswordHash = bcrypt.hashSync('user123', 10);
+    const isProduction = process.env.NODE_ENV === 'production';
+
+    // Only configure seed passwords if creating new accounts
+    const initialAdminPass = process.env.ADMIN_PASSWORD || process.env.ADMIN_INITIAL_PASSWORD || (isProduction ? crypto.randomBytes(16).toString('hex') : 'admin123');
+    const adminPasswordHash = bcrypt.hashSync(initialAdminPass, 10);
 
     const defaultAdmin: UserRecord = {
       id: 'usr_admin_1',
@@ -292,17 +296,7 @@ class Database {
       status: 'active',
     };
 
-    const defaultUser: UserRecord = {
-      id: 'usr_demo_1',
-      email: 'kullanici@hizliyukle.com',
-      username: 'demo_user',
-      password_hash: demoPasswordHash,
-      role: 'user',
-      plan: 'free',
-      created_at: new Date().toISOString(),
-      status: 'active',
-    };
-
+    // Seed admin accounts only if they don't already exist
     if (!this.data.users.some((u) => u.username.toLowerCase() === 'admin' || u.email.toLowerCase() === 'admin@hizliyukle.com')) {
       this.data.users.push(defaultAdmin);
     }
@@ -311,8 +305,23 @@ class Database {
       this.data.users.push(ownerAdmin);
     }
 
-    if (!this.data.users.some((u) => u.username.toLowerCase() === 'demo_user' || u.email.toLowerCase() === 'kullanici@hizliyukle.com')) {
-      this.data.users.push(defaultUser);
+    // Only create demo user in non-production environments if not already present
+    if (!isProduction) {
+      const demoPasswordHash = bcrypt.hashSync('user123', 10);
+      const defaultUser: UserRecord = {
+        id: 'usr_demo_1',
+        email: 'kullanici@hizliyukle.com',
+        username: 'demo_user',
+        password_hash: demoPasswordHash,
+        role: 'user',
+        plan: 'free',
+        created_at: new Date().toISOString(),
+        status: 'active',
+      };
+
+      if (!this.data.users.some((u) => u.username.toLowerCase() === 'demo_user' || u.email.toLowerCase() === 'kullanici@hizliyukle.com')) {
+        this.data.users.push(defaultUser);
+      }
     }
 
     // Ensure all existing users have a valid plan
@@ -545,7 +554,7 @@ class Database {
   public createNotification(userId: string, title: string, message: string, type: 'info' | 'warning' | 'success' = 'info'): NotificationRecord {
     if (!this.data.notifications) this.data.notifications = [];
     const notif: NotificationRecord = {
-      id: 'notif_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+      id: 'notif_' + Date.now() + '_' + crypto.randomBytes(4).toString('hex'),
       user_id: userId,
       title,
       message,
@@ -590,7 +599,7 @@ class Database {
   public addAuditLog(action: string, actor_id?: string, actor_username?: string, target?: string, details?: string): void {
     if (!this.data.audit_logs) this.data.audit_logs = [];
     this.data.audit_logs.unshift({
-      id: 'audit_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+      id: 'audit_' + Date.now() + '_' + crypto.randomBytes(4).toString('hex'),
       action,
       actor_id,
       actor_username,
@@ -729,12 +738,24 @@ class Database {
 
   public setImageFolder(imageId: string, userId: string, folderId: string | null): boolean {
     const img = this.data.images.find((i) => i.id === imageId && i.user_id === userId && i.status !== 'deleted');
-    if (img) {
-      img.folder_id = folderId;
+    if (!img) return false;
+
+    // If removing folder assignment
+    if (!folderId || folderId === '') {
+      img.folder_id = null;
       this.save();
       return true;
     }
-    return false;
+
+    // Verify folder belongs to the same user
+    const folder = (this.data.folders || []).find((f) => f.id === folderId && f.user_id === userId);
+    if (!folder) {
+      return false;
+    }
+
+    img.folder_id = folderId;
+    this.save();
+    return true;
   }
 
   // Throttled View Increment (1 view per IP per image every 5 minutes)

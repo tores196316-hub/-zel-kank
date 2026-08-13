@@ -1,10 +1,11 @@
 import { Router, Response } from 'express';
 import multer from 'multer';
 import path from 'path';
+import crypto from 'crypto';
 import { db, ImageRecord, FolderRecord } from '../db.js';
 import { uploadToCloudinary, deleteFromCloudinary, getCloudinaryThumbnailUrl } from '../cloudinary.js';
 import { authenticateToken, requireAuth, AuthRequest } from '../middleware/auth.js';
-import { uploadRateLimiter } from '../middleware/rateLimiter.js';
+import { uploadRateLimiter, contactRateLimiter } from '../middleware/rateLimiter.js';
 
 const router = Router();
 
@@ -76,7 +77,14 @@ router.post('/upload', uploadRateLimiter, authenticateToken, upload.array('files
       return res.status(400).json({ error: 'Lütfen yüklenecek en az bir resim seçin.' });
     }
 
-    const targetFolderId = req.body.folder_id || null;
+    let targetFolderId: string | null = null;
+    if (req.body.folder_id && req.user) {
+      const userFolders = db.getFoldersByUserId(req.user.id);
+      if (userFolders.some((f) => f.id === req.body.folder_id)) {
+        targetFolderId = req.body.folder_id;
+      }
+    }
+
     const userPlan = req.user ? req.user.plan || (req.user.role === 'admin' ? 'admin' : 'free') : 'free';
     const planLimits = db.getPlanLimits(userPlan);
 
@@ -122,9 +130,9 @@ router.post('/upload', uploadRateLimiter, authenticateToken, upload.array('files
         });
       }
 
-      // Generate unique random ID for image share link (e.g. img_9x2k7m)
-      const imageId = Math.random().toString(36).substring(2, 10);
-      const deleteToken = 'del_' + Math.random().toString(36).substring(2, 12);
+      // Generate cryptographically secure random ID for image and delete token
+      const imageId = crypto.randomBytes(4).toString('hex');
+      const deleteToken = 'del_' + crypto.randomBytes(16).toString('hex');
 
       // Perform upload to Cloudinary (or local fallback)
       const uploadRes = await uploadToCloudinary(file.buffer, file.originalname, file.mimetype, appUrl);
@@ -203,7 +211,7 @@ router.post('/folders', authenticateToken, requireAuth, (req: AuthRequest, res: 
   }
 
   const newFolder: FolderRecord = {
-    id: 'fld_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+    id: 'fld_' + Date.now() + '_' + crypto.randomBytes(4).toString('hex'),
     user_id: req.user!.id,
     name: String(name).trim(),
     color: color || '#3b82f6',
@@ -320,7 +328,7 @@ router.delete('/:id', authenticateToken, async (req: AuthRequest, res: Response)
 });
 
 // Report Image
-router.post('/:id/report', (req: AuthRequest, res: Response) => {
+router.post('/:id/report', contactRateLimiter, (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const { reason } = req.body;
@@ -337,7 +345,7 @@ router.post('/:id/report', (req: AuthRequest, res: Response) => {
     const clientIp = (req.headers['x-forwarded-for'] as string) || req.ip || '127.0.0.1';
 
     db.createReport({
-      id: 'rep_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+      id: 'rep_' + Date.now() + '_' + crypto.randomBytes(4).toString('hex'),
       image_id: id,
       reason: String(reason).trim(),
       ip: clientIp,

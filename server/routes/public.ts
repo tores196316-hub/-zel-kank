@@ -1,5 +1,6 @@
 import { Router, Response, Request } from 'express';
 import { db } from '../db.js';
+import { contactRateLimiter } from '../middleware/rateLimiter.js';
 
 const router = Router();
 
@@ -30,7 +31,7 @@ router.get('/announcements', (req: Request, res: Response) => {
 });
 
 // Contact message handler
-router.post('/contact', (req: Request, res: Response) => {
+router.post('/contact', contactRateLimiter, (req: Request, res: Response) => {
   const { name, email, subject, message } = req.body;
 
   if (!name || !email || !message) {

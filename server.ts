@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express, { Request, Response, NextFunction } from 'express';
 import path from 'path';
 import cors from 'cors';
+import helmet from 'helmet';
 import { createServer as createViteServer } from 'vite';
 
 import authRoutes from './server/routes/auth.js';
@@ -15,12 +16,58 @@ import { db } from './server/db.js';
 async function startServer() {
   const app = express();
   const PORT = parseInt(process.env.PORT || '3000', 10);
+  const isProduction = process.env.NODE_ENV === 'production';
 
   // Trust reverse proxy (Railway, Cloud Run, Cloudflare, Nginx)
   app.set('trust proxy', 1);
 
-  // Essential Middlewares
-  app.use(cors());
+  // Security Headers via Helmet
+  app.use(
+    helmet({
+      contentSecurityPolicy: false, // Prevents Vite / preview iframe / external CDN image blocking
+      crossOriginEmbedderPolicy: false,
+      crossOriginResourcePolicy: { policy: 'cross-origin' }, // Allows embedding uploaded images on external websites/forums
+      xFrameOptions: false, // Prevents breaking AI Studio iframe and legitimate embeds
+      xContentTypeOptions: true, // X-Content-Type-Options: nosniff
+      referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+      hsts: isProduction ? { maxAge: 31536000, includeSubDomains: true } : false,
+    })
+  );
+
+  // CORS Configuration
+  const allowedOrigins: (string | RegExp)[] = [
+    /^https?:\/\/localhost(:\d+)?$/,
+    /^https?:\/\/127\.0\.0\.1(:\d+)?$/,
+    /run\.app$/,
+    /web\.app$/,
+    /firebaseapp\.com$/,
+  ];
+
+  if (process.env.APP_URL) {
+    try {
+      const parsedUrl = new URL(process.env.APP_URL);
+      allowedOrigins.push(parsedUrl.origin);
+    } catch {
+      allowedOrigins.push(process.env.APP_URL);
+    }
+  }
+
+  app.use(
+    cors({
+      origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
+        const isAllowed = allowedOrigins.some((allowed) =>
+          typeof allowed === 'string' ? allowed === origin : allowed.test(origin)
+        );
+        if (isAllowed || !isProduction) {
+          return callback(null, true);
+        }
+        return callback(new Error('CORS kısıtlaması: Bu kaynaktan erişim engellendi.'), false);
+      },
+      credentials: true,
+    })
+  );
+
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
@@ -74,8 +121,16 @@ async function startServer() {
   // Central Express Error Handler
   app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     console.error('[AnlıkResim Server Error]:', err);
-    res.status(err.status || 500).json({
-      error: err.message || 'Sunucu tarafında beklenmeyen bir hata oluştu.',
+    const status = err.status && typeof err.status === 'number' ? err.status : 500;
+
+    if (isProduction && status === 500) {
+      return res.status(500).json({
+        error: 'İşleminiz gerçekleştirilirken bir sunucu hatası oluştu. Lütfen daha sonra tekrar deneyin.',
+      });
+    }
+
+    return res.status(status).json({
+      error: err.message || 'Sunucu tarafında bir hata oluştu.',
     });
   });
 

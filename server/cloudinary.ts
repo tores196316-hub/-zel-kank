@@ -1,6 +1,7 @@
 import { v2 as cloudinary } from 'cloudinary';
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
 
 const cloudName = process.env.CLOUDINARY_CLOUD_NAME || '';
 const apiKey = process.env.CLOUDINARY_API_KEY || '';
@@ -73,7 +74,7 @@ export async function uploadToCloudinary(
     });
   } else {
     // Local fallback when Cloudinary env vars are not set
-    const uniqueId = 'local_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
+    const uniqueId = 'local_' + Date.now() + '_' + crypto.randomBytes(4).toString('hex');
     const fileName = `${uniqueId}.${ext}`;
     const filePath = path.join(UPLOADS_DIR, fileName);
 
@@ -103,10 +104,13 @@ export async function deleteFromCloudinary(publicId: string): Promise<boolean> {
       return false;
     }
   } else {
-    // Local deletion
+    // Local deletion with strict basename matching
     try {
+      const safePublicId = path.basename(publicId);
+      if (!safePublicId || safePublicId === '.' || safePublicId === '/') return false;
+
       const files = fs.readdirSync(UPLOADS_DIR);
-      const target = files.find((f) => f.startsWith(publicId));
+      const target = files.find((f) => path.parse(f).name === safePublicId || f === safePublicId);
       if (target) {
         fs.unlinkSync(path.join(UPLOADS_DIR, target));
       }

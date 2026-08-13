@@ -26,3 +26,13 @@ export const apiRateLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
+
+export const contactRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // max 5 submissions per 15 minutes per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    error: 'Çok fazla bildirim veya mesaj gönderimi yapıldı. Lütfen 15 dakika sonra tekrar deneyin.',
+  },
+});
