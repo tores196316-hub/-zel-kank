@@ -14,6 +14,17 @@ import {
   Images,
   HelpCircle,
   Zap,
+  Volume2,
+  VolumeX,
+  Copy,
+  Check,
+  Maximize2,
+  Minimize2,
+  ShieldCheck,
+  Layers,
+  ThumbsUp,
+  ThumbsDown,
+  Info,
 } from 'lucide-react';
 import { assistantApi } from '../lib/api';
 
@@ -27,10 +38,12 @@ interface Message {
     path: string;
     icon?: string;
   };
+  feedback?: 'like' | 'dislike';
 }
 
 interface QuickFaq {
   id: string;
+  category: 'popular' | 'features' | 'premium' | 'security';
   question: string;
   shortLabel: string;
   icon: React.ReactNode;
@@ -41,9 +54,18 @@ interface QuickFaq {
   };
 }
 
+const CATEGORIES = [
+  { id: 'all', label: 'Tümü' },
+  { id: 'popular', label: '⭐ Popüler' },
+  { id: 'features', label: '⚡ Özellikler' },
+  { id: 'premium', label: '💎 Premium' },
+  { id: 'security', label: '🔒 Güvenlik' },
+] as const;
+
 const INSTANT_FAQS: QuickFaq[] = [
   {
     id: 'how_upload',
+    category: 'popular',
     question: 'Nasıl hızlı resim yükleyebilirim?',
     shortLabel: 'Resim Yükleme',
     icon: <Upload className="w-3.5 h-3.5" />,
@@ -58,7 +80,22 @@ const INSTANT_FAQS: QuickFaq[] = [
     },
   },
   {
+    id: 'paste_clipboard',
+    category: 'features',
+    question: 'Ekran görüntüsünü (Ctrl+V) yapıştırarak yükleyebilir miyim?',
+    shortLabel: 'Ctrl+V Yapıştırma',
+    icon: <Zap className="w-3.5 h-3.5" />,
+    instantAnswer: `**⚡ Panodan Hızlı Yapıştırma:**
+- **Evet!** Ekran alıntısı aracı (Win + Shift + S) veya panoda kopyalanmış herhangi bir resmi doğrudan AnlıkResim ana sayfasında **Ctrl + V** tuşlarına basarak saniyeler içinde yükleyebilirsiniz.
+- Hiçbir dosya kaydetme zahmetine girmeden anında paylaşım linki oluşturulur.`,
+    action: {
+      label: 'Hemen Dene',
+      path: '/yukle',
+    },
+  },
+  {
     id: 'limits',
+    category: 'popular',
     question: 'Dosya boyutu ve format limitleri nelerdir?',
     shortLabel: 'Format & Limitler',
     icon: <Zap className="w-3.5 h-3.5" />,
@@ -73,6 +110,7 @@ const INSTANT_FAQS: QuickFaq[] = [
   },
   {
     id: 'expiry',
+    category: 'popular',
     question: 'Yüklenen resimler ne kadar süre saklanır?',
     shortLabel: 'Saklama Süresi',
     icon: <HelpCircle className="w-3.5 h-3.5" />,
@@ -82,6 +120,7 @@ const INSTANT_FAQS: QuickFaq[] = [
   },
   {
     id: 'direct_url',
+    category: 'popular',
     question: 'Direkt link (Direct URL) ve BBCode nedir?',
     shortLabel: 'Direkt Link & BBCode',
     icon: <Sparkles className="w-3.5 h-3.5" />,
@@ -92,7 +131,22 @@ const INSTANT_FAQS: QuickFaq[] = [
 - **Markdown:** Discord, GitHub ve dokümanlar için \`![Görsel](url)\` formatıdır.`,
   },
   {
+    id: 'multi_upload',
+    category: 'features',
+    question: 'Aynı anda birden fazla resim (Toplu Yükleme) yapabilir miyim?',
+    shortLabel: 'Toplu Yükleme',
+    icon: <Layers className="w-3.5 h-3.5" />,
+    instantAnswer: `**📂 Toplu Resim Yükleme:**
+- **Evet!** Yükleme alanına birden çok resmi aynı anda sürükleyebilir veya dosya seçici üzerinden topluca seçebilirsiniz.
+- Tüm resimler sırayla hızlıca yüklenir ve her biri için toplu bağlantı listesi oluşturulur.`,
+    action: {
+      label: 'Toplu Yükle',
+      path: '/yukle',
+    },
+  },
+  {
     id: 'premium_perks',
+    category: 'premium',
     question: 'Premium üyeliğin avantajları nelerdir?',
     shortLabel: 'Premium Avantajları',
     icon: <Crown className="w-3.5 h-3.5" />,
@@ -109,6 +163,7 @@ const INSTANT_FAQS: QuickFaq[] = [
   },
   {
     id: 'delete_img',
+    category: 'security',
     question: 'Yüklediğim resmi nasıl silebilirim?',
     shortLabel: 'Resim Silme',
     icon: <Images className="w-3.5 h-3.5" />,
@@ -120,6 +175,24 @@ const INSTANT_FAQS: QuickFaq[] = [
       path: '/galerim',
     },
   },
+  {
+    id: 'privacy_security',
+    category: 'security',
+    question: 'Resimlerimin gizliliği ve güvenliği nasıl sağlanıyor?',
+    shortLabel: 'Gizlilik & Güvenlik',
+    icon: <ShieldCheck className="w-3.5 h-3.5" />,
+    instantAnswer: `**🔒 Gizlilik ve Güvenlik Standartları:**
+- Yüklediğiniz resimler yalnızca linkine sahip olan kişiler tarafından görüntülenebilir (Özel galeri ayarı yapılabilir).
+- Oturum açan kullanıcılar resimlerini istedikleri zaman tamamen kalıcı olarak silebilirler.
+- Sunucularımızda SSL 256-bit uçtan uca şifreleme uygulanmaktadır.`,
+  },
+];
+
+const RANDOM_TIPS = [
+  '💡 İpucu: Ekran görüntüsü aldıktan sonra doğrudan sayfaya gelip Ctrl+V yapabilirsiniz!',
+  '💡 İpucu: Forumlarda resim paylaşmak için hazır BBCode bağlantısını kopyalayabilirsiniz.',
+  '💡 İpucu: Üye olarak kendi özel albüm ve klasörlerinizi oluşturabilirsiniz.',
+  '💡 İpucu: Yüklediğiniz resimlerin görüntülenme ve indirilme istatistiklerini takip edebilirsiniz.',
 ];
 
 interface AiAssistantProps {
@@ -128,6 +201,12 @@ interface AiAssistantProps {
 
 export const AiAssistant: React.FC<AiAssistantProps> = ({ navigate }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<string>('all');
+  const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
+  const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null);
+  const [currentTipIndex, setCurrentTipIndex] = useState(0);
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'welcome',
@@ -141,6 +220,14 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({ navigate }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Rotate tips occasionally
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTipIndex((prev) => (prev + 1) % RANDOM_TIPS.length);
+    }, 9000);
+    return () => clearInterval(timer);
+  }, []);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -149,8 +236,61 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({ navigate }) => {
     if (isOpen) {
       scrollToBottom();
       setTimeout(() => inputRef.current?.focus(), 150);
+    } else {
+      // Stop speech when closed
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        setSpeakingMessageId(null);
+      }
     }
   }, [isOpen, messages]);
+
+  const handleCopyMessage = async (id: string, text: string) => {
+    try {
+      const cleanText = text.replace(/\*\*/g, '');
+      await navigator.clipboard.writeText(cleanText);
+      setCopiedMessageId(id);
+      setTimeout(() => setCopiedMessageId(null), 2000);
+    } catch (e) {
+      console.error('Kopyalama hatası:', e);
+    }
+  };
+
+  const handleSpeakMessage = (id: string, text: string) => {
+    if (!('speechSynthesis' in window)) return;
+
+    if (speakingMessageId === id) {
+      window.speechSynthesis.cancel();
+      setSpeakingMessageId(null);
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    const cleanText = text.replace(/\*\*/g, '').replace(/\[.*?\]\(.*?\)/g, '');
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.lang = 'tr-TR';
+    utterance.rate = 1.05;
+
+    utterance.onend = () => {
+      setSpeakingMessageId(null);
+    };
+    utterance.onerror = () => {
+      setSpeakingMessageId(null);
+    };
+
+    setSpeakingMessageId(id);
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const handleToggleFeedback = (id: string, feedbackType: 'like' | 'dislike') => {
+    setMessages((prev) =>
+      prev.map((msg) =>
+        msg.id === id
+          ? { ...msg, feedback: msg.feedback === feedbackType ? undefined : feedbackType }
+          : msg
+      )
+    );
+  };
 
   const handleSendCustomQuestion = async (customText?: string) => {
     const textToSend = (customText || inputValue).trim();
@@ -229,6 +369,10 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({ navigate }) => {
   };
 
   const handleClearChat = () => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      setSpeakingMessageId(null);
+    }
     setMessages([
       {
         id: 'welcome_' + Date.now(),
@@ -240,7 +384,6 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({ navigate }) => {
   };
 
   const renderFormattedText = (text: string) => {
-    // Simple, clean markdown-like renderer for bold and linebreaks
     const lines = text.split('\n');
     return (
       <div className="space-y-1.5 text-xs sm:text-[13px] leading-relaxed">
@@ -267,6 +410,10 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({ navigate }) => {
       </div>
     );
   };
+
+  const filteredFaqs = activeCategory === 'all'
+    ? INSTANT_FAQS
+    : INSTANT_FAQS.filter((f) => f.category === activeCategory);
 
   return (
     <>
@@ -298,7 +445,11 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({ navigate }) => {
         {/* Chat Window Modal / Popover */}
         {isOpen && (
           <div
-            className="w-[calc(100vw-2rem)] sm:w-[390px] h-[540px] max-h-[82vh] bg-[#0F172A] border border-slate-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-200"
+            className={`transition-all duration-300 ease-out bg-[#0F172A] border border-slate-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 ${
+              isExpanded
+                ? 'w-[calc(100vw-2rem)] sm:w-[540px] h-[680px] max-h-[90vh]'
+                : 'w-[calc(100vw-2rem)] sm:w-[410px] h-[550px] max-h-[82vh]'
+            }`}
             style={{ backdropFilter: 'blur(20px)' }}
           >
             {/* Header */}
@@ -311,15 +462,24 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({ navigate }) => {
                 <div>
                   <div className="flex items-center gap-1.5">
                     <h3 className="text-xs sm:text-sm font-bold text-white leading-none">AnlıkResim AI</h3>
-                    <span className="px-1.5 py-0.2 rounded bg-blue-500/20 border border-blue-500/30 text-[9px] font-semibold text-blue-300">
+                    <span className="px-1.5 py-0.2 rounded bg-blue-500/20 border border-blue-500/30 text-[9px] font-semibold text-blue-300 flex items-center gap-1">
+                      <Zap className="w-2.5 h-2.5" />
                       Işık Hızı
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-400 mt-0.5">Platform Asistanı & Rehber</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Platform Asistanı & Canlı Rehber</p>
                 </div>
               </div>
 
               <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setIsExpanded(!isExpanded)}
+                  title={isExpanded ? 'Küçült' : 'Genişlet'}
+                  aria-label={isExpanded ? 'Küçült' : 'Genişlet'}
+                  className="hidden sm:inline-flex p-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 rounded-lg transition-colors"
+                >
+                  {isExpanded ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+                </button>
                 <button
                   onClick={handleClearChat}
                   title="Sohbeti Temizle"
@@ -339,17 +499,37 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({ navigate }) => {
               </div>
             </div>
 
+            {/* Smart Tip Banner */}
+            <div className="px-3.5 py-1.5 bg-blue-950/30 border-b border-blue-900/30 flex items-center justify-between text-[11px] text-blue-300/90 shrink-0">
+              <div className="flex items-center gap-1.5 overflow-hidden text-ellipsis whitespace-nowrap">
+                <span className="truncate">{RANDOM_TIPS[currentTipIndex]}</span>
+              </div>
+            </div>
+
+            {/* Category Filter Chips */}
+            <div className="px-3 py-1.5 bg-[#0B0F19] border-b border-slate-800/60 overflow-x-auto no-scrollbar flex items-center gap-1.5 shrink-0">
+              {CATEGORIES.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setActiveCategory(cat.id)}
+                  className={`px-2.5 py-0.5 rounded-full text-[10px] font-medium transition-all whitespace-nowrap ${
+                    activeCategory === cat.id
+                      ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/30'
+                      : 'bg-slate-800/80 text-slate-400 hover:text-slate-200 hover:bg-slate-700/60'
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+
             {/* Quick Questions Carousel / Pills */}
             <div className="px-3 py-2 bg-[#0B0F19]/90 border-b border-slate-800/80 overflow-x-auto no-scrollbar flex items-center gap-1.5 shrink-0">
-              <span className="text-[10px] font-semibold text-slate-400 flex items-center gap-1 whitespace-nowrap pl-1 pr-1">
-                <Sparkles className="w-3 h-3 text-amber-400" />
-                Hazır Sorular:
-              </span>
-              {INSTANT_FAQS.map((faq) => (
+              {filteredFaqs.map((faq) => (
                 <button
                   key={faq.id}
                   onClick={() => handleSelectQuickFaq(faq)}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-800/80 hover:bg-blue-600/30 hover:border-blue-500/40 border border-slate-700/60 text-[11px] font-medium text-slate-200 hover:text-white transition-all whitespace-nowrap active:scale-95"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-800/80 hover:bg-blue-600/30 hover:border-blue-500/40 border border-slate-700/60 text-[11px] font-medium text-slate-200 hover:text-white transition-all whitespace-nowrap active:scale-95 shrink-0"
                 >
                   <span className="text-blue-400">{faq.icon}</span>
                   <span>{faq.shortLabel}</span>
@@ -377,7 +557,7 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({ navigate }) => {
                       </div>
                     )}
 
-                    <div className={`max-w-[82%] space-y-2 ${isUser ? 'items-end' : 'items-start'}`}>
+                    <div className={`max-w-[85%] space-y-1.5 ${isUser ? 'items-end' : 'items-start'}`}>
                       <div
                         className={`p-3 rounded-2xl ${
                           isUser
@@ -392,25 +572,93 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({ navigate }) => {
                         )}
                       </div>
 
-                      {/* Optional Action Button */}
-                      {!isUser && msg.action && (
-                        <button
-                          onClick={() => {
-                            if (msg.action?.path) {
-                              navigate(msg.action.path);
-                              setIsOpen(false);
-                            }
-                          }}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600/20 hover:bg-blue-600 text-blue-300 hover:text-white border border-blue-500/30 text-xs font-semibold transition-all duration-200 active:scale-95"
-                        >
-                          <span>{msg.action.label}</span>
-                          <ArrowRight className="w-3 h-3" />
-                        </button>
+                      {/* Bot Message Toolbar: Action Button, Speech, Copy, Feedback */}
+                      {!isUser && (
+                        <div className="flex items-center justify-between px-1 gap-2 pt-0.5">
+                          <div className="flex items-center gap-1.5">
+                            {msg.action && (
+                              <button
+                                onClick={() => {
+                                  if (msg.action?.path) {
+                                    navigate(msg.action.path);
+                                    setIsOpen(false);
+                                  }
+                                }}
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-600/20 hover:bg-blue-600 text-blue-300 hover:text-white border border-blue-500/30 text-[11px] font-semibold transition-all duration-200 active:scale-95"
+                              >
+                                <span>{msg.action.label}</span>
+                                <ArrowRight className="w-3 h-3" />
+                              </button>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-1 text-slate-400">
+                            {/* Copy button */}
+                            <button
+                              onClick={() => handleCopyMessage(msg.id, msg.text)}
+                              title="Cevabı Kopyala"
+                              className="p-1 hover:text-slate-200 hover:bg-slate-800/80 rounded transition-colors"
+                            >
+                              {copiedMessageId === msg.id ? (
+                                <Check className="w-3 h-3 text-emerald-400" />
+                              ) : (
+                                <Copy className="w-3 h-3" />
+                              )}
+                            </button>
+
+                            {/* TTS Voice Read button */}
+                            {'speechSynthesis' in window && (
+                              <button
+                                onClick={() => handleSpeakMessage(msg.id, msg.text)}
+                                title={speakingMessageId === msg.id ? 'Okumayı Durdur' : 'Sesli Dinle'}
+                                className={`p-1 rounded transition-colors ${
+                                  speakingMessageId === msg.id
+                                    ? 'text-amber-400 bg-amber-400/10'
+                                    : 'hover:text-slate-200 hover:bg-slate-800/80'
+                                }`}
+                              >
+                                {speakingMessageId === msg.id ? (
+                                  <VolumeX className="w-3 h-3 animate-pulse" />
+                                ) : (
+                                  <Volume2 className="w-3 h-3" />
+                                )}
+                              </button>
+                            )}
+
+                            {/* Like / Dislike */}
+                            <button
+                              onClick={() => handleToggleFeedback(msg.id, 'like')}
+                              title="Faydalı"
+                              className={`p-1 rounded transition-colors ${
+                                msg.feedback === 'like'
+                                  ? 'text-blue-400 bg-blue-500/10'
+                                  : 'hover:text-slate-200 hover:bg-slate-800/80'
+                              }`}
+                            >
+                              <ThumbsUp className="w-3 h-3" />
+                            </button>
+                            <button
+                              onClick={() => handleToggleFeedback(msg.id, 'dislike')}
+                              title="Faydasız"
+                              className={`p-1 rounded transition-colors ${
+                                msg.feedback === 'dislike'
+                                  ? 'text-rose-400 bg-rose-500/10'
+                                  : 'hover:text-slate-200 hover:bg-slate-800/80'
+                              }`}
+                            >
+                              <ThumbsDown className="w-3 h-3" />
+                            </button>
+
+                            <span className="text-[10px] text-slate-400 pl-1">{msg.timestamp}</span>
+                          </div>
+                        </div>
                       )}
 
-                      <span className={`block text-[10px] text-slate-400 px-1 ${isUser ? 'text-right' : 'text-left'}`}>
-                        {msg.timestamp}
-                      </span>
+                      {isUser && (
+                        <span className="block text-[10px] text-slate-400 px-1 text-right">
+                          {msg.timestamp}
+                        </span>
+                      )}
                     </div>
                   </div>
                 );

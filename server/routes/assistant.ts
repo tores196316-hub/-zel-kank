@@ -57,11 +57,30 @@ const KNOWLEDGE_BASE: Record<string, string> = {
 - Özel klasörleme ve etiketleme
 - Reklamsız ultra hızlı arayüz
 - Öncelikli küresel Cloudinary CDN dağıtımı`,
+
+  ctrl_v: `⚡ **Panodan Yapıştırma (Ctrl + V):**
+- Ekran görüntüsü veya kopyalanmış resmi doğrudan sitede **Ctrl + V** tuşlarına basarak yükleyebilirsiniz. Dosyayı diskinize kaydetmenize gerek kalmaz!`,
+
+  multi: `📂 **Toplu Resim Yükleme:**
+- Tek seferde onlarca resmi aynı anda sürükleyip bırakabilir ya da dosya seçici ile toplu seçebilirsiniz. Tüm resimler sırayla hızlıca işlenir.`,
+
+  security: `🔒 **Güvenlik ve Gizlilik:**
+- Resimleriniz güvenli SSL protokolü ile iletilir ve yüksek güvenlikli depolama birimlerinde saklanır.
+- Yalnızca paylaştığınız kişiler resimlerinizi görebilir. Dilediğiniz zaman silebilirsiniz.`,
 };
 
 function getLocalFallbackAnswer(query: string): string {
   const q = query.toLowerCase();
 
+  if (q.includes('ctrl') || q.includes('pano') || q.includes('yapıştır') || q.includes('paste')) {
+    return KNOWLEDGE_BASE.ctrl_v;
+  }
+  if (q.includes('toplu') || q.includes('birden') || q.includes('çoklu') || q.includes('aynı anda')) {
+    return KNOWLEDGE_BASE.multi;
+  }
+  if (q.includes('güven') || q.includes('gizli') || q.includes('ssl') || q.includes('kvkk')) {
+    return KNOWLEDGE_BASE.security;
+  }
   if (q.includes('yükle') || q.includes('upload') || q.includes('nasıl')) {
     return KNOWLEDGE_BASE.upload;
   }
