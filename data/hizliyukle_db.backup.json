@@ -1,0 +1,267 @@
+{
+  "users": [
+    {
+      "id": "usr_admin_1",
+      "email": "admin@hizliyukle.com",
+      "username": "admin",
+      "password_hash": "$2b$10$9vE1o5XsG1xtXtFywOGT0uwb43CfsXz/0Qm2Aoe/gMISV/z5Yv55S",
+      "role": "admin",
+      "created_at": "2026-08-13T17:56:01.465Z",
+      "status": "active",
+      "plan": "admin"
+    },
+    {
+      "id": "usr_demo_1",
+      "email": "kullanici@hizliyukle.com",
+      "username": "demo_user",
+      "password_hash": "$2b$10$UI.ukRrW1KCyAS2qUrPcPewg/yBtq2icq2LoeKGgP49..G5JgSD9a",
+      "role": "user",
+      "created_at": "2026-08-13T17:56:01.466Z",
+      "status": "active",
+      "plan": "free"
+    },
+    {
+      "id": "usr_owner_tores",
+      "email": "tores196316@gmail.com",
+      "username": "tores",
+      "password_hash": "$2b$10$NeoNyceRPtMH/4gyFhIQuOgG5S49ZpDkIKxlTmPwh0fkd/Q7CJwja",
+      "role": "admin",
+      "plan": "admin",
+      "created_at": "2026-08-13T19:17:07.215Z",
+      "status": "active"
+    },
+    {
+      "id": "usr_1786648691833_indu",
+      "email": "iremsaltanat002001@gmail.com",
+      "username": "taner619",
+      "password_hash": "$2b$10$AkbyR0CPy/5Vc2fgW69I3eM.q0bYLf0OSPHsWdWa7yk8Y4fm1gGji",
+      "role": "user",
+      "created_at": "2026-08-13T19:18:11.833Z",
+      "status": "active",
+      "plan": "free"
+    },
+    {
+      "id": "usr_1786652311358_1786797f",
+      "email": "testuser@example.com",
+      "username": "testuser",
+      "password_hash": "$2b$10$U07rMNwgoOFkXFmiK8q8aOk2UWt6hGeEI8.fhJ2zJ3oTo1C0d3Mmi",
+      "role": "user",
+      "created_at": "2026-08-13T20:18:31.359Z",
+      "status": "active",
+      "plan": "free"
+    },
+    {
+      "id": "usr_1786652354094_eead1c34",
+      "email": "demo_user@anlikresim.com",
+      "username": "demouser2",
+      "password_hash": "$2b$10$VIzw1M/VYaK7QDGM0jutfOyse/Orm4/P9y9/RSzg33MIwcweh.YX6",
+      "role": "user",
+      "created_at": "2026-08-13T20:19:14.094Z",
+      "status": "active",
+      "plan": "free"
+    },
+    {
+      "id": "usr_1786652627573_0715ed28",
+      "email": "qa_test_user@anlikresim.com",
+      "username": "qa_user_2026",
+      "password_hash": "$2b$10$1IVVFXr8rBUQgPV4GwYrj.DB0us9FjbJPearkxFxTRQqGKImL4f2a",
+      "role": "user",
+      "created_at": "2026-08-13T20:23:47.573Z",
+      "status": "active"
+    }
+  ],
+  "images": [
+    {
+      "id": "w38z0psk",
+      "user_id": "usr_1786648691833_indu",
+      "uploader_username": "taner619",
+      "cloudinary_public_id": "local_1786648937076_uibczr",
+      "cloudinary_url": "http://localhost:3000/uploads/local_1786648937076_uibczr.jpg",
+      "original_filename": "1000006910.jpg",
+      "format": "jpg",
+      "width": 1200,
+      "height": 800,
+      "size": 2842187,
+      "created_at": "2026-08-13T19:22:17.078Z",
+      "views": 1,
+      "downloads": 0,
+      "is_public": true,
+      "status": "active",
+      "delete_token": "del_z9o8nqrdil",
+      "is_favorite": false,
+      "folder_id": null
+    }
+  ],
+  "folders": [],
+  "reports": [],
+  "announcements": [
+    {
+      "id": "ann_1",
+      "title": "Hoş Geldiniz!",
+      "content": "Hızlı Yükle servisi ile resimlerinizi anında yükleyin, direkt bağlantılarınızı alın.",
+      "type": "info",
+      "active": true,
+      "created_at": "2026-08-13T17:56:01.466Z"
+    }
+  ],
+  "notifications": [
+    {
+      "id": "notif_1786648937078_42uu",
+      "user_id": "usr_1786648691833_indu",
+      "title": "Resim Yüklendi",
+      "message": "1 adet resminiz başarıyla sisteme yüklendi ve bağlantılarınız hazırlandı.",
+      "type": "success",
+      "read": false,
+      "created_at": "2026-08-13T19:22:17.078Z"
+    }
+  ],
+  "audit_logs": [],
+  "settings": {
+    "site_title": "Hızlı Yükle",
+    "site_description": "Hızlı, güvenli ve yüksek kaliteli resim yükleme ve paylaşım platformu",
+    "max_file_size_mb": 20,
+    "allow_guest_upload": true,
+    "allow_user_registration": true,
+    "maintenance_mode": false,
+    "announcement_enabled": true,
+    "announcement_text": "Hızlı Yükle v2.0 yayında! Artık sürükle-bırak ve toplu yükleme desteği mevcut.",
+    "allowed_formats": [
+      "jpg",
+      "jpeg",
+      "png",
+      "webp",
+      "gif"
+    ],
+    "header_ad_code": "",
+    "sidebar_ad_code": "",
+    "image_page_ad_code": "",
+    "plans": {
+      "free": {
+        "name": "Ücretsiz (Free)",
+        "daily_upload_limit": 15,
+        "max_file_size_mb": 10,
+        "storage_limit_gb": 1,
+        "ads_enabled": true,
+        "features": [
+          "15 Günlük Yükleme",
+          "10 MB Maksimum Dosya Boyutu",
+          "1 GB Güvenli Depolama",
+          "Doğrudan CDN Bağlantıları",
+          "Temel Klasörleme"
+        ]
+      },
+      "premium": {
+        "name": "Premium",
+        "daily_upload_limit": 100,
+        "max_file_size_mb": 30,
+        "storage_limit_gb": 15,
+        "ads_enabled": false,
+        "features": [
+          "100 Günlük Yükleme",
+          "30 MB Maksimum Dosya Boyutu",
+          "15 GB Güvenli Depolama",
+          "Tamamen Reklamsız Deneyim",
+          "Öncelikli CDN Bant Genişliği",
+          "Sınırsız Klasör Yönetimi"
+        ]
+      },
+      "vip": {
+        "name": "VIP",
+        "daily_upload_limit": 500,
+        "max_file_size_mb": 50,
+        "storage_limit_gb": 50,
+        "ads_enabled": false,
+        "features": [
+          "500 Günlük Yükleme",
+          "50 MB Maksimum Dosya Boyutu",
+          "50 GB Güvenli Depolama",
+          "Sıfır Reklam",
+          "Maksimum Hız ve Öncelik",
+          "Gelişmiş İstatistikler & VIP Rozeti"
+        ]
+      },
+      "admin": {
+        "name": "Yönetici (Admin)",
+        "daily_upload_limit": 9999,
+        "max_file_size_mb": 100,
+        "storage_limit_gb": 500,
+        "ads_enabled": false,
+        "features": [
+          "Sınırsız Yükleme",
+          "100 MB Dosya Boyutu",
+          "500 GB Depolama",
+          "Tam Yönetim Yetkisi"
+        ]
+      }
+    }
+  },
+  "logs": [
+    {
+      "id": "log_1786652635633_uxlp",
+      "level": "info",
+      "message": "Kullanıcı giriş yaptı: qa_user_2026",
+      "timestamp": "2026-08-13T20:23:55.633Z"
+    },
+    {
+      "id": "log_1786652632991_qua6",
+      "level": "info",
+      "message": "Kullanıcı giriş yaptı: qa_user_2026",
+      "timestamp": "2026-08-13T20:23:52.991Z"
+    },
+    {
+      "id": "log_1786652627574_wm86",
+      "level": "info",
+      "message": "Yeni kullanıcı kaydoldu: qa_user_2026 (qa_test_user@anlikresim.com)",
+      "timestamp": "2026-08-13T20:23:47.574Z"
+    },
+    {
+      "id": "log_1786652357118_n2qe",
+      "level": "info",
+      "message": "Kullanıcı giriş yaptı: demouser2",
+      "timestamp": "2026-08-13T20:19:17.118Z"
+    },
+    {
+      "id": "log_1786652354095_dxcv",
+      "level": "info",
+      "message": "Yeni kullanıcı kaydoldu: demouser2 (demo_user@anlikresim.com)",
+      "timestamp": "2026-08-13T20:19:14.095Z"
+    },
+    {
+      "id": "log_1786652315525_v795",
+      "level": "info",
+      "message": "Kullanıcı giriş yaptı: testuser",
+      "timestamp": "2026-08-13T20:18:35.525Z"
+    },
+    {
+      "id": "log_1786652311359_snn3",
+      "level": "info",
+      "message": "Yeni kullanıcı kaydoldu: testuser (testuser@example.com)",
+      "timestamp": "2026-08-13T20:18:31.359Z"
+    },
+    {
+      "id": "log_1786651456780_zki6",
+      "level": "info",
+      "message": "Kullanıcı giriş yaptı: taner619",
+      "timestamp": "2026-08-13T20:04:16.780Z"
+    },
+    {
+      "id": "log_1786651080325_zqod",
+      "level": "info",
+      "message": "Kullanıcı giriş yaptı: admin",
+      "timestamp": "2026-08-13T19:58:00.325Z"
+    },
+    {
+      "id": "log_1786648937078_c43z",
+      "level": "info",
+      "message": "Resim yüklendi: w38z0psk (1000006910.jpg) - 2842187 bytes",
+      "timestamp": "2026-08-13T19:22:17.078Z"
+    },
+    {
+      "id": "log_1786648691834_o37d",
+      "level": "info",
+      "message": "Yeni kullanıcı kaydoldu: taner619 (iremsaltanat002001@gmail.com)",
+      "timestamp": "2026-08-13T19:18:11.834Z"
+    }
+  ],
+  "view_logs": []
+}

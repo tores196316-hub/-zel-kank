@@ -34,36 +34,10 @@ async function startServer() {
     })
   );
 
-  // CORS Configuration
-  const allowedOrigins: (string | RegExp)[] = [
-    /^https?:\/\/localhost(:\d+)?$/,
-    /^https?:\/\/127\.0\.0\.1(:\d+)?$/,
-    /run\.app$/,
-    /web\.app$/,
-    /firebaseapp\.com$/,
-  ];
-
-  if (process.env.APP_URL) {
-    try {
-      const parsedUrl = new URL(process.env.APP_URL);
-      allowedOrigins.push(parsedUrl.origin);
-    } catch {
-      allowedOrigins.push(process.env.APP_URL);
-    }
-  }
-
+  // CORS Configuration - Permissive for image hosting & cross-origin embeddings
   app.use(
     cors({
-      origin: (origin, callback) => {
-        if (!origin) return callback(null, true);
-        const isAllowed = allowedOrigins.some((allowed) =>
-          typeof allowed === 'string' ? allowed === origin : allowed.test(origin)
-        );
-        if (isAllowed || !isProduction) {
-          return callback(null, true);
-        }
-        return callback(new Error('CORS kısıtlaması: Bu kaynaktan erişim engellendi.'), false);
-      },
+      origin: true,
       credentials: true,
     })
   );
@@ -121,16 +95,14 @@ async function startServer() {
   // Central Express Error Handler
   app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     console.error('[AnlıkResim Server Error]:', err);
-    const status = err.status && typeof err.status === 'number' ? err.status : 500;
-
-    if (isProduction && status === 500) {
-      return res.status(500).json({
-        error: 'İşleminiz gerçekleştirilirken bir sunucu hatası oluştu. Lütfen daha sonra tekrar deneyin.',
-      });
-    }
+    const status = (typeof err.status === 'number' && err.status >= 400 && err.status < 600)
+      ? err.status
+      : (typeof err.statusCode === 'number' && err.statusCode >= 400 && err.statusCode < 600)
+      ? err.statusCode
+      : 500;
 
     return res.status(status).json({
-      error: err.message || 'Sunucu tarafında bir hata oluştu.',
+      error: err.message || (status === 500 ? 'İşleminiz gerçekleştirilirken bir sunucu hatası oluştu. Lütfen daha sonra tekrar deneyin.' : 'İşlem gerçekleştirilemedi.'),
     });
   });
 
