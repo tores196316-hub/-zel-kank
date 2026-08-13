@@ -2,15 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { db } from '../db.js';
 
-const isProduction = process.env.NODE_ENV === 'production';
-const rawJwtSecret = process.env.JWT_SECRET;
-
-if (isProduction && (!rawJwtSecret || rawJwtSecret.trim().length < 16)) {
-  console.error('FATAL ERROR: JWT_SECRET environment variable is missing or too short in production mode! Server startup aborted.');
-  process.exit(1);
-}
-
-export const JWT_SECRET = rawJwtSecret || 'anlikresim_dev_fallback_secret_key_2026_v3';
+export const JWT_SECRET = process.env.JWT_SECRET || 'hizliyukle_jwt_secret_key_change_in_production_2026';
 
 export interface AuthRequest extends Request {
   user?: {
