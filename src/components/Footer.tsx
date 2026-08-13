@@ -40,6 +40,16 @@ export const Footer: React.FC<FooterProps> = ({ navigate }) => {
                 </button>
               </li>
               <li>
+                <button onClick={() => navigate('/premium')} className="hover:text-blue-400 transition-colors">
+                  Planlar & Paketler
+                </button>
+              </li>
+              <li>
+                <button onClick={() => navigate('/duyurular')} className="hover:text-blue-400 transition-colors">
+                  Duyurular
+                </button>
+              </li>
+              <li>
                 <button onClick={() => navigate('/hakkimizda')} className="hover:text-blue-400 transition-colors">
                   Hakkımızda
                 </button>

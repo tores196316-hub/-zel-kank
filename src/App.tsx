@@ -7,6 +7,11 @@ import { Footer } from './components/Footer';
 import { HomePage } from './pages/HomePage';
 import { UploadPage } from './pages/UploadPage';
 import { GalleryPage } from './pages/GalleryPage';
+import { DashboardPage } from './pages/DashboardPage';
+import { ProfilePage } from './pages/ProfilePage';
+import { SettingsPage } from './pages/SettingsPage';
+import { PremiumPage } from './pages/PremiumPage';
+import { AnnouncementsPage } from './pages/AnnouncementsPage';
 import { ImageDetailPage } from './pages/ImageDetailPage';
 import { AboutPage } from './pages/AboutPage';
 import { HelpPage } from './pages/HelpPage';
@@ -15,7 +20,6 @@ import { PrivacyPage } from './pages/PrivacyPage';
 import { ContactPage } from './pages/ContactPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
-import { ProfilePage } from './pages/ProfilePage';
 import { AdminPage } from './pages/AdminPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
@@ -50,6 +54,21 @@ export default function App() {
     if (path === '/galerim') {
       return <GalleryPage navigate={navigate} />;
     }
+    if (path === '/panel') {
+      return <DashboardPage navigate={navigate} />;
+    }
+    if (path === '/profil') {
+      return <ProfilePage navigate={navigate} />;
+    }
+    if (path === '/ayarlar') {
+      return <SettingsPage navigate={navigate} />;
+    }
+    if (path === '/premium') {
+      return <PremiumPage navigate={navigate} />;
+    }
+    if (path === '/duyurular') {
+      return <AnnouncementsPage />;
+    }
     if (path === '/hakkimizda') {
       return <AboutPage />;
     }
@@ -70,9 +89,6 @@ export default function App() {
     }
     if (path === '/kayit') {
       return <RegisterPage navigate={navigate} />;
-    }
-    if (path === '/profil') {
-      return <ProfilePage navigate={navigate} />;
     }
     if (path === '/admin') {
       return <AdminPage navigate={navigate} />;

@@ -1,4 +1,4 @@
-import { AdminStats, Announcement, Folder, ImageMetadata, Report, SiteSettings, UploadResult, User } from '../types';
+import { AdminStats, AnalyticsData, Announcement, AuditLog, Folder, ImageMetadata, Notification, PlanConfig, Report, SiteSettings, UploadResult, User } from '../types';
 
 const TOKEN_KEY = 'hizliyukle_auth_token';
 
@@ -58,10 +58,28 @@ export const authApi = {
 
   getMe: () => request<{ user: User | null }>('/api/auth/me'),
 
-  updateProfile: (password?: string, new_password?: string) =>
+  updateProfile: (params: { password?: string; new_password?: string; email?: string; username?: string }) =>
     request<{ message: string }>('/api/auth/profile', {
       method: 'PUT',
-      body: JSON.stringify({ password, new_password }),
+      body: JSON.stringify(params),
+    }),
+
+  deleteAccount: (password: string) =>
+    request<{ message: string }>('/api/auth/account', {
+      method: 'DELETE',
+      body: JSON.stringify({ password }),
+    }),
+
+  getNotifications: () => request<{ notifications: Notification[] }>('/api/auth/notifications'),
+
+  markNotificationRead: (id: string) =>
+    request<{ success: boolean }>(`/api/auth/notifications/${id}/read`, {
+      method: 'POST',
+    }),
+
+  markAllNotificationsRead: () =>
+    request<{ success: boolean }>('/api/auth/notifications/read-all', {
+      method: 'POST',
     }),
 
   logout: () =>
@@ -186,11 +204,48 @@ export const publicApi = {
 // Admin API
 export const adminApi = {
   getStats: () => request<AdminStats>('/api/admin/stats'),
-  getUsers: () => request<{ users: User[] }>('/api/admin/users'),
+  
+  getUsers: (params?: { q?: string; plan?: string; status?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.q) query.append('q', params.q);
+    if (params?.plan) query.append('plan', params.plan);
+    if (params?.status) query.append('status', params.status);
+    const qs = query.toString();
+    return request<{ users: User[] }>(`/api/admin/users${qs ? `?${qs}` : ''}`);
+  },
+
+  getUserDetail: (id: string) =>
+    request<{ user: User; stats: any; plan_limits: PlanConfig; images: ImageMetadata[] }>(`/api/admin/users/${id}`),
+
   updateUserStatus: (id: string, status: 'active' | 'banned') =>
     request<{ message: string }>(`/api/admin/users/${id}/status`, {
       method: 'PUT',
       body: JSON.stringify({ status }),
+    }),
+
+  updateUserPlan: (id: string, plan: string) =>
+    request<{ message: string }>(`/api/admin/users/${id}/plan`, {
+      method: 'PUT',
+      body: JSON.stringify({ plan }),
+    }),
+
+  deleteUser: (id: string) =>
+    request<{ message: string }>(`/api/admin/users/${id}`, {
+      method: 'DELETE',
+    }),
+
+  getPlans: () => request<{ plans: Record<string, PlanConfig> }>('/api/admin/plans'),
+
+  updatePlans: (plans: Record<string, PlanConfig>) =>
+    request<{ message: string }>('/api/admin/plans', {
+      method: 'PUT',
+      body: JSON.stringify(plans),
+    }),
+
+  updatePlanLimits: (planKey: string, updates: Partial<PlanConfig>) =>
+    request<{ message: string }>(`/api/admin/plans/${planKey}`, {
+      method: 'PUT',
+      body: JSON.stringify(updates),
     }),
 
   getImages: () => request<{ images: ImageMetadata[] }>('/api/admin/images'),
@@ -200,10 +255,10 @@ export const adminApi = {
     }),
 
   getReports: () => request<{ reports: Report[] }>('/api/admin/reports'),
-  updateReportStatus: (id: string, status: 'reviewed' | 'dismissed') =>
+  updateReportStatus: (id: string, status: 'pending' | 'investigating' | 'resolved' | 'dismissed', notes?: string) =>
     request<{ message: string }>(`/api/admin/reports/${id}`, {
       method: 'PUT',
-      body: JSON.stringify({ status }),
+      body: JSON.stringify({ status, notes }),
     }),
 
   getAnnouncements: () => request<{ announcements: Announcement[] }>('/api/admin/announcements'),
@@ -223,6 +278,10 @@ export const adminApi = {
       method: 'PUT',
       body: JSON.stringify(settings),
     }),
+
+  getAuditLogs: () => request<{ audit_logs: AuditLog[] }>('/api/admin/audit-logs'),
+
+  getAnalytics: () => request<{ analytics: AnalyticsData }>('/api/admin/analytics'),
 
   getHealth: () =>
     request<{

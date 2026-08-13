@@ -15,6 +15,11 @@ router.get('/settings', (req: Request, res: Response) => {
     maintenance_mode: settings.maintenance_mode,
     announcement_enabled: settings.announcement_enabled,
     announcement_text: settings.announcement_text,
+    plans: settings.plans || {},
+    allowed_formats: settings.allowed_formats || ['jpg', 'jpeg', 'png', 'webp', 'gif'],
+    header_ad_code: settings.header_ad_code || '',
+    sidebar_ad_code: settings.sidebar_ad_code || '',
+    image_page_ad_code: settings.image_page_ad_code || '',
   });
 });
 

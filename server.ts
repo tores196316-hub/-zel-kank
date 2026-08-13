@@ -39,7 +39,7 @@ async function startServer() {
   app.get('/robots.txt', (req, res) => {
     const baseUrl = (req.protocol + '://' + req.get('host')) || 'https://anlikresim.com';
     res.type('text/plain');
-    res.send(`User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api/\nSitemap: ${baseUrl}/sitemap.xml`);
+    res.send(`User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /panel\nDisallow: /profil\nDisallow: /ayarlar\nDisallow: /api/\nSitemap: ${baseUrl}/sitemap.xml`);
   });
 
   // SEO: Dynamic Sitemap.xml
@@ -47,7 +47,7 @@ async function startServer() {
     const baseUrl = (req.protocol + '://' + req.get('host')) || 'https://anlikresim.com';
     const images = db.getImages().slice(0, 100);
 
-    const staticPages = ['', '/yukle', '/galerim', '/hakkimizda', '/yardim', '/sartlar', '/gizlilik', '/iletisim'];
+    const staticPages = ['', '/yukle', '/premium', '/duyurular', '/hakkimizda', '/yardim', '/sartlar', '/gizlilik', '/iletisim'];
     const now = new Date().toISOString();
 
     let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;

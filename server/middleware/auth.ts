@@ -10,6 +10,7 @@ export interface AuthRequest extends Request {
     email: string;
     username: string;
     role: 'admin' | 'user';
+    plan?: string;
   };
 }
 
@@ -39,6 +40,7 @@ export function authenticateToken(req: AuthRequest, res: Response, next: NextFun
       email: dbUser.email,
       username: dbUser.username,
       role: dbUser.role,
+      plan: dbUser.plan || (dbUser.role === 'admin' ? 'admin' : 'free'),
     };
     next();
   } catch (err) {

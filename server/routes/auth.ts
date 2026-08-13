@@ -145,6 +145,9 @@ router.get('/me', authenticateToken, (req: AuthRequest, res: Response) => {
   }
 
   const stats = db.getUserStats(dbUser.id);
+  const planName = dbUser.plan || (dbUser.role === 'admin' ? 'admin' : 'free');
+  const planLimits = db.getPlanLimits(planName);
+  const todayUploads = db.getUserDailyUploadCount(dbUser.id);
 
   return res.json({
     user: {
@@ -152,10 +155,12 @@ router.get('/me', authenticateToken, (req: AuthRequest, res: Response) => {
       email: dbUser.email,
       username: dbUser.username,
       role: dbUser.role,
-      plan: dbUser.plan || (dbUser.role === 'admin' ? 'admin' : 'free'),
+      plan: planName,
       created_at: dbUser.created_at,
       image_count: stats.total_images,
       stats,
+      plan_limits: planLimits,
+      today_uploads: todayUploads,
     },
   });
 });
@@ -163,7 +168,7 @@ router.get('/me', authenticateToken, (req: AuthRequest, res: Response) => {
 // Update Profile
 router.put('/profile', authenticateToken, requireAuth, async (req: AuthRequest, res: Response) => {
   try {
-    const { password, new_password } = req.body;
+    const { password, new_password, email, username } = req.body;
     const userId = req.user!.id;
 
     const user = db.getUserById(userId);
@@ -171,9 +176,22 @@ router.put('/profile', authenticateToken, requireAuth, async (req: AuthRequest, 
       return res.status(404).json({ error: 'Kullanıcı bulunamadı.' });
     }
 
+    const updates: Partial<UserRecord> = {};
+
+    // If changing email
+    if (email && email.trim() !== user.email) {
+      const cleanEmail = email.trim().toLowerCase();
+      const existing = db.getUserByEmail(cleanEmail);
+      if (existing && existing.id !== userId) {
+        return res.status(400).json({ error: 'Bu e-posta adresi başka bir hesap tarafından kullanılıyor.' });
+      }
+      updates.email = cleanEmail;
+    }
+
+    // If changing password
     if (new_password) {
       if (!password) {
-        return res.status(400).json({ error: 'Mevcut şifrenizi girmelisiniz.' });
+        return res.status(400).json({ error: 'Şifrenizi değiştirmek için mevcut şifrenizi girmelisiniz.' });
       }
 
       const isMatch = await bcrypt.compare(password, user.password_hash);
@@ -185,14 +203,68 @@ router.put('/profile', authenticateToken, requireAuth, async (req: AuthRequest, 
         return res.status(400).json({ error: 'Yeni şifre en az 6 karakter olmalıdır.' });
       }
 
-      const newHash = await bcrypt.hash(new_password, 10);
-      db.updateUser(userId, { password_hash: newHash });
+      updates.password_hash = await bcrypt.hash(new_password, 10);
+    }
+
+    if (Object.keys(updates).length > 0) {
+      db.updateUser(userId, updates);
+      db.addAuditLog('USER_PROFILE_UPDATED', user.id, user.username, user.username, 'Kullanıcı profilini güncelledi');
     }
 
     return res.json({ message: 'Profil bilgileriniz başarıyla güncellendi.' });
   } catch (err: any) {
     return res.status(500).json({ error: 'Profil güncellenirken hata oluştu.' });
   }
+});
+
+// Delete Account
+router.delete('/account', authenticateToken, requireAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    const { password } = req.body;
+    const userId = req.user!.id;
+
+    const user = db.getUserById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'Kullanıcı bulunamadı.' });
+    }
+
+    if (user.role === 'admin') {
+      return res.status(400).json({ error: 'Admin hesabı bu menüden silinemez.' });
+    }
+
+    if (!password) {
+      return res.status(400).json({ error: 'Hesabınızı silmek için şifrenizi girmelisiniz.' });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password_hash);
+    if (!isMatch) {
+      return res.status(400).json({ error: 'Girdiğiniz şifre hatalı.' });
+    }
+
+    db.addAuditLog('USER_SELF_DELETED', user.id, user.username, user.username, 'Kullanıcı kendi hesabını sildi');
+    db.deleteUser(userId);
+
+    return res.json({ message: 'Hesabınız başarıyla silindi.' });
+  } catch (err: any) {
+    return res.status(500).json({ error: 'Hesap silinirken bir sorun oluştu.' });
+  }
+});
+
+// User Notifications
+router.get('/notifications', authenticateToken, requireAuth, (req: AuthRequest, res: Response) => {
+  const notifications = db.getNotificationsByUserId(req.user!.id);
+  return res.json({ notifications });
+});
+
+router.post('/notifications/:id/read', authenticateToken, requireAuth, (req: AuthRequest, res: Response) => {
+  const { id } = req.params;
+  const success = db.markNotificationAsRead(id, req.user!.id);
+  return res.json({ success });
+});
+
+router.post('/notifications/read-all', authenticateToken, requireAuth, (req: AuthRequest, res: Response) => {
+  const success = db.markAllNotificationsAsRead(req.user!.id);
+  return res.json({ success });
 });
 
 // Logout

@@ -77,15 +77,41 @@ router.post('/upload', uploadRateLimiter, authenticateToken, upload.array('files
     }
 
     const targetFolderId = req.body.folder_id || null;
-    const maxBytes = (settings.max_file_size_mb || 20) * 1024 * 1024;
-    const results = [];
+    const userPlan = req.user ? req.user.plan || (req.user.role === 'admin' ? 'admin' : 'free') : 'free';
+    const planLimits = db.getPlanLimits(userPlan);
 
+    // 1. Daily Upload Limit Check (for logged in users)
+    if (req.user && req.user.role !== 'admin') {
+      const todayCount = db.getUserDailyUploadCount(req.user.id);
+      if (todayCount + files.length > planLimits.daily_upload_limit) {
+        return res.status(403).json({
+          error: `Bugünkü yükleme limitine ulaştınız (${todayCount}/${planLimits.daily_upload_limit}). Daha yüksek limitler için planınızı yükseltebilirsiniz.`,
+        });
+      }
+    }
+
+    // 2. Storage Limit Check (for logged in users)
+    if (req.user && req.user.role !== 'admin') {
+      const currentStorageBytes = db.getUserStorageUsed(req.user.id);
+      const incomingBytes = files.reduce((acc, f) => acc + f.size, 0);
+      const maxStorageBytes = planLimits.storage_limit_gb * 1024 * 1024 * 1024;
+
+      if (currentStorageBytes + incomingBytes > maxStorageBytes) {
+        const usedGb = (currentStorageBytes / (1024 * 1024 * 1024)).toFixed(2);
+        return res.status(403).json({
+          error: `Depolama limitinizi aşıyorsunuz. Kullanılan: ${usedGb} GB / Limit: ${planLimits.storage_limit_gb} GB. Lütfen eski resimlerinizi silin veya planınızı yükseltin.`,
+        });
+      }
+    }
+
+    const maxFileBytes = (planLimits.max_file_size_mb || 20) * 1024 * 1024;
+    const results = [];
     const appUrl = (req.protocol + '://' + req.get('host')) || process.env.APP_URL || 'http://localhost:3000';
 
     for (const file of files) {
-      if (file.size > maxBytes) {
+      if (file.size > maxFileBytes) {
         return res.status(400).json({
-          error: `"${file.originalname}" dosyası çok büyük. Maksimum dosya boyutu ${settings.max_file_size_mb} MB olmalıdır.`,
+          error: `"${file.originalname}" dosyası (${(file.size / (1024 * 1024)).toFixed(1)} MB) çok büyük. ${planLimits.name} planında maksimum dosya boyutu ${planLimits.max_file_size_mb} MB'dir.`,
         });
       }
 
@@ -128,6 +154,28 @@ router.post('/upload', uploadRateLimiter, authenticateToken, upload.array('files
       db.addLog('info', `Resim yüklendi: ${imageId} (${file.originalname}) - ${uploadRes.size} bytes`);
 
       results.push(buildUploadResult(imageRecord, appUrl));
+    }
+
+    // Add user notification if logged in
+    if (req.user) {
+      db.createNotification(
+        req.user.id,
+        'Resim Yüklendi',
+        `${results.length} adet resminiz başarıyla sisteme yüklendi ve bağlantılarınız hazırlandı.`,
+        'success'
+      );
+
+      // Check if approaching 85% storage
+      const updatedStorage = db.getUserStorageUsed(req.user.id);
+      const maxStorage = planLimits.storage_limit_gb * 1024 * 1024 * 1024;
+      if (updatedStorage > maxStorage * 0.85 && req.user.role !== 'admin') {
+        db.createNotification(
+          req.user.id,
+          'Depolama Uyarısı',
+          `Depolama alanınızın %85'inden fazlasını kullandınız. Limit: ${planLimits.storage_limit_gb} GB.`,
+          'warning'
+        );
+      }
     }
 
     return res.json({

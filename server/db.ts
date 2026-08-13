@@ -50,7 +50,8 @@ export interface ReportRecord {
   image_id: string;
   reason: string;
   ip: string;
-  status: 'pending' | 'reviewed' | 'dismissed';
+  status: 'pending' | 'investigating' | 'resolved' | 'dismissed';
+  notes?: string;
   created_at: string;
 }
 
@@ -61,6 +62,35 @@ export interface AnnouncementRecord {
   type: 'info' | 'warning' | 'success';
   active: boolean;
   created_at: string;
+}
+
+export interface NotificationRecord {
+  id: string;
+  user_id: string;
+  title: string;
+  message: string;
+  type: 'info' | 'warning' | 'success';
+  read: boolean;
+  created_at: string;
+}
+
+export interface AuditLogRecord {
+  id: string;
+  action: string;
+  actor_id?: string;
+  actor_username?: string;
+  target?: string;
+  details?: string;
+  created_at: string;
+}
+
+export interface PlanConfig {
+  name: string;
+  daily_upload_limit: number;
+  max_file_size_mb: number;
+  storage_limit_gb: number;
+  ads_enabled: boolean;
+  features: string[];
 }
 
 export interface SiteSettingsRecord {
@@ -76,6 +106,7 @@ export interface SiteSettingsRecord {
   header_ad_code?: string;
   sidebar_ad_code?: string;
   image_page_ad_code?: string;
+  plans?: Record<string, PlanConfig>;
 }
 
 export interface DatabaseSchema {
@@ -84,10 +115,47 @@ export interface DatabaseSchema {
   folders: FolderRecord[];
   reports: ReportRecord[];
   announcements: AnnouncementRecord[];
+  notifications: NotificationRecord[];
+  audit_logs: AuditLogRecord[];
   settings: SiteSettingsRecord;
   logs: { id: string; level: string; message: string; timestamp: string }[];
   view_logs: { image_id: string; ip: string; timestamp: number }[];
 }
+
+const defaultPlans: Record<string, PlanConfig> = {
+  free: {
+    name: 'Ücretsiz (Free)',
+    daily_upload_limit: 15,
+    max_file_size_mb: 10,
+    storage_limit_gb: 1,
+    ads_enabled: true,
+    features: ['15 Günlük Yükleme', '10 MB Maksimum Dosya Boyutu', '1 GB Güvenli Depolama', 'Doğrudan CDN Bağlantıları', 'Temel Klasörleme'],
+  },
+  premium: {
+    name: 'Premium',
+    daily_upload_limit: 100,
+    max_file_size_mb: 30,
+    storage_limit_gb: 15,
+    ads_enabled: false,
+    features: ['100 Günlük Yükleme', '30 MB Maksimum Dosya Boyutu', '15 GB Güvenli Depolama', 'Tamamen Reklamsız Deneyim', 'Öncelikli CDN Bant Genişliği', 'Sınırsız Klasör Yönetimi'],
+  },
+  vip: {
+    name: 'VIP',
+    daily_upload_limit: 500,
+    max_file_size_mb: 50,
+    storage_limit_gb: 50,
+    ads_enabled: false,
+    features: ['500 Günlük Yükleme', '50 MB Maksimum Dosya Boyutu', '50 GB Güvenli Depolama', 'Sıfır Reklam', 'Maksimum Hız ve Öncelik', 'Gelişmiş İstatistikler & VIP Rozeti'],
+  },
+  admin: {
+    name: 'Yönetici (Admin)',
+    daily_upload_limit: 9999,
+    max_file_size_mb: 100,
+    storage_limit_gb: 500,
+    ads_enabled: false,
+    features: ['Sınırsız Yükleme', '100 MB Dosya Boyutu', '500 GB Depolama', 'Tam Yönetim Yetkisi'],
+  },
+};
 
 const defaultSettings: SiteSettingsRecord = {
   site_title: 'AnlıkResim',
@@ -97,11 +165,12 @@ const defaultSettings: SiteSettingsRecord = {
   allow_user_registration: true,
   maintenance_mode: false,
   announcement_enabled: true,
-  announcement_text: 'AnlıkResim V2 yayında! Sürükle-bırak, klasörler, favoriler ve gelişmiş paylaşım kodları aktif.',
+  announcement_text: 'AnlıkResim V3 yayında! Kullanıcı Paneli, Plan Altyapısı, Gelişmiş Ayarlar ve Bildirimler aktif.',
   allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'gif'],
   header_ad_code: '',
   sidebar_ad_code: '',
   image_page_ad_code: '',
+  plans: defaultPlans,
 };
 
 class Database {
@@ -114,6 +183,8 @@ class Database {
       folders: [],
       reports: [],
       announcements: [],
+      notifications: [],
+      audit_logs: [],
       settings: defaultSettings,
       logs: [],
       view_logs: [],
@@ -137,10 +208,15 @@ class Database {
             folders: Array.isArray(parsed.folders) ? parsed.folders : [],
             reports: Array.isArray(parsed.reports) ? parsed.reports : [],
             announcements: Array.isArray(parsed.announcements) ? parsed.announcements : [],
-            settings: parsed.settings || defaultSettings,
+            notifications: Array.isArray(parsed.notifications) ? parsed.notifications : [],
+            audit_logs: Array.isArray(parsed.audit_logs) ? parsed.audit_logs : [],
+            settings: { ...defaultSettings, ...(parsed.settings || {}) },
             logs: Array.isArray(parsed.logs) ? parsed.logs : [],
             view_logs: Array.isArray(parsed.view_logs) ? parsed.view_logs : [],
           };
+          if (!this.data.settings.plans) {
+            this.data.settings.plans = defaultPlans;
+          }
         }
       }
       this.seedInitialData();
@@ -157,6 +233,9 @@ class Database {
     if (!this.data.images) this.data.images = [];
     if (!this.data.folders) this.data.folders = [];
     if (!this.data.reports) this.data.reports = [];
+    if (!this.data.announcements) this.data.announcements = [];
+    if (!this.data.notifications) this.data.notifications = [];
+    if (!this.data.audit_logs) this.data.audit_logs = [];
     if (!this.data.logs) this.data.logs = [];
     if (!this.data.view_logs) this.data.view_logs = [];
 
@@ -169,6 +248,7 @@ class Database {
       username: 'admin',
       password_hash: adminPasswordHash,
       role: 'admin',
+      plan: 'admin',
       created_at: new Date().toISOString(),
       status: 'active',
     };
@@ -179,6 +259,7 @@ class Database {
       username: 'demo_user',
       password_hash: demoPasswordHash,
       role: 'user',
+      plan: 'free',
       created_at: new Date().toISOString(),
       status: 'active',
     };
@@ -191,16 +272,26 @@ class Database {
       this.data.users.push(defaultUser);
     }
 
+    // Ensure all existing users have a plan
+    this.data.users.forEach((u) => {
+      if (!u.plan) {
+        u.plan = u.role === 'admin' ? 'admin' : 'free';
+      }
+    });
+
     if (!this.data.settings) {
       this.data.settings = defaultSettings;
+    }
+    if (!this.data.settings.plans) {
+      this.data.settings.plans = defaultPlans;
     }
 
     if (!this.data.announcements || this.data.announcements.length === 0) {
       this.data.announcements = [
         {
           id: 'ann_1',
-          title: 'Hoş Geldiniz!',
-          content: 'AnlıkResim servisi ile resimlerinizi anında yükleyin, direkt bağlantılarınızı alın.',
+          title: 'AnlıkResim V3 Yayında!',
+          content: 'Kullanıcı Paneli, Plan Altyapısı (Free / Premium / VIP), Gelişmiş Ayarlar, Bildirimler ve Detaylı İstatistikler kullanıma sunuldu.',
           type: 'info',
           active: true,
           created_at: new Date().toISOString(),
@@ -332,14 +423,190 @@ class Database {
     return this.data.reports;
   }
 
-  public updateReportStatus(id: string, status: 'reviewed' | 'dismissed'): boolean {
+  public updateReportStatus(id: string, status: 'pending' | 'investigating' | 'resolved' | 'dismissed', notes?: string): boolean {
     const r = this.data.reports.find((item) => item.id === id);
     if (r) {
       r.status = status;
+      if (notes !== undefined) r.notes = notes;
       this.save();
       return true;
     }
     return false;
+  }
+
+  // Plans Management
+  public getPlanLimits(planName?: string): PlanConfig {
+    const plans = this.data.settings.plans || defaultPlans;
+    const planKey = (planName || 'free').toLowerCase();
+    return plans[planKey] || plans['free'] || defaultPlans['free'];
+  }
+
+  public updatePlanLimits(planKey: string, updates: Partial<PlanConfig>): boolean {
+    if (!this.data.settings.plans) {
+      this.data.settings.plans = { ...defaultPlans };
+    }
+    if (this.data.settings.plans[planKey]) {
+      this.data.settings.plans[planKey] = { ...this.data.settings.plans[planKey], ...updates };
+      this.save();
+      return true;
+    }
+    return false;
+  }
+
+  public getUserDailyUploadCount(userId: string): number {
+    const today = new Date().toISOString().split('T')[0];
+    return this.data.images.filter(
+      (img) => img.user_id === userId && img.status !== 'deleted' && img.created_at.startsWith(today)
+    ).length;
+  }
+
+  public getUserStorageUsed(userId: string): number {
+    const userImages = this.getImagesByUserId(userId);
+    return userImages.reduce((acc, img) => acc + (img.size || 0), 0);
+  }
+
+  // Delete User (Safe Account deletion)
+  public deleteUser(userId: string): boolean {
+    const idx = this.data.users.findIndex((u) => u.id === userId);
+    if (idx !== -1) {
+      // Mark images as guest or deleted
+      this.data.images.forEach((img) => {
+        if (img.user_id === userId) {
+          img.user_id = null;
+          img.uploader_username = 'Eski Kullanıcı (Silindi)';
+        }
+      });
+      // Delete user's folders and notifications
+      this.data.folders = (this.data.folders || []).filter((f) => f.user_id !== userId);
+      this.data.notifications = (this.data.notifications || []).filter((n) => n.user_id !== userId);
+      this.data.users.splice(idx, 1);
+      this.save();
+      return true;
+    }
+    return false;
+  }
+
+  // Notifications
+  public getNotificationsByUserId(userId: string): NotificationRecord[] {
+    return (this.data.notifications || []).filter((n) => n.user_id === userId);
+  }
+
+  public createNotification(userId: string, title: string, message: string, type: 'info' | 'warning' | 'success' = 'info'): NotificationRecord {
+    if (!this.data.notifications) this.data.notifications = [];
+    const notif: NotificationRecord = {
+      id: 'notif_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+      user_id: userId,
+      title,
+      message,
+      type,
+      read: false,
+      created_at: new Date().toISOString(),
+    };
+    this.data.notifications.unshift(notif);
+    // Keep max 50 notifications per user
+    if (this.data.notifications.length > 500) {
+      this.data.notifications = this.data.notifications.slice(0, 500);
+    }
+    this.save();
+    return notif;
+  }
+
+  public markNotificationAsRead(id: string, userId: string): boolean {
+    if (!this.data.notifications) return false;
+    const notif = this.data.notifications.find((n) => n.id === id && n.user_id === userId);
+    if (notif) {
+      notif.read = true;
+      this.save();
+      return true;
+    }
+    return false;
+  }
+
+  public markAllNotificationsAsRead(userId: string): boolean {
+    if (!this.data.notifications) return false;
+    let modified = false;
+    this.data.notifications.forEach((n) => {
+      if (n.user_id === userId && !n.read) {
+        n.read = true;
+        modified = true;
+      }
+    });
+    if (modified) this.save();
+    return true;
+  }
+
+  // Audit Logs
+  public addAuditLog(action: string, actor_id?: string, actor_username?: string, target?: string, details?: string): void {
+    if (!this.data.audit_logs) this.data.audit_logs = [];
+    this.data.audit_logs.unshift({
+      id: 'audit_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+      action,
+      actor_id,
+      actor_username,
+      target,
+      details,
+      created_at: new Date().toISOString(),
+    });
+    if (this.data.audit_logs.length > 500) {
+      this.data.audit_logs = this.data.audit_logs.slice(0, 500);
+    }
+    this.save();
+  }
+
+  public getAuditLogs(): AuditLogRecord[] {
+    return this.data.audit_logs || [];
+  }
+
+  // Advanced Analytics
+  public getAnalytics() {
+    const images = this.getImages();
+    const users = this.getUsers();
+
+    // 14-day upload trend
+    const last14Days: { date: string; label: string; count: number; bytes: number }[] = [];
+    for (let i = 13; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+      const dayImages = images.filter((img) => img.created_at.startsWith(dateStr));
+      const dayBytes = dayImages.reduce((sum, img) => sum + (img.size || 0), 0);
+      last14Days.push({
+        date: dateStr,
+        label: `${d.getDate()} ${d.toLocaleString('tr-TR', { month: 'short' })}`,
+        count: dayImages.length,
+        bytes: dayBytes,
+      });
+    }
+
+    // Plan distribution
+    const planDistribution = {
+      free: users.filter((u) => !u.plan || u.plan === 'free').length,
+      premium: users.filter((u) => u.plan === 'premium').length,
+      vip: users.filter((u) => u.plan === 'vip').length,
+      admin: users.filter((u) => u.plan === 'admin' || u.role === 'admin').length,
+    };
+
+    // Top 15 most viewed images
+    const topViewedImages = [...images]
+      .sort((a, b) => (b.views || 0) - (a.views || 0))
+      .slice(0, 15)
+      .map((img) => ({
+        id: img.id,
+        original_filename: img.original_filename,
+        cloudinary_url: img.cloudinary_url,
+        views: img.views || 0,
+        downloads: img.downloads || 0,
+        size: img.size,
+        format: img.format,
+        created_at: img.created_at,
+        uploader_username: img.uploader_username,
+      }));
+
+    return {
+      daily_uploads: last14Days,
+      plan_distribution: planDistribution,
+      top_viewed: topViewedImages,
+    };
   }
 
   // Settings
