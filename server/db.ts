@@ -129,21 +129,37 @@ class Database {
 
       if (fs.existsSync(DB_FILE)) {
         const fileContent = fs.readFileSync(DB_FILE, 'utf-8');
-        this.data = JSON.parse(fileContent);
-        if (!this.data.folders) this.data.folders = [];
-        if (!this.data.view_logs) this.data.view_logs = [];
-        if (!this.data.settings) this.data.settings = defaultSettings;
-      } else {
-        this.seedInitialData();
-        this.save();
+        if (fileContent && fileContent.trim().length > 0) {
+          const parsed = JSON.parse(fileContent);
+          this.data = {
+            users: Array.isArray(parsed.users) ? parsed.users : [],
+            images: Array.isArray(parsed.images) ? parsed.images : [],
+            folders: Array.isArray(parsed.folders) ? parsed.folders : [],
+            reports: Array.isArray(parsed.reports) ? parsed.reports : [],
+            announcements: Array.isArray(parsed.announcements) ? parsed.announcements : [],
+            settings: parsed.settings || defaultSettings,
+            logs: Array.isArray(parsed.logs) ? parsed.logs : [],
+            view_logs: Array.isArray(parsed.view_logs) ? parsed.view_logs : [],
+          };
+        }
       }
+      this.seedInitialData();
+      this.save();
     } catch (err) {
       console.error('Database initialization error:', err);
       this.seedInitialData();
+      this.save();
     }
   }
 
   private seedInitialData() {
+    if (!this.data.users) this.data.users = [];
+    if (!this.data.images) this.data.images = [];
+    if (!this.data.folders) this.data.folders = [];
+    if (!this.data.reports) this.data.reports = [];
+    if (!this.data.logs) this.data.logs = [];
+    if (!this.data.view_logs) this.data.view_logs = [];
+
     const adminPasswordHash = bcrypt.hashSync('admin123', 10);
     const demoPasswordHash = bcrypt.hashSync('user123', 10);
 
@@ -167,25 +183,47 @@ class Database {
       status: 'active',
     };
 
-    this.data.users = [defaultAdmin, defaultUser];
-    this.data.settings = defaultSettings;
-    this.data.announcements = [
-      {
-        id: 'ann_1',
-        title: 'Hoş Geldiniz!',
-        content: 'Hızlı Yükle servisi ile resimlerinizi anında yükleyin, direkt bağlantılarınızı alın.',
-        type: 'info',
-        active: true,
-        created_at: new Date().toISOString(),
-      },
-    ];
+    if (!this.data.users.some((u) => u.username === 'admin' || u.id === 'usr_admin_1')) {
+      this.data.users.push(defaultAdmin);
+    }
+
+    if (!this.data.users.some((u) => u.username === 'demo_user' || u.id === 'usr_demo_1')) {
+      this.data.users.push(defaultUser);
+    }
+
+    if (!this.data.settings) {
+      this.data.settings = defaultSettings;
+    }
+
+    if (!this.data.announcements || this.data.announcements.length === 0) {
+      this.data.announcements = [
+        {
+          id: 'ann_1',
+          title: 'Hoş Geldiniz!',
+          content: 'AnlıkResim servisi ile resimlerinizi anında yükleyin, direkt bağlantılarınızı alın.',
+          type: 'info',
+          active: true,
+          created_at: new Date().toISOString(),
+        },
+      ];
+    }
   }
 
   public save() {
     try {
-      fs.writeFileSync(DB_FILE, JSON.stringify(this.data, null, 2), 'utf-8');
+      if (!fs.existsSync(DATA_DIR)) {
+        fs.mkdirSync(DATA_DIR, { recursive: true });
+      }
+      const tmpFile = DB_FILE + '.tmp';
+      fs.writeFileSync(tmpFile, JSON.stringify(this.data, null, 2), 'utf-8');
+      fs.renameSync(tmpFile, DB_FILE);
     } catch (err) {
       console.error('Database save error:', err);
+      try {
+        fs.writeFileSync(DB_FILE, JSON.stringify(this.data, null, 2), 'utf-8');
+      } catch (e) {
+        console.error('Fallback database save error:', e);
+      }
     }
   }
 

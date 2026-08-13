@@ -26,8 +26,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     try {
       const res = await authApi.getMe();
-      setUser(res.user);
+      if (res && res.user) {
+        setUser(res.user);
+      } else {
+        setStoredToken(null);
+        setUser(null);
+      }
     } catch (err) {
+      // Only clear token if server returned authentication error
       setStoredToken(null);
       setUser(null);
     } finally {
