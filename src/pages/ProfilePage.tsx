@@ -25,17 +25,21 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ navigate }) => {
 
   const plan = user.plan || (user.role === 'admin' ? 'admin' : 'free');
   const planLimits = user.plan_limits || {
-    name: 'Ücretsiz Plan',
-    daily_upload_limit: 20,
-    max_file_size_mb: 15,
-    storage_limit_gb: 2,
+    name: 'Ücretsiz (Free)',
+    daily_upload_limit: 15,
+    max_file_size_mb: 10,
+    storage_limit_gb: 1,
     ads_enabled: true,
-    features: ['Temel Yükleme', '2 GB Alan', 'Günlük 20 Yükleme'],
+    features: ['15 Günlük Yükleme', '10 MB Maksimum Dosya Boyutu', '1 GB Güvenli Depolama', 'Doğrudan CDN Bağlantıları', 'Temel Klasörleme'],
   };
 
-  const totalBytes = user.stats?.total_bytes || 0;
+  const totalBytes = user.stats?.total_bytes ?? user.storage_bytes ?? 0;
   const storageMB = (totalBytes / (1024 * 1024)).toFixed(1);
   const storageGB = (totalBytes / (1024 * 1024 * 1024)).toFixed(2);
+  const storageLimitMB = (planLimits.storage_limit_gb || 1) * 1024;
+  const storagePercent = Math.min(100, Math.round((totalBytes / ((planLimits.storage_limit_gb || 1) * 1024 * 1024 * 1024)) * 100));
+  const todayUploads = user.today_uploads || 0;
+  const dailyUploadLimit = planLimits.daily_upload_limit || 15;
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
@@ -149,13 +153,31 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ navigate }) => {
           </div>
 
           <div className="p-4 rounded-xl bg-slate-800/40 border border-slate-800 space-y-1">
-            <span className="text-slate-400">Günlük Yükleme Limiti</span>
+            <div className="flex justify-between items-center text-slate-400">
+              <span>Günlük Yükleme Limiti</span>
+              <span className="text-blue-400 font-bold">{todayUploads} / {dailyUploadLimit}</span>
+            </div>
             <p className="text-base font-bold text-white">{planLimits.daily_upload_limit} adet / gün</p>
+            <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden mt-1">
+              <div
+                className="h-full bg-blue-500 rounded-full"
+                style={{ width: `${Math.min(100, Math.round((todayUploads / dailyUploadLimit) * 100))}%` }}
+              />
+            </div>
           </div>
 
           <div className="p-4 rounded-xl bg-slate-800/40 border border-slate-800 space-y-1">
-            <span className="text-slate-400">Toplam Depolama Limiti</span>
-            <p className="text-base font-bold text-white">{planLimits.storage_limit_gb} GB</p>
+            <div className="flex justify-between items-center text-slate-400">
+              <span>Toplam Depolama</span>
+              <span className="text-indigo-400 font-bold">%{storagePercent}</span>
+            </div>
+            <p className="text-base font-bold text-white">{storageMB} MB / {planLimits.storage_limit_gb} GB</p>
+            <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden mt-1">
+              <div
+                className="h-full bg-indigo-500 rounded-full"
+                style={{ width: `${storagePercent}%` }}
+              />
+            </div>
           </div>
         </div>
 

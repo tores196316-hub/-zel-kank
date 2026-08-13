@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DATA_DIR, 'hizliyukle_db.json');
+const DB_BACKUP_FILE = path.join(DATA_DIR, 'hizliyukle_db.backup.json');
 
 export interface UserRecord {
   id: string;
@@ -198,33 +199,60 @@ class Database {
         fs.mkdirSync(DATA_DIR, { recursive: true });
       }
 
+      let loaded = false;
+
+      // Try primary DB file
       if (fs.existsSync(DB_FILE)) {
-        const fileContent = fs.readFileSync(DB_FILE, 'utf-8');
-        if (fileContent && fileContent.trim().length > 0) {
-          const parsed = JSON.parse(fileContent);
-          this.data = {
-            users: Array.isArray(parsed.users) ? parsed.users : [],
-            images: Array.isArray(parsed.images) ? parsed.images : [],
-            folders: Array.isArray(parsed.folders) ? parsed.folders : [],
-            reports: Array.isArray(parsed.reports) ? parsed.reports : [],
-            announcements: Array.isArray(parsed.announcements) ? parsed.announcements : [],
-            notifications: Array.isArray(parsed.notifications) ? parsed.notifications : [],
-            audit_logs: Array.isArray(parsed.audit_logs) ? parsed.audit_logs : [],
-            settings: { ...defaultSettings, ...(parsed.settings || {}) },
-            logs: Array.isArray(parsed.logs) ? parsed.logs : [],
-            view_logs: Array.isArray(parsed.view_logs) ? parsed.view_logs : [],
-          };
-          if (!this.data.settings.plans) {
-            this.data.settings.plans = defaultPlans;
+        try {
+          const fileContent = fs.readFileSync(DB_FILE, 'utf-8');
+          if (fileContent && fileContent.trim().length > 0) {
+            const parsed = JSON.parse(fileContent);
+            this.populateFromData(parsed);
+            loaded = true;
           }
+        } catch (e) {
+          console.warn('Failed to parse primary DB file, trying backup:', e);
         }
       }
+
+      // If primary failed or was empty, try backup DB file
+      if (!loaded && fs.existsSync(DB_BACKUP_FILE)) {
+        try {
+          const backupContent = fs.readFileSync(DB_BACKUP_FILE, 'utf-8');
+          if (backupContent && backupContent.trim().length > 0) {
+            const parsed = JSON.parse(backupContent);
+            this.populateFromData(parsed);
+            loaded = true;
+          }
+        } catch (e) {
+          console.error('Failed to parse backup DB file:', e);
+        }
+      }
+
       this.seedInitialData();
       this.save();
     } catch (err) {
       console.error('Database initialization error:', err);
       this.seedInitialData();
       this.save();
+    }
+  }
+
+  private populateFromData(parsed: any) {
+    this.data = {
+      users: Array.isArray(parsed.users) ? parsed.users : [],
+      images: Array.isArray(parsed.images) ? parsed.images : [],
+      folders: Array.isArray(parsed.folders) ? parsed.folders : [],
+      reports: Array.isArray(parsed.reports) ? parsed.reports : [],
+      announcements: Array.isArray(parsed.announcements) ? parsed.announcements : [],
+      notifications: Array.isArray(parsed.notifications) ? parsed.notifications : [],
+      audit_logs: Array.isArray(parsed.audit_logs) ? parsed.audit_logs : [],
+      settings: { ...defaultSettings, ...(parsed.settings || {}) },
+      logs: Array.isArray(parsed.logs) ? parsed.logs : [],
+      view_logs: Array.isArray(parsed.view_logs) ? parsed.view_logs : [],
+    };
+    if (!this.data.settings.plans) {
+      this.data.settings.plans = defaultPlans;
     }
   }
 
@@ -253,6 +281,17 @@ class Database {
       status: 'active',
     };
 
+    const ownerAdmin: UserRecord = {
+      id: 'usr_owner_tores',
+      email: 'tores196316@gmail.com',
+      username: 'tores',
+      password_hash: adminPasswordHash,
+      role: 'admin',
+      plan: 'admin',
+      created_at: new Date().toISOString(),
+      status: 'active',
+    };
+
     const defaultUser: UserRecord = {
       id: 'usr_demo_1',
       email: 'kullanici@hizliyukle.com',
@@ -264,15 +303,19 @@ class Database {
       status: 'active',
     };
 
-    if (!this.data.users.some((u) => u.username === 'admin' || u.id === 'usr_admin_1')) {
+    if (!this.data.users.some((u) => u.username.toLowerCase() === 'admin' || u.email.toLowerCase() === 'admin@hizliyukle.com')) {
       this.data.users.push(defaultAdmin);
     }
 
-    if (!this.data.users.some((u) => u.username === 'demo_user' || u.id === 'usr_demo_1')) {
+    if (!this.data.users.some((u) => u.username.toLowerCase() === 'tores' || u.email.toLowerCase() === 'tores196316@gmail.com')) {
+      this.data.users.push(ownerAdmin);
+    }
+
+    if (!this.data.users.some((u) => u.username.toLowerCase() === 'demo_user' || u.email.toLowerCase() === 'kullanici@hizliyukle.com')) {
       this.data.users.push(defaultUser);
     }
 
-    // Ensure all existing users have a plan
+    // Ensure all existing users have a valid plan
     this.data.users.forEach((u) => {
       if (!u.plan) {
         u.plan = u.role === 'admin' ? 'admin' : 'free';
@@ -305,13 +348,21 @@ class Database {
       if (!fs.existsSync(DATA_DIR)) {
         fs.mkdirSync(DATA_DIR, { recursive: true });
       }
+      const serialized = JSON.stringify(this.data, null, 2);
+      
+      // Atomic write to primary DB file
       const tmpFile = DB_FILE + '.tmp';
-      fs.writeFileSync(tmpFile, JSON.stringify(this.data, null, 2), 'utf-8');
+      fs.writeFileSync(tmpFile, serialized, 'utf-8');
       fs.renameSync(tmpFile, DB_FILE);
+
+      // Write to backup DB file for extra safety
+      fs.writeFileSync(DB_BACKUP_FILE, serialized, 'utf-8');
     } catch (err) {
       console.error('Database save error:', err);
       try {
-        fs.writeFileSync(DB_FILE, JSON.stringify(this.data, null, 2), 'utf-8');
+        const serialized = JSON.stringify(this.data, null, 2);
+        fs.writeFileSync(DB_FILE, serialized, 'utf-8');
+        fs.writeFileSync(DB_BACKUP_FILE, serialized, 'utf-8');
       } catch (e) {
         console.error('Fallback database save error:', e);
       }

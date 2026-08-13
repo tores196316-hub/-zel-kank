@@ -168,7 +168,7 @@ router.get('/me', authenticateToken, (req: AuthRequest, res: Response) => {
 // Update Profile
 router.put('/profile', authenticateToken, requireAuth, async (req: AuthRequest, res: Response) => {
   try {
-    const { password, new_password, email, username } = req.body;
+    const { password, new_password, email } = req.body;
     const userId = req.user!.id;
 
     const user = db.getUserById(userId);
@@ -176,17 +176,12 @@ router.put('/profile', authenticateToken, requireAuth, async (req: AuthRequest, 
       return res.status(404).json({ error: 'Kullanıcı bulunamadı.' });
     }
 
-    const updates: Partial<UserRecord> = {};
-
-    // If changing email
-    if (email && email.trim() !== user.email) {
-      const cleanEmail = email.trim().toLowerCase();
-      const existing = db.getUserByEmail(cleanEmail);
-      if (existing && existing.id !== userId) {
-        return res.status(400).json({ error: 'Bu e-posta adresi başka bir hesap tarafından kullanılıyor.' });
-      }
-      updates.email = cleanEmail;
+    // Email change is strictly prohibited for security & account integrity
+    if (email && email.trim().toLowerCase() !== user.email.toLowerCase()) {
+      return res.status(400).json({ error: 'Güvenlik nedeniyle hesap e-posta adresi değiştirilemez.' });
     }
+
+    const updates: Partial<UserRecord> = {};
 
     // If changing password
     if (new_password) {
@@ -208,10 +203,10 @@ router.put('/profile', authenticateToken, requireAuth, async (req: AuthRequest, 
 
     if (Object.keys(updates).length > 0) {
       db.updateUser(userId, updates);
-      db.addAuditLog('USER_PROFILE_UPDATED', user.id, user.username, user.username, 'Kullanıcı profilini güncelledi');
+      db.addAuditLog('USER_PROFILE_UPDATED', user.id, user.username, user.username, 'Kullanıcı şifresini güncelledi');
     }
 
-    return res.json({ message: 'Profil bilgileriniz başarıyla güncellendi.' });
+    return res.json({ message: 'Şifreniz ve güvenlik bilgileriniz başarıyla güncellendi.' });
   } catch (err: any) {
     return res.status(500).json({ error: 'Profil güncellenirken hata oluştu.' });
   }

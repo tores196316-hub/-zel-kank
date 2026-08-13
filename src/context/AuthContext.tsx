@@ -1,6 +1,8 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { User } from '../types';
-import { authApi, getStoredToken, setStoredToken } from '../lib/api';
+import { authApi, getStoredToken, setStoredToken, ApiError } from '../lib/api';
+
+const USER_CACHE_KEY = 'hizliyukle_cached_user';
 
 interface AuthContextType {
   user: User | null;
@@ -13,13 +15,21 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    try {
+      const cached = localStorage.getItem(USER_CACHE_KEY);
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
   const [loading, setLoading] = useState<boolean>(true);
 
-  const refreshUser = async () => {
+  const refreshUser = useCallback(async () => {
     const token = getStoredToken();
     if (!token) {
       setUser(null);
+      localStorage.removeItem(USER_CACHE_KEY);
       setLoading(false);
       return;
     }
@@ -28,26 +38,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const res = await authApi.getMe();
       if (res && res.user) {
         setUser(res.user);
+        try {
+          localStorage.setItem(USER_CACHE_KEY, JSON.stringify(res.user));
+        } catch {}
       } else {
         setStoredToken(null);
+        localStorage.removeItem(USER_CACHE_KEY);
         setUser(null);
       }
-    } catch (err) {
-      // Only clear token if server returned authentication error
-      setStoredToken(null);
-      setUser(null);
+    } catch (err: any) {
+      // ONLY clear token if the server definitively rejected the session (HTTP 401 / 403)
+      // Do NOT clear token on network errors or transient server restarts!
+      if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+        setStoredToken(null);
+        localStorage.removeItem(USER_CACHE_KEY);
+        setUser(null);
+      } else {
+        // Temporary server restart or network glitch: keep cached user state and retry after 2 seconds
+        setTimeout(() => {
+          refreshUser();
+        }, 2500);
+      }
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     refreshUser();
-  }, []);
+  }, [refreshUser]);
 
   const login = (token: string, userData: User) => {
     setStoredToken(token);
     setUser(userData);
+    try {
+      localStorage.setItem(USER_CACHE_KEY, JSON.stringify(userData));
+    } catch {}
   };
 
   const logout = async () => {
@@ -57,6 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // ignore
     }
     setStoredToken(null);
+    localStorage.removeItem(USER_CACHE_KEY);
     setUser(null);
   };
 
@@ -74,3 +101,4 @@ export const useAuth = () => {
   }
   return context;
 };
+

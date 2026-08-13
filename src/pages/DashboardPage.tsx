@@ -33,21 +33,21 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ navigate }) => {
 
   const planName = user.plan || (user.role === 'admin' ? 'admin' : 'free');
   const planLimits = user.plan_limits || {
-    name: 'Ücretsiz Plan',
-    daily_upload_limit: 20,
-    max_file_size_mb: 15,
-    storage_limit_gb: 2,
+    name: 'Ücretsiz (Free)',
+    daily_upload_limit: 15,
+    max_file_size_mb: 10,
+    storage_limit_gb: 1,
     ads_enabled: true,
-    features: ['Temel Yükleme', '2 GB Alan', 'Günlük 20 Yükleme'],
+    features: ['15 Günlük Yükleme', '10 MB Maksimum Dosya Boyutu', '1 GB Güvenli Depolama', 'Doğrudan CDN Bağlantıları', 'Temel Klasörleme'],
   };
 
-  const totalBytes = user.stats?.total_bytes || 0;
+  const totalBytes = user.stats?.total_bytes ?? user.storage_bytes ?? 0;
   const storageUsedMB = (totalBytes / (1024 * 1024)).toFixed(1);
-  const storageLimitMB = planLimits.storage_limit_gb * 1024;
-  const storagePercent = Math.min(100, Math.round((totalBytes / (planLimits.storage_limit_gb * 1024 * 1024 * 1024)) * 100));
+  const storageLimitMB = (planLimits.storage_limit_gb || 1) * 1024;
+  const storagePercent = Math.min(100, Math.round((totalBytes / ((planLimits.storage_limit_gb || 1) * 1024 * 1024 * 1024)) * 100));
 
   const todayUploads = user.today_uploads || 0;
-  const dailyUploadLimit = planLimits.daily_upload_limit;
+  const dailyUploadLimit = planLimits.daily_upload_limit || 15;
   const dailyPercent = Math.min(100, Math.round((todayUploads / dailyUploadLimit) * 100));
 
   return (

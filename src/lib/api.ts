@@ -2,6 +2,15 @@ import { AdminStats, AnalyticsData, Announcement, AuditLog, Folder, ImageMetadat
 
 const TOKEN_KEY = 'hizliyukle_auth_token';
 
+export class ApiError extends Error {
+  status?: number;
+  constructor(message: string, status?: number) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+  }
+}
+
 export function getStoredToken(): string | null {
   return localStorage.getItem(TOKEN_KEY);
 }
@@ -28,15 +37,20 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     headers['Content-Type'] = 'application/json';
   }
 
-  const response = await fetch(endpoint, {
-    ...options,
-    headers,
-  });
+  let response: Response;
+  try {
+    response = await fetch(endpoint, {
+      ...options,
+      headers,
+    });
+  } catch (err: any) {
+    throw new ApiError('Sunucuya bağlanılamadı (Ağ hatası).', 0);
+  }
 
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    throw new Error(data.error || 'İşlem gerçekleştirilirken bir hata oluştu.');
+    throw new ApiError(data.error || 'İşlem gerçekleştirilirken bir hata oluştu.', response.status);
   }
 
   return data as T;

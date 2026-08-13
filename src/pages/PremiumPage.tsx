@@ -27,27 +27,27 @@ export const PremiumPage: React.FC<PremiumPageProps> = ({ navigate }) => {
   const defaultPlans: Record<string, PlanConfig> = {
     free: {
       name: 'Ücretsiz',
-      daily_upload_limit: 20,
-      max_file_size_mb: 15,
-      storage_limit_gb: 2,
+      daily_upload_limit: 15,
+      max_file_size_mb: 10,
+      storage_limit_gb: 1,
       ads_enabled: true,
-      features: ['Hızlı CDN Dağıtımı', 'Maksimum 15 MB Dosya', '2 GB Güvenli Depolama', 'Günlük 20 Yükleme', 'Standart Destek'],
+      features: ['Hızlı CDN Dağıtımı', 'Maksimum 10 MB Dosya', '1 GB Güvenli Depolama', 'Günlük 15 Yükleme', 'Standart Destek'],
     },
     premium: {
       name: 'Premium',
       daily_upload_limit: 100,
-      max_file_size_mb: 50,
+      max_file_size_mb: 30,
       storage_limit_gb: 15,
       ads_enabled: false,
-      features: ['Reklamsız Deneyim', 'Maksimum 50 MB Dosya', '15 GB Genişletilmiş Alan', 'Günlük 100 Yükleme', 'Öncelikli CDN Bant Genişliği', 'Öncelikli E-Posta Desteği'],
+      features: ['Reklamsız Deneyim', 'Maksimum 30 MB Dosya', '15 GB Genişletilmiş Alan', 'Günlük 100 Yükleme', 'Öncelikli CDN Bant Genişliği', 'Öncelikli E-Posta Desteği'],
     },
     vip: {
       name: 'VIP Pro',
       daily_upload_limit: 500,
-      max_file_size_mb: 100,
+      max_file_size_mb: 50,
       storage_limit_gb: 50,
       ads_enabled: false,
-      features: ['Tamamen Sınırsız Hız', 'Maksimum 100 MB Dosya', '50 GB Devasa Depolama', 'Günlük 500 Yükleme', 'Özel VIP Rozet', '7/24 Doğrudan Destek Hattı'],
+      features: ['Tamamen Sınırsız Hız', 'Maksimum 50 MB Dosya', '50 GB Devasa Depolama', 'Günlük 500 Yükleme', 'Özel VIP Rozet', '7/24 Doğrudan Destek Hattı'],
     },
   };
 
