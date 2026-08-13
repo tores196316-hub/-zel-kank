@@ -9,6 +9,7 @@ import authRoutes from './server/routes/auth.js';
 import imageRoutes from './server/routes/images.js';
 import adminRoutes from './server/routes/admin.js';
 import publicRoutes from './server/routes/public.js';
+import assistantRoutes from './server/routes/assistant.js';
 import { UPLOADS_DIR } from './server/cloudinary.js';
 import { apiRateLimiter } from './server/middleware/rateLimiter.js';
 import { db } from './server/db.js';
@@ -91,6 +92,7 @@ async function startServer() {
   app.use('/api/images', imageRoutes);
   app.use('/api/admin', adminRoutes);
   app.use('/api/public', publicRoutes);
+  app.use('/api/assistant', assistantRoutes);
 
   // Central Express Error Handler
   app.use((err: any, req: Request, res: Response, next: NextFunction) => {

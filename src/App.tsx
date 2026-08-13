@@ -3,6 +3,7 @@ import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './components/Toast';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
+import { AiAssistant } from './components/AiAssistant';
 
 import { HomePage } from './pages/HomePage';
 import { UploadPage } from './pages/UploadPage';
@@ -112,6 +113,7 @@ export default function App() {
           <Navbar currentPath={currentPath} navigate={navigate} />
           <main className="flex-1">{renderCurrentView()}</main>
           <Footer navigate={navigate} />
+          <AiAssistant navigate={navigate} />
         </div>
       </ToastProvider>
     </AuthProvider>

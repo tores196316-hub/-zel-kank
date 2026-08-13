@@ -323,3 +323,12 @@ export const adminApi = {
       recent_logs: any[];
     }>('/api/admin/health'),
 };
+
+export const assistantApi = {
+  ask: (question: string, history?: Array<{ role: 'user' | 'model'; text: string }>) =>
+    request<{ answer: string; source: string }>('/api/assistant/ask', {
+      method: 'POST',
+      body: JSON.stringify({ question, history }),
+    }),
+};
+
