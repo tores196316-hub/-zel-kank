@@ -6,6 +6,7 @@ import { adminApi } from '../lib/api';
 import { AdminStats, Announcement, ImageMetadata, Report, SiteSettings, User, AuditLog, PlanConfig, AnalyticsData } from '../types';
 import { useToast } from '../components/Toast';
 import { useAuth } from '../context/AuthContext';
+import { formatImageUrl } from '../lib/imageUrl';
 
 interface AdminPageProps {
   navigate: (path: string) => void;
@@ -518,7 +519,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
               <div key={img.id} className="group relative bg-[#0F172A] rounded-2xl overflow-hidden border border-slate-800 p-1.5 flex flex-col hover:border-slate-700 transition-all">
                 <div className="aspect-square bg-[#0B0F19] rounded-xl overflow-hidden relative flex items-center justify-center">
                   <img
-                    src={img.cloudinary_url}
+                    src={formatImageUrl(img.cloudinary_url)}
                     alt={img.original_filename}
                     className="w-full h-full object-cover"
                     loading="lazy"

@@ -67,10 +67,31 @@
       "password_hash": "$2b$10$1IVVFXr8rBUQgPV4GwYrj.DB0us9FjbJPearkxFxTRQqGKImL4f2a",
       "role": "user",
       "created_at": "2026-08-13T20:23:47.573Z",
-      "status": "active"
+      "status": "active",
+      "plan": "free"
     }
   ],
   "images": [
+    {
+      "id": "4be10c79",
+      "user_id": "usr_1786648691833_indu",
+      "uploader_username": "taner619",
+      "cloudinary_public_id": "local_1786653753537_7b768c04",
+      "cloudinary_url": "http://localhost:3000/uploads/local_1786653753537_7b768c04.png",
+      "original_filename": "1000006941.png",
+      "format": "png",
+      "width": 1200,
+      "height": 800,
+      "size": 1766331,
+      "created_at": "2026-08-13T20:42:33.538Z",
+      "views": 0,
+      "downloads": 0,
+      "is_public": true,
+      "status": "active",
+      "delete_token": "del_22a429ffb156b493c089475d6b0a15f6",
+      "is_favorite": false,
+      "folder_id": null
+    },
     {
       "id": "w38z0psk",
       "user_id": "usr_1786648691833_indu",
@@ -83,7 +104,7 @@
       "height": 800,
       "size": 2842187,
       "created_at": "2026-08-13T19:22:17.078Z",
-      "views": 1,
+      "views": 2,
       "downloads": 0,
       "is_public": true,
       "status": "active",
@@ -105,6 +126,15 @@
     }
   ],
   "notifications": [
+    {
+      "id": "notif_1786653753540_e98a88f7",
+      "user_id": "usr_1786648691833_indu",
+      "title": "Resim Yüklendi",
+      "message": "1 adet resminiz başarıyla sisteme yüklendi ve bağlantılarınız hazırlandı.",
+      "type": "success",
+      "read": false,
+      "created_at": "2026-08-13T20:42:33.540Z"
+    },
     {
       "id": "notif_1786648937078_42uu",
       "user_id": "usr_1786648691833_indu",
@@ -197,6 +227,12 @@
   },
   "logs": [
     {
+      "id": "log_1786653753539_crhv",
+      "level": "info",
+      "message": "Resim yüklendi: 4be10c79 (1000006941.png) - 1766331 bytes",
+      "timestamp": "2026-08-13T20:42:33.539Z"
+    },
+    {
       "id": "log_1786652635633_uxlp",
       "level": "info",
       "message": "Kullanıcı giriş yaptı: qa_user_2026",
@@ -263,5 +299,11 @@
       "timestamp": "2026-08-13T19:18:11.834Z"
     }
   ],
-  "view_logs": []
+  "view_logs": [
+    {
+      "image_id": "w38z0psk",
+      "ip": "127.0.0.1",
+      "timestamp": 1786653831684
+    }
+  ]
 }

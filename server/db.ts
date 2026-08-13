@@ -4,10 +4,15 @@ import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
+const UPLOADS_DIR = path.join(process.cwd(), 'uploads');
 const DB_FILE = path.join(DATA_DIR, 'hizliyukle_db.json');
 const DB_BACKUP_FILE = path.join(DATA_DIR, 'hizliyukle_db.backup.json');
 const DB_USERS_ARCHIVE = path.join(DATA_DIR, 'hizliyukle_users_archive.json');
 const DB_IMAGES_ARCHIVE = path.join(DATA_DIR, 'hizliyukle_images_archive.json');
+const DB_FOLDERS_ARCHIVE = path.join(DATA_DIR, 'hizliyukle_folders_archive.json');
+const DB_SETTINGS_ARCHIVE = path.join(DATA_DIR, 'hizliyukle_settings_archive.json');
+const DB_REPORTS_ARCHIVE = path.join(DATA_DIR, 'hizliyukle_reports_archive.json');
+const DB_ANNOUNCEMENTS_ARCHIVE = path.join(DATA_DIR, 'hizliyukle_announcements_archive.json');
 
 export interface UserRecord {
   id: string;
@@ -262,13 +267,136 @@ class Database {
         }
       }
 
+      // 5. Dedicated Folders Archive
+      if (fs.existsSync(DB_FOLDERS_ARCHIVE)) {
+        try {
+          const content = fs.readFileSync(DB_FOLDERS_ARCHIVE, 'utf-8');
+          if (content && content.trim().length > 0) {
+            const parsed = JSON.parse(content);
+            if (Array.isArray(parsed)) {
+              sources.push({ folders: parsed });
+            } else if (parsed && Array.isArray(parsed.folders)) {
+              sources.push({ folders: parsed.folders });
+            }
+          }
+        } catch (e) {
+          console.warn('[DB] Failed reading folders archive:', e);
+        }
+      }
+
+      // 6. Dedicated Settings Archive
+      if (fs.existsSync(DB_SETTINGS_ARCHIVE)) {
+        try {
+          const content = fs.readFileSync(DB_SETTINGS_ARCHIVE, 'utf-8');
+          if (content && content.trim().length > 0) {
+            const parsed = JSON.parse(content);
+            if (parsed && typeof parsed === 'object') {
+              sources.push({ settings: parsed });
+            }
+          }
+        } catch (e) {
+          console.warn('[DB] Failed reading settings archive:', e);
+        }
+      }
+
+      // 7. Dedicated Announcements Archive
+      if (fs.existsSync(DB_ANNOUNCEMENTS_ARCHIVE)) {
+        try {
+          const content = fs.readFileSync(DB_ANNOUNCEMENTS_ARCHIVE, 'utf-8');
+          if (content && content.trim().length > 0) {
+            const parsed = JSON.parse(content);
+            if (Array.isArray(parsed)) {
+              sources.push({ announcements: parsed });
+            } else if (parsed && Array.isArray(parsed.announcements)) {
+              sources.push({ announcements: parsed.announcements });
+            }
+          }
+        } catch (e) {
+          console.warn('[DB] Failed reading announcements archive:', e);
+        }
+      }
+
+      // 8. Dedicated Reports Archive
+      if (fs.existsSync(DB_REPORTS_ARCHIVE)) {
+        try {
+          const content = fs.readFileSync(DB_REPORTS_ARCHIVE, 'utf-8');
+          if (content && content.trim().length > 0) {
+            const parsed = JSON.parse(content);
+            if (Array.isArray(parsed)) {
+              sources.push({ reports: parsed });
+            } else if (parsed && Array.isArray(parsed.reports)) {
+              sources.push({ reports: parsed.reports });
+            }
+          }
+        } catch (e) {
+          console.warn('[DB] Failed reading reports archive:', e);
+        }
+      }
+
       this.mergeFromSources(sources);
+      this.recoverLocalUploadsFromDisk();
       this.seedInitialData();
       this.save();
     } catch (err) {
       console.error('[DB] Database initialization error:', err);
       this.seedInitialData();
       this.save();
+    }
+  }
+
+  // Scan local uploads folder and ensure no physical image file on disk is missing from database
+  private recoverLocalUploadsFromDisk() {
+    try {
+      if (!fs.existsSync(UPLOADS_DIR)) {
+        fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+        return;
+      }
+
+      const files = fs.readdirSync(UPLOADS_DIR);
+      const existingPublicIds = new Set(this.data.images.map((i) => i.cloudinary_public_id));
+      const existingUrls = new Set(this.data.images.map((i) => i.cloudinary_url));
+
+      for (const fileName of files) {
+        if (fileName.startsWith('.')) continue;
+        const filePath = path.join(UPLOADS_DIR, fileName);
+        const stat = fs.statSync(filePath);
+        if (!stat.isFile()) continue;
+
+        const ext = path.extname(fileName).replace('.', '').toLowerCase() || 'jpg';
+        const baseName = path.parse(fileName).name;
+        const localRelativeUrl = `/uploads/${fileName}`;
+
+        const isKnown =
+          existingPublicIds.has(baseName) ||
+          Array.from(existingUrls).some((u) => u.includes(fileName));
+
+        if (!isKnown) {
+          console.log(`[DB] Recovered unindexed image from disk: ${fileName}`);
+          const newImgRecord: ImageRecord = {
+            id: 'rec_' + crypto.randomBytes(4).toString('hex'),
+            user_id: null,
+            uploader_username: 'Sistem Kurtarma',
+            cloudinary_public_id: baseName,
+            cloudinary_url: localRelativeUrl,
+            original_filename: fileName,
+            format: ext,
+            width: 1200,
+            height: 800,
+            size: stat.size,
+            created_at: stat.birthtime ? stat.birthtime.toISOString() : new Date().toISOString(),
+            views: 0,
+            downloads: 0,
+            is_public: true,
+            status: 'active',
+            delete_token: 'del_' + crypto.randomBytes(16).toString('hex'),
+            is_favorite: false,
+            folder_id: null,
+          };
+          this.data.images.unshift(newImgRecord);
+        }
+      }
+    } catch (err) {
+      console.warn('[DB] Local upload disk recovery check warning:', err);
     }
   }
 
@@ -516,6 +644,26 @@ class Database {
       // 4. Persistent Images Archive
       if (this.data.images && this.data.images.length > 0) {
         fs.writeFileSync(DB_IMAGES_ARCHIVE, JSON.stringify(this.data.images, null, 2), 'utf-8');
+      }
+
+      // 5. Persistent Folders Archive
+      if (this.data.folders && this.data.folders.length > 0) {
+        fs.writeFileSync(DB_FOLDERS_ARCHIVE, JSON.stringify(this.data.folders, null, 2), 'utf-8');
+      }
+
+      // 6. Persistent Settings Archive
+      if (this.data.settings) {
+        fs.writeFileSync(DB_SETTINGS_ARCHIVE, JSON.stringify(this.data.settings, null, 2), 'utf-8');
+      }
+
+      // 7. Persistent Announcements Archive
+      if (this.data.announcements && this.data.announcements.length > 0) {
+        fs.writeFileSync(DB_ANNOUNCEMENTS_ARCHIVE, JSON.stringify(this.data.announcements, null, 2), 'utf-8');
+      }
+
+      // 8. Persistent Reports Archive
+      if (this.data.reports && this.data.reports.length > 0) {
+        fs.writeFileSync(DB_REPORTS_ARCHIVE, JSON.stringify(this.data.reports, null, 2), 'utf-8');
       }
     } catch (err) {
       console.error('[DB] Database save error:', err);

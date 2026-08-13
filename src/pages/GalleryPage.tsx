@@ -4,6 +4,7 @@ import { imageApi } from '../lib/api';
 import { Folder, UploadResult } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
+import { formatImageUrl } from '../lib/imageUrl';
 
 interface GalleryPageProps {
   navigate: (path: string) => void;
@@ -368,7 +369,7 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({ navigate }) => {
                 {/* Thumbnail */}
                 <div className="aspect-square bg-[#0B0F19] overflow-hidden relative flex items-center justify-center p-2">
                   <img
-                    src={item.thumbnail_url || item.direct_url}
+                    src={formatImageUrl(item.thumbnail_url || item.direct_url)}
                     alt={item.image.original_filename}
                     loading="lazy"
                     className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform duration-300"
@@ -458,7 +459,7 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({ navigate }) => {
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <img
-                    src={item.thumbnail_url || item.direct_url}
+                    src={formatImageUrl(item.thumbnail_url || item.direct_url)}
                     alt={item.image.original_filename}
                     className="w-12 h-12 rounded-xl object-cover bg-[#0B0F19] shrink-0 border border-slate-800"
                   />

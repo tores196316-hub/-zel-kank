@@ -1,7 +1,7 @@
 import { Router, Response } from 'express';
 import { db } from '../db.js';
 import { authenticateToken, requireAdmin, AuthRequest } from '../middleware/auth.js';
-import { checkCloudinaryHealth, deleteFromCloudinary } from '../cloudinary.js';
+import { checkCloudinaryHealth, deleteFromCloudinary, resolveImageUrl } from '../cloudinary.js';
 
 const router = Router();
 
@@ -91,8 +91,12 @@ router.get('/users/:id', (req: AuthRequest, res: Response) => {
     return res.status(404).json({ error: 'Kullanıcı bulunamadı.' });
   }
 
+  const appUrl = (req.protocol + '://' + req.get('host')) || process.env.APP_URL || 'http://localhost:3000';
   const stats = db.getUserStats(user.id);
-  const images = db.getImagesByUserId(user.id);
+  const images = db.getImagesByUserId(user.id).map((img) => ({
+    ...img,
+    cloudinary_url: resolveImageUrl(img.cloudinary_url, appUrl),
+  }));
   const planLimits = db.getPlanLimits(user.plan);
 
   return res.json({
@@ -238,7 +242,11 @@ router.put('/plans/:planKey', (req: AuthRequest, res: Response) => {
 
 // All Images
 router.get('/images', (req: AuthRequest, res: Response) => {
-  const images = db.getAllImagesForAdmin();
+  const appUrl = (req.protocol + '://' + req.get('host')) || process.env.APP_URL || 'http://localhost:3000';
+  const images = db.getAllImagesForAdmin().map((img) => ({
+    ...img,
+    cloudinary_url: resolveImageUrl(img.cloudinary_url, appUrl),
+  }));
   return res.json({ images });
 });
 

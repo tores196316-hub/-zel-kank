@@ -37,6 +37,34 @@ export interface UploadResultData {
   size: number;
 }
 
+export function resolveImageUrl(rawUrl: string, appUrl?: string): string {
+  if (!rawUrl) return '';
+  if (rawUrl.includes('res.cloudinary.com')) {
+    return rawUrl;
+  }
+  // If it is a local upload path or an old URL containing /uploads/
+  if (rawUrl.includes('/uploads/')) {
+    const idx = rawUrl.indexOf('/uploads/');
+    const pathPart = rawUrl.substring(idx);
+    if (appUrl) {
+      const cleanBase = appUrl.replace(/\/$/, '');
+      return `${cleanBase}${pathPart}`;
+    }
+    return pathPart;
+  }
+  if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) {
+    return rawUrl;
+  }
+  if (rawUrl.startsWith('/')) {
+    if (appUrl) {
+      const cleanBase = appUrl.replace(/\/$/, '');
+      return `${cleanBase}${rawUrl}`;
+    }
+    return rawUrl;
+  }
+  return rawUrl;
+}
+
 export async function uploadToCloudinary(
   fileBuffer: Buffer,
   originalName: string,
@@ -80,7 +108,7 @@ export async function uploadToCloudinary(
 
     fs.writeFileSync(filePath, fileBuffer);
 
-    const baseUrl = appUrl || 'http://localhost:3000';
+    const baseUrl = appUrl ? appUrl.replace(/\/$/, '') : 'http://localhost:3000';
     const localUrl = `${baseUrl}/uploads/${fileName}`;
 
     return {
@@ -150,10 +178,11 @@ export async function checkCloudinaryHealth(): Promise<{ configured: boolean; co
   }
 }
 
-export function getCloudinaryThumbnailUrl(url: string, width = 400, height = 400): string {
+export function getCloudinaryThumbnailUrl(url: string, width = 400, height = 400, appUrl?: string): string {
   if (!url) return '';
-  if (url.includes('res.cloudinary.com') && url.includes('/upload/')) {
-    return url.replace('/upload/', `/upload/c_fill,w_${width},h_${height},q_auto,f_auto/`);
+  const resolved = resolveImageUrl(url, appUrl);
+  if (resolved.includes('res.cloudinary.com') && resolved.includes('/upload/')) {
+    return resolved.replace('/upload/', `/upload/c_fill,w_${width},h_${height},q_auto,f_auto/`);
   }
-  return url;
+  return resolved;
 }

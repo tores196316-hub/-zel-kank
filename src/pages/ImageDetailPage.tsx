@@ -4,6 +4,7 @@ import { imageApi } from '../lib/api';
 import { UploadResult } from '../types';
 import { useToast } from '../components/Toast';
 import { useAuth } from '../context/AuthContext';
+import { formatImageUrl } from '../lib/imageUrl';
 
 interface ImageDetailPageProps {
   imageId: string;
@@ -202,7 +203,7 @@ export const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId, navig
       <div className="bg-[#0F172A] border border-slate-800 rounded-3xl p-4 sm:p-8 flex flex-col items-center justify-center min-h-[350px] shadow-2xl relative">
         <div className="max-w-full overflow-hidden rounded-2xl border border-slate-800 bg-[#0B0F19] p-2">
           <img
-            src={data.direct_url}
+            src={formatImageUrl(data.direct_url)}
             alt={data.image.original_filename}
             className="max-h-[600px] w-auto object-contain rounded-xl shadow-lg"
           />

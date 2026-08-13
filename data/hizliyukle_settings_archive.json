@@ -1,0 +1,79 @@
+{
+  "site_title": "Hızlı Yükle",
+  "site_description": "Hızlı, güvenli ve yüksek kaliteli resim yükleme ve paylaşım platformu",
+  "max_file_size_mb": 20,
+  "allow_guest_upload": true,
+  "allow_user_registration": true,
+  "maintenance_mode": false,
+  "announcement_enabled": true,
+  "announcement_text": "Hızlı Yükle v2.0 yayında! Artık sürükle-bırak ve toplu yükleme desteği mevcut.",
+  "allowed_formats": [
+    "jpg",
+    "jpeg",
+    "png",
+    "webp",
+    "gif"
+  ],
+  "header_ad_code": "",
+  "sidebar_ad_code": "",
+  "image_page_ad_code": "",
+  "plans": {
+    "free": {
+      "name": "Ücretsiz (Free)",
+      "daily_upload_limit": 15,
+      "max_file_size_mb": 10,
+      "storage_limit_gb": 1,
+      "ads_enabled": true,
+      "features": [
+        "15 Günlük Yükleme",
+        "10 MB Maksimum Dosya Boyutu",
+        "1 GB Güvenli Depolama",
+        "Doğrudan CDN Bağlantıları",
+        "Temel Klasörleme"
+      ]
+    },
+    "premium": {
+      "name": "Premium",
+      "daily_upload_limit": 100,
+      "max_file_size_mb": 30,
+      "storage_limit_gb": 15,
+      "ads_enabled": false,
+      "features": [
+        "100 Günlük Yükleme",
+        "30 MB Maksimum Dosya Boyutu",
+        "15 GB Güvenli Depolama",
+        "Tamamen Reklamsız Deneyim",
+        "Öncelikli CDN Bant Genişliği",
+        "Sınırsız Klasör Yönetimi"
+      ]
+    },
+    "vip": {
+      "name": "VIP",
+      "daily_upload_limit": 500,
+      "max_file_size_mb": 50,
+      "storage_limit_gb": 50,
+      "ads_enabled": false,
+      "features": [
+        "500 Günlük Yükleme",
+        "50 MB Maksimum Dosya Boyutu",
+        "50 GB Güvenli Depolama",
+        "Sıfır Reklam",
+        "Maksimum Hız ve Öncelik",
+        "Gelişmiş İstatistikler & VIP Rozeti"
+      ]
+    },
+    "admin": {
+      "name": "Yönetici (Admin)",
+      "daily_upload_limit": 9999,
+      "max_file_size_mb": 100,
+      "storage_limit_gb": 500,
+      "ads_enabled": false,
+      "features": [
+        "Sınırsız Yükleme",
+        "100 MB Dosya Boyutu",
+        "500 GB Depolama",
+        "Tam Yönetim Yetkisi"
+      ]
+    }
+  }
+}

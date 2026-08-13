@@ -3,7 +3,7 @@ import multer from 'multer';
 import path from 'path';
 import crypto from 'crypto';
 import { db, ImageRecord, FolderRecord } from '../db.js';
-import { uploadToCloudinary, deleteFromCloudinary, getCloudinaryThumbnailUrl } from '../cloudinary.js';
+import { uploadToCloudinary, deleteFromCloudinary, getCloudinaryThumbnailUrl, resolveImageUrl } from '../cloudinary.js';
 import { authenticateToken, requireAuth, AuthRequest } from '../middleware/auth.js';
 import { uploadRateLimiter, contactRateLimiter } from '../middleware/rateLimiter.js';
 
@@ -49,11 +49,16 @@ const upload = multer({
 function buildUploadResult(img: ImageRecord, appUrl: string) {
   const baseUrl = appUrl || process.env.APP_URL || 'http://localhost:3000';
   const shareUrl = `${baseUrl}/i/${img.id}`;
-  const directUrl = img.cloudinary_url;
-  const thumbnailUrl = getCloudinaryThumbnailUrl(directUrl, 400, 400);
+  const directUrl = resolveImageUrl(img.cloudinary_url, baseUrl);
+  const thumbnailUrl = getCloudinaryThumbnailUrl(img.cloudinary_url, 400, 400, baseUrl);
+
+  const normalizedImage: ImageRecord = {
+    ...img,
+    cloudinary_url: directUrl,
+  };
 
   return {
-    image: img,
+    image: normalizedImage,
     share_url: shareUrl,
     direct_url: directUrl,
     thumbnail_url: thumbnailUrl,

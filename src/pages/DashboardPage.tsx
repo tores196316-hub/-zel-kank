@@ -3,6 +3,7 @@ import { LayoutDashboard, Upload, Images, Eye, Heart, HardDrive, Crown, ArrowUpR
 import { useAuth } from '../context/AuthContext';
 import { imageApi } from '../lib/api';
 import { UploadResult, Folder as FolderType } from '../types';
+import { formatImageUrl } from '../lib/imageUrl';
 
 interface DashboardPageProps {
   navigate: (path: string) => void;
@@ -297,7 +298,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ navigate }) => {
                 className="group relative aspect-square rounded-2xl overflow-hidden bg-[#0B0F19] border border-slate-800 cursor-pointer hover:border-blue-500/50 transition-all shadow-md"
               >
                 <img
-                  src={item.thumbnail_url || item.direct_url}
+                  src={formatImageUrl(item.thumbnail_url || item.direct_url)}
                   alt={item.image.original_filename}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   loading="lazy"

@@ -4,6 +4,7 @@ import { imageApi, getStoredToken } from '../lib/api';
 import { Folder, UploadProgressFile, UploadResult } from '../types';
 import { useToast } from '../components/Toast';
 import { useAuth } from '../context/AuthContext';
+import { formatImageUrl } from '../lib/imageUrl';
 
 interface UploadPageProps {
   navigate: (path: string) => void;
@@ -485,7 +486,7 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
                   <div className="space-y-3 text-center md:text-left">
                     <div className="relative group rounded-2xl overflow-hidden border border-slate-800 bg-[#0B0F19] aspect-video md:aspect-square flex items-center justify-center">
                       <img
-                        src={res.thumbnail_url || res.direct_url}
+                        src={formatImageUrl(res.thumbnail_url || res.direct_url)}
                         alt={res.image.original_filename}
                         className="max-h-full max-w-full object-contain"
                       />
