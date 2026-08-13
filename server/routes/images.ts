@@ -2,6 +2,7 @@ import { Router, Response } from 'express';
 import multer from 'multer';
 import path from 'path';
 import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
 import { db, ImageRecord, FolderRecord } from '../db.js';
 import { uploadToCloudinary, deleteFromCloudinary, getCloudinaryThumbnailUrl, resolveImageUrl } from '../cloudinary.js';
 import { authenticateToken, requireAuth, AuthRequest } from '../middleware/auth.js';
@@ -22,7 +23,7 @@ function verifyImageMagicBytes(buffer: Buffer): boolean {
   // PNG: 89 50 4E 47
   if (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47) return true;
   // GIF: 47 49 46 38 ('GIF8')
-  if (buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x38) return true;
+  if (buffer[0] === 0x47 && buffer[1] === 0x46 && buffer[2] === 0x46 && buffer[3] === 0x38) return true;
   // WEBP: RIFF...WEBP
   if (buffer.length >= 12 && buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46) return true;
   return false;
@@ -46,11 +47,43 @@ const upload = multer({
   },
 });
 
-function buildUploadResult(img: ImageRecord, appUrl: string) {
+function buildUploadResult(img: ImageRecord, appUrl: string, isLocked: boolean = false) {
   const baseUrl = appUrl || process.env.APP_URL || 'http://localhost:3000';
   const shareUrl = `${baseUrl}/i/${img.id}`;
   const directUrl = resolveImageUrl(img.cloudinary_url, baseUrl);
   const thumbnailUrl = getCloudinaryThumbnailUrl(img.cloudinary_url, 400, 400, baseUrl);
+
+  const hasPassword = !!img.password_hash;
+  const isOneTime = !!img.is_one_time_view;
+
+  if (isLocked && hasPassword) {
+    const lockedImage: Partial<ImageRecord> = {
+      id: img.id,
+      uploader_username: img.uploader_username,
+      original_filename: '🔒 Parola Korumalı Görsel',
+      created_at: img.created_at,
+      views: img.views,
+      downloads: img.downloads,
+      is_public: img.is_public,
+      status: img.status,
+      expires_at: img.expires_at,
+      is_one_time_view: img.is_one_time_view,
+    };
+
+    return {
+      image: lockedImage as ImageRecord,
+      share_url: shareUrl,
+      direct_url: '',
+      thumbnail_url: '',
+      html_code: '',
+      markdown_code: '',
+      bbcode: '',
+      is_locked: true,
+      is_password_protected: true,
+      expires_at: img.expires_at || null,
+      is_one_time_view: isOneTime,
+    };
+  }
 
   const normalizedImage: ImageRecord = {
     ...img,
@@ -65,6 +98,10 @@ function buildUploadResult(img: ImageRecord, appUrl: string) {
     html_code: `<a href="${shareUrl}" target="_blank"><img src="${directUrl}" alt="${img.original_filename}" /></a>`,
     markdown_code: `[![${img.original_filename}](${directUrl})](${shareUrl})`,
     bbcode: `[URL=${shareUrl}][IMG]${directUrl}[/IMG][/URL]`,
+    is_locked: false,
+    is_password_protected: hasPassword,
+    expires_at: img.expires_at || null,
+    is_one_time_view: isOneTime,
   };
 }
 
@@ -88,6 +125,32 @@ router.post('/upload', uploadRateLimiter, authenticateToken, upload.array('files
       if (userFolders.some((f) => f.id === req.body.folder_id)) {
         targetFolderId = req.body.folder_id;
       }
+    }
+
+    // Expiration & Password options
+    const passwordInput = req.body.password ? String(req.body.password).trim() : null;
+    const expirationInput = req.body.expiration ? String(req.body.expiration).trim() : 'none';
+
+    let passwordHash: string | null = null;
+    if (passwordInput && passwordInput.length > 0) {
+      passwordHash = await bcrypt.hash(passwordInput, 10);
+    }
+
+    let expiresAt: string | null = null;
+    let isOneTime = false;
+
+    if (expirationInput === '10m') {
+      expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+    } else if (expirationInput === '1h') {
+      expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+    } else if (expirationInput === '24h') {
+      expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    } else if (expirationInput === '7d') {
+      expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    } else if (expirationInput === '30d') {
+      expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+    } else if (expirationInput === '1view') {
+      isOneTime = true;
     }
 
     const userPlan = req.user ? req.user.plan || (req.user.role === 'admin' ? 'admin' : 'free') : 'free';
@@ -161,12 +224,16 @@ router.post('/upload', uploadRateLimiter, authenticateToken, upload.array('files
         delete_token: deleteToken,
         is_favorite: false,
         folder_id: targetFolderId,
+        password_hash: passwordHash,
+        expires_at: expiresAt,
+        is_one_time_view: isOneTime,
+        view_limit: isOneTime ? 1 : null,
       };
 
       db.createImage(imageRecord);
       db.addLog('info', `Resim yüklendi: ${imageId} (${file.originalname}) - ${uploadRes.size} bytes`);
 
-      results.push(buildUploadResult(imageRecord, appUrl));
+      results.push(buildUploadResult(imageRecord, appUrl, false));
     }
 
     // Add user notification if logged in
@@ -261,10 +328,48 @@ router.get('/my', authenticateToken, requireAuth, (req: AuthRequest, res: Respon
     const folders = db.getFoldersByUserId(req.user!.id);
     const appUrl = (req.protocol + '://' + req.get('host')) || process.env.APP_URL || 'http://localhost:3000';
 
-    const formatted = images.map((img) => buildUploadResult(img, appUrl));
+    const formatted = images.map((img) => buildUploadResult(img, appUrl, false));
     return res.json({ images: formatted, folders });
   } catch (err: any) {
     return res.status(500).json({ error: 'Galeri yüklenirken bir hata oluştu.' });
+  }
+});
+
+// Unlock Password-Protected Image
+router.post('/:id/unlock', async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { password } = req.body;
+
+    const img = db.getImageById(id);
+    if (!img) {
+      return res.status(404).json({ error: 'Aradığınız resim bulunamadı veya silinmiş.' });
+    }
+
+    if (!img.password_hash) {
+      const appUrl = (req.protocol + '://' + req.get('host')) || process.env.APP_URL || 'http://localhost:3000';
+      return res.json({
+        ...buildUploadResult(img, appUrl, false),
+        unlocked: true,
+      });
+    }
+
+    if (!password) {
+      return res.status(400).json({ error: 'Lütfen resmi görüntülemek için şifreyi girin.' });
+    }
+
+    const isValid = await bcrypt.compare(String(password), img.password_hash);
+    if (!isValid) {
+      return res.status(401).json({ error: 'Hatalı şifre girdiniz. Lütfen tekrar deneyin.' });
+    }
+
+    const appUrl = (req.protocol + '://' + req.get('host')) || process.env.APP_URL || 'http://localhost:3000';
+    return res.json({
+      ...buildUploadResult(img, appUrl, false),
+      unlocked: true,
+    });
+  } catch (err: any) {
+    return res.status(500).json({ error: 'Şifre doğrulanamadı.' });
   }
 });
 
@@ -275,7 +380,7 @@ router.get('/:id', authenticateToken, (req: AuthRequest, res: Response) => {
     const img = db.getImageById(id);
 
     if (!img) {
-      return res.status(404).json({ error: 'Aradığınız resim bulunamadı veya silinmiş.' });
+      return res.status(404).json({ error: 'Aradığınız resim bulunamadı veya saklama süresi dolduğu için silinmiş.' });
     }
 
     const clientIp = (req.headers['x-forwarded-for'] as string) || req.ip || '127.0.0.1';
@@ -284,8 +389,23 @@ router.get('/:id', authenticateToken, (req: AuthRequest, res: Response) => {
     const appUrl = (req.protocol + '://' + req.get('host')) || process.env.APP_URL || 'http://localhost:3000';
     const isOwner = req.user ? req.user.id === img.user_id || req.user.role === 'admin' : false;
 
+    // Password lock check
+    const isLocked = !!img.password_hash && !isOwner;
+
+    // One-time self-destruct check: If visited by someone and is_one_time_view is true
+    const result = buildUploadResult(img, appUrl, isLocked);
+
+    // If one-time view and not owner, mark it for auto-deletion after this view
+    if (img.is_one_time_view && !isOwner && img.views > 1) {
+      setTimeout(() => {
+        try {
+          db.deleteImage(img.id);
+        } catch (e) {}
+      }, 5000);
+    }
+
     return res.json({
-      ...buildUploadResult(img, appUrl),
+      ...result,
       is_owner: isOwner,
     });
   } catch (err: any) {

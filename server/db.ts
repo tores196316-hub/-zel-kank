@@ -52,6 +52,10 @@ export interface ImageRecord {
   delete_token: string;
   is_favorite?: boolean;
   folder_id?: string | null;
+  password_hash?: string | null;
+  expires_at?: string | null;
+  view_limit?: number | null;
+  is_one_time_view?: boolean;
 }
 
 export interface ReportRecord {
@@ -715,7 +719,15 @@ class Database {
 
   // Images
   public getImages(): ImageRecord[] {
-    return this.data.images.filter((img) => img.status !== 'deleted');
+    const now = Date.now();
+    return this.data.images.filter((img) => {
+      if (img.status === 'deleted') return false;
+      if (img.expires_at && new Date(img.expires_at).getTime() <= now) {
+        img.status = 'deleted';
+        return false;
+      }
+      return true;
+    });
   }
 
   public getAllImagesForAdmin(): ImageRecord[] {
@@ -724,8 +736,30 @@ class Database {
 
   public getImageById(id: string): ImageRecord | undefined {
     const img = this.data.images.find((i) => i.id === id);
-    if (img && img.status !== 'deleted') return img;
-    return undefined;
+    if (!img || img.status === 'deleted') return undefined;
+
+    if (img.expires_at && new Date(img.expires_at).getTime() <= Date.now()) {
+      img.status = 'deleted';
+      this.save();
+      return undefined;
+    }
+
+    return img;
+  }
+
+  public cleanExpiredImages(): number {
+    const now = Date.now();
+    let cleaned = 0;
+    for (const img of this.data.images) {
+      if (img.status !== 'deleted' && img.expires_at && new Date(img.expires_at).getTime() <= now) {
+        img.status = 'deleted';
+        cleaned++;
+      }
+    }
+    if (cleaned > 0) {
+      this.save();
+    }
+    return cleaned;
   }
 
   public getImagesByUserId(userId: string): ImageRecord[] {

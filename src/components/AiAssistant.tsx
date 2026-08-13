@@ -176,6 +176,44 @@ const INSTANT_FAQS: QuickFaq[] = [
     },
   },
   {
+    id: 'image_editor',
+    category: 'features',
+    question: 'Resimlerimi yüklemeden önce veya sonra kırpıp düzenleyebilir miyim?',
+    shortLabel: 'Dahili Resim Editörü',
+    icon: <Sparkles className="w-3.5 h-3.5" />,
+    instantAnswer: `**🎨 Dahili Resim Editörü:**
+- **Evet!** Resimlerinizi yüklemeden önce veya resim detay sayfasında **"Resmi Düzenle"** butonuna basarak düzenleyebilirsiniz.
+- **Yetenekler:** 
+  • Kırpma (Serbest, 1:1 Kare, 4:3, 16:9)
+  • 90° Sağa/Sola Döndürme & Yatay Çevirme
+  • Filtreler (Siyah-Beyaz, Sepya, Parlaklık, Kontrast, Doygunluk, Bulanıklık)
+  • Özel Metin Filigranı (Watermark) Ekleme
+  • Boyut Değiştirme (Resize)
+- Tüm işlemler tarayıcınızda sıfır gecikmeyle Canvas üzerinde gerçekleşir.`,
+    action: {
+      label: 'Yükle & Düzenle',
+      path: '/yukle',
+    },
+  },
+  {
+    id: 'encrypted_share',
+    category: 'security',
+    question: 'Şifreli veya kendini imha eden (süreli) resim nasıl paylaşırım?',
+    shortLabel: 'Şifreli & Süreli Paylaşım',
+    icon: <ShieldCheck className="w-3.5 h-3.5" />,
+    instantAnswer: `**🔒 Şifreli & Kendini İmha Eden Paylaşımlar:**
+1. **/yukle** sayfasına gidin.
+2. Sayfanın altındaki **"Şifreli & Süreli Paylaşım Ayarları"** panelini açın.
+3. İsteğe bağlı olarak:
+   • **Erişim Şifresi:** Belirlediğiniz şifreyi bilmeyenler resmi açamaz.
+   • **Süre Sınırı:** 10 dk, 1 saat, 24 saat veya 7 gün sonra otomatik silinsin.
+   • **🔥 1 Kez Görüntülensin:** Alıcı resmi 1 defa açıp baktıktan sonra resim sunucudan kalıcı olarak imha edilir!`,
+    action: {
+      label: 'Güvenli Paylaşım Yap',
+      path: '/yukle',
+    },
+  },
+  {
     id: 'privacy_security',
     category: 'security',
     question: 'Resimlerimin gizliliği ve güvenliği nasıl sağlanıyor?',
@@ -184,12 +222,15 @@ const INSTANT_FAQS: QuickFaq[] = [
     instantAnswer: `**🔒 Gizlilik ve Güvenlik Standartları:**
 - Yüklediğiniz resimler yalnızca linkine sahip olan kişiler tarafından görüntülenebilir (Özel galeri ayarı yapılabilir).
 - Oturum açan kullanıcılar resimlerini istedikleri zaman tamamen kalıcı olarak silebilirler.
+- Şifreli paylaşım ve tek seferlik görüntüleme seçenekleri ile hassas içerikleriniz tamamen güvendedir.
 - Sunucularımızda SSL 256-bit uçtan uca şifreleme uygulanmaktadır.`,
   },
 ];
 
 const RANDOM_TIPS = [
   '💡 İpucu: Ekran görüntüsü aldıktan sonra doğrudan sayfaya gelip Ctrl+V yapabilirsiniz!',
+  '💡 İpucu: Resimlerinizi yüklemeden önce "Düzenle" butonuyla kırpabilir ve filtre uygulayabilirsiniz!',
+  '💡 İpucu: Hassas resimler için "1 Görüntülemede Yok Ol" (Self-Destruct) özelliğini kullanabilirsiniz.',
   '💡 İpucu: Forumlarda resim paylaşmak için hazır BBCode bağlantısını kopyalayabilirsiniz.',
   '💡 İpucu: Üye olarak kendi özel albüm ve klasörlerinizi oluşturabilirsiniz.',
   '💡 İpucu: Yüklediğiniz resimlerin görüntülenme ve indirilme istatistiklerini takip edebilirsiniz.',

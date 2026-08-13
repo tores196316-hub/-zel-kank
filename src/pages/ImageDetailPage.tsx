@@ -1,10 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { Download, Copy, Share2, Trash2, Flag, Eye, Calendar, HardDrive, Maximize2, Check, ArrowLeft, ExternalLink, Heart, Sparkles, X } from 'lucide-react';
+import { 
+  Download, Copy, Share2, Trash2, Flag, Eye, Calendar, HardDrive, 
+  Maximize2, Check, ArrowLeft, ExternalLink, Heart, Sparkles, X, 
+  Lock, Key, Clock, Flame, Sliders, ShieldAlert, ShieldCheck
+} from 'lucide-react';
 import { imageApi } from '../lib/api';
 import { UploadResult } from '../types';
 import { useToast } from '../components/Toast';
 import { useAuth } from '../context/AuthContext';
 import { formatImageUrl } from '../lib/imageUrl';
+import { ImageEditorModal } from '../components/ImageEditorModal';
 
 interface ImageDetailPageProps {
   imageId: string;
@@ -17,6 +22,14 @@ export const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId, navig
   const [data, setData] = useState<(UploadResult & { is_owner: boolean }) | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Password Unlock states
+  const [passwordInput, setPasswordInput] = useState('');
+  const [unlocking, setUnlocking] = useState(false);
+  const [unlockError, setUnlockError] = useState<string | null>(null);
+
+  // Editor Modal state
+  const [editorOpen, setEditorOpen] = useState(false);
 
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [reportReason, setReportReason] = useState('');
@@ -47,13 +60,31 @@ export const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId, navig
     };
   }, [imageId]);
 
+  const handleUnlock = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!passwordInput.trim()) return;
+
+    setUnlocking(true);
+    setUnlockError(null);
+
+    try {
+      const res = await imageApi.unlockImage(imageId, passwordInput.trim());
+      setData({ ...res, is_owner: data?.is_owner || false });
+      showToast('Kilit açıldı! Resim görüntülenebilir.', 'success');
+    } catch (err: any) {
+      setUnlockError(err.message || 'Hatalı şifre. Lütfen tekrar deneyin.');
+    } finally {
+      setUnlocking(false);
+    }
+  };
+
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     showToast(`${label} panoya kopyalandı!`, 'success');
   };
 
   const handleToggleFavorite = async () => {
-    if (!data) return;
+    if (!data || data.is_locked) return;
     try {
       const res = await imageApi.toggleFavorite(data.image.id);
       setData({
@@ -67,7 +98,7 @@ export const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId, navig
   };
 
   const handleDownload = () => {
-    if (!data) return;
+    if (!data || data.is_locked) return;
     imageApi.trackDownload(imageId).catch(() => {});
 
     const link = document.createElement('a');
@@ -113,8 +144,22 @@ export const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId, navig
   };
 
   const formatSize = (bytes: number) => {
+    if (!bytes) return '0 KB';
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  };
+
+  const formatTimeRemaining = (expiresAt: string) => {
+    const diff = new Date(expiresAt).getTime() - Date.now();
+    if (diff <= 0) return 'Süresi doldu';
+
+    const mins = Math.floor(diff / (1000 * 60));
+    const hours = Math.floor(mins / 60);
+    const days = Math.floor(hours / 24);
+
+    if (days > 0) return `${days} gün ${hours % 24} saat kaldı`;
+    if (hours > 0) return `${hours} saat ${mins % 60} dakika kaldı`;
+    return `${mins} dakika kaldı`;
   };
 
   if (loading) {
@@ -133,18 +178,86 @@ export const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId, navig
           <Flag className="w-8 h-8" />
         </div>
         <div className="space-y-1.5">
-          <h2 className="text-2xl font-extrabold text-white">Resim Bulunamadı</h2>
+          <h2 className="text-2xl font-extrabold text-white">Resim Bulunamadı veya Süresi Doldu</h2>
           <p className="text-slate-400 text-xs sm:text-sm max-w-md mx-auto">
-            {error || 'Aradığınız resim silinmiş, kalıcı olarak kaldırılmış veya hiç var olmamış olabilir.'}
+            {error || 'Aradığınız resim silinmiş, süresi dolmuş veya tek seferlik görüntüleme sonrasında otomatik imha edilmiş olabilir.'}
           </p>
         </div>
         <button
           onClick={() => navigate('/')}
-          className="min-h-[44px] px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs sm:text-sm inline-flex items-center gap-2 shadow-md shadow-blue-600/20 transition-all active:scale-95"
+          className="min-h-[44px] px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs sm:text-sm inline-flex items-center gap-2 shadow-md shadow-blue-600/20 transition-all active:scale-95 cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Ana Sayfaya Dön</span>
         </button>
+      </div>
+    );
+  }
+
+  // --- PASSWORD LOCKED VIEW ---
+  if (data.is_locked) {
+    return (
+      <div className="max-w-md mx-auto px-4 py-16 text-center space-y-6">
+        <div className="bg-[#0F172A] border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl">
+          <div className="w-16 h-16 rounded-2xl bg-amber-500/10 text-amber-400 flex items-center justify-center mx-auto border border-amber-500/20 shadow-lg shadow-amber-500/5">
+            <Lock className="w-8 h-8" />
+          </div>
+
+          <div className="space-y-2">
+            <h2 className="text-xl sm:text-2xl font-extrabold text-white">Bu Resim Şifrelidir</h2>
+            <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
+              Yükleyici bu içeriği görüntülemek için bir erişim şifresi belirledi. Devam etmek için şifreyi girin.
+            </p>
+          </div>
+
+          <form onSubmit={handleUnlock} className="space-y-4 text-left">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-300 block">Erişim Şifresi</label>
+              <div className="relative">
+                <input
+                  type="password"
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
+                  placeholder="Şifrenizi yazın..."
+                  required
+                  autoFocus
+                  className="w-full bg-[#0B0F19] border border-slate-700/80 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                />
+                <Key className="w-4 h-4 text-slate-500 absolute right-3.5 top-1/2 -translate-y-1/2" />
+              </div>
+            </div>
+
+            {unlockError && (
+              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs flex items-center gap-2">
+                <ShieldAlert className="w-4 h-4 shrink-0" />
+                <span>{unlockError}</span>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={unlocking || !passwordInput.trim()}
+              className="w-full min-h-[44px] py-3 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20 transition-all cursor-pointer"
+            >
+              {unlocking ? (
+                <span>Doğrulanıyor...</span>
+              ) : (
+                <>
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>Kilidi Aç & Görüntüle</span>
+                </>
+              )}
+            </button>
+          </form>
+
+          <button
+            onClick={() => navigate('/')}
+            className="text-xs text-slate-500 hover:text-slate-300 font-medium inline-flex items-center gap-1"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Ana Sayfaya Dön</span>
+          </button>
+        </div>
       </div>
     );
   }
@@ -154,21 +267,56 @@ export const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId, navig
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 sm:py-10 space-y-6">
+      
+      {/* Expiration & Security Banner (if applicable) */}
+      {(data.is_one_time_view || data.expires_at || data.is_password_protected) && (
+        <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-semibold">
+          <div className="flex items-center gap-2">
+            {data.is_one_time_view ? (
+              <>
+                <Flame className="w-4 h-4 text-rose-400 animate-pulse" />
+                <span>🔥 Tek Seferlik Görüntüleme: Bu resim görüntüleme sonrasında kalıcı olarak imha edilecektir.</span>
+              </>
+            ) : data.expires_at ? (
+              <>
+                <Clock className="w-4 h-4 text-amber-400" />
+                <span>⏳ Süreli Paylaşım: {formatTimeRemaining(data.expires_at)}</span>
+              </>
+            ) : (
+              <>
+                <Lock className="w-4 h-4 text-emerald-400" />
+                <span>🔒 Şifre Korumalı Paylaşım (Doğrulandı)</span>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Top Bar Navigation */}
       <div className="flex items-center justify-between gap-3">
         <button
           onClick={() => navigate('/galerim')}
-          className="inline-flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-white transition-colors"
+          className="inline-flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-white transition-colors cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Galerime Dön</span>
         </button>
 
         <div className="flex items-center gap-2">
+          {/* Edit Button with Dahili Resim Editörü */}
+          <button
+            onClick={() => setEditorOpen(true)}
+            className="px-3 py-1.5 rounded-xl bg-blue-600/15 hover:bg-blue-600/25 border border-blue-500/30 text-blue-400 hover:text-blue-300 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+            title="Resmi kırpın, filtreleyin veya filigran ekleyin"
+          >
+            <Sliders className="w-3.5 h-3.5" />
+            <span>Resmi Düzenle</span>
+          </button>
+
           {data.is_owner && (
             <button
               onClick={handleToggleFavorite}
-              className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-colors ${
+              className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
                 data.image.is_favorite
                   ? 'bg-rose-600/20 border-rose-500/40 text-rose-400'
                   : 'bg-[#0F172A] border-slate-800 text-slate-300 hover:text-white'
@@ -182,7 +330,7 @@ export const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId, navig
           {data.is_owner && (
             <button
               onClick={handleDelete}
-              className="px-3 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+              className="px-3 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               <Trash2 className="w-3.5 h-3.5" />
               <span>Sil</span>
@@ -191,7 +339,7 @@ export const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId, navig
 
           <button
             onClick={() => setReportModalOpen(true)}
-            className="px-3 py-1.5 rounded-xl bg-[#0F172A] hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white text-xs font-medium flex items-center gap-1.5 transition-colors"
+            className="px-3 py-1.5 rounded-xl bg-[#0F172A] hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
           >
             <Flag className="w-3.5 h-3.5" />
             <span>Bildir</span>
@@ -251,7 +399,7 @@ export const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId, navig
           <div className="pt-2">
             <button
               onClick={handleDownload}
-              className="w-full min-h-[44px] py-3 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-blue-600/20 transition-all active:scale-95"
+              className="w-full min-h-[44px] py-3 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-blue-600/20 transition-all active:scale-95 cursor-pointer"
             >
               <Download className="w-4 h-4" />
               <span>Orijinal Resmi İndir</span>
@@ -276,7 +424,7 @@ export const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId, navig
                 />
                 <button
                   onClick={() => copyToClipboard(data.direct_url, 'Direkt Bağlantı')}
-                  className="min-h-[38px] px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1.5 shrink-0 transition-colors"
+                  className="min-h-[38px] px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer"
                 >
                   <Copy className="w-3.5 h-3.5" /> <span>Kopyala</span>
                 </button>
@@ -290,12 +438,12 @@ export const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId, navig
                 <input
                   type="text"
                   readOnly
-                  value={data.markdown}
+                  value={data.markdown_code}
                   className="flex-1 bg-[#0B0F19] border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 font-mono focus:outline-none"
                 />
                 <button
-                  onClick={() => copyToClipboard(data.markdown, 'Markdown Kodu')}
-                  className="min-h-[38px] px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold flex items-center gap-1.5 shrink-0 transition-colors"
+                  onClick={() => copyToClipboard(data.markdown_code, 'Markdown Kodu')}
+                  className="min-h-[38px] px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer"
                 >
                   <Copy className="w-3.5 h-3.5" /> <span>Kopyala</span>
                 </button>
@@ -314,7 +462,7 @@ export const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId, navig
                 />
                 <button
                   onClick={() => copyToClipboard(data.html_code, 'HTML Kodu')}
-                  className="min-h-[38px] px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold flex items-center gap-1.5 shrink-0 transition-colors"
+                  className="min-h-[38px] px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer"
                 >
                   <Copy className="w-3.5 h-3.5" /> <span>Kopyala</span>
                 </button>
@@ -333,7 +481,7 @@ export const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId, navig
                 />
                 <button
                   onClick={() => copyToClipboard(data.bbcode, 'BBCode')}
-                  className="min-h-[38px] px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold flex items-center gap-1.5 shrink-0 transition-colors"
+                  className="min-h-[38px] px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer"
                 >
                   <Copy className="w-3.5 h-3.5" /> <span>Kopyala</span>
                 </button>
@@ -374,6 +522,20 @@ export const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId, navig
         </div>
       </div>
 
+      {/* Dahili Resim Editörü Modal */}
+      {editorOpen && (
+        <ImageEditorModal
+          isOpen={editorOpen}
+          onClose={() => setEditorOpen(false)}
+          imageUrl={formatImageUrl(data.direct_url)}
+          fileName={data.image.original_filename}
+          onSave={(_file, previewUrl) => {
+            showToast('Düzenleme tamamlandı. Yeni sürümü indirebilir veya kullanabilirsiniz.', 'success');
+            setEditorOpen(false);
+          }}
+        />
+      )}
+
       {/* Report Modal */}
       {reportModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
@@ -385,7 +547,7 @@ export const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId, navig
               </h3>
               <button
                 onClick={() => setReportModalOpen(false)}
-                className="text-slate-400 hover:text-white p-1"
+                className="text-slate-400 hover:text-white p-1 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -409,14 +571,14 @@ export const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId, navig
                 <button
                   type="button"
                   onClick={() => setReportModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800"
+                  className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 cursor-pointer"
                 >
                   İptal
                 </button>
                 <button
                   type="submit"
                   disabled={reportSubmitting || !reportReason.trim()}
-                  className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-md disabled:opacity-50 transition-all active:scale-95"
+                  className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-md disabled:opacity-50 transition-all active:scale-95 cursor-pointer"
                 >
                   {reportSubmitting ? 'Gönderiliyor...' : 'Şikayeti Gönder'}
                 </button>
@@ -428,4 +590,5 @@ export const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId, navig
     </div>
   );
 };
+
 

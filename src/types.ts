@@ -57,6 +57,9 @@ export interface ImageMetadata {
   delete_token?: string;
   is_favorite?: boolean;
   folder_id?: string | null;
+  expires_at?: string | null;
+  is_one_time_view?: boolean;
+  is_password_protected?: boolean;
 }
 
 export interface UploadResult {
@@ -67,6 +70,10 @@ export interface UploadResult {
   html_code: string;
   markdown_code: string;
   bbcode: string;
+  is_locked?: boolean;
+  is_password_protected?: boolean;
+  expires_at?: string | null;
+  is_one_time_view?: boolean;
 }
 
 export interface Report {

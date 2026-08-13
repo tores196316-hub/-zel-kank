@@ -126,7 +126,8 @@ export const imageApi = {
     file: File,
     onProgress?: (percent: number) => void,
     folderId?: string | null,
-    xhrRef?: { current: XMLHttpRequest | null }
+    xhrRef?: { current: XMLHttpRequest | null },
+    options?: { password?: string; expiration?: string }
   ): Promise<UploadResult> => {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
@@ -136,6 +137,12 @@ export const imageApi = {
       formData.append('files', file);
       if (folderId) {
         formData.append('folder_id', folderId);
+      }
+      if (options?.password) {
+        formData.append('password', options.password);
+      }
+      if (options?.expiration && options.expiration !== 'none') {
+        formData.append('expiration', options.expiration);
       }
 
       xhr.upload.addEventListener('progress', (e) => {
@@ -176,6 +183,12 @@ export const imageApi = {
       xhr.send(formData);
     });
   },
+
+  unlockImage: (id: string, password: string) =>
+    request<UploadResult & { unlocked: boolean }>(`/api/images/${id}/unlock`, {
+      method: 'POST',
+      body: JSON.stringify({ password }),
+    }),
 
   getMyImages: () => request<{ images: UploadResult[]; folders?: Folder[] }>('/api/images/my'),
 

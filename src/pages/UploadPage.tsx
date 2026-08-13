@@ -1,10 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Upload, X, Check, Copy, ExternalLink, Image as ImageIcon, AlertCircle, FileCheck, RefreshCw, Layers, Folder as FolderIcon, Camera, Ban, RotateCcw, Sparkles } from 'lucide-react';
+import { 
+  Upload, X, Check, Copy, ExternalLink, Image as ImageIcon, AlertCircle, 
+  FileCheck, RefreshCw, Layers, Folder as FolderIcon, Camera, Ban, 
+  RotateCcw, Sparkles, Sliders, Lock, Clock, Flame, Shield, Key
+} from 'lucide-react';
 import { imageApi, getStoredToken } from '../lib/api';
 import { Folder, UploadProgressFile, UploadResult } from '../types';
 import { useToast } from '../components/Toast';
 import { useAuth } from '../context/AuthContext';
 import { formatImageUrl } from '../lib/imageUrl';
+import { ImageEditorModal } from '../components/ImageEditorModal';
 
 interface UploadPageProps {
   navigate: (path: string) => void;
@@ -22,6 +27,14 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [completedResults, setCompletedResults] = useState<UploadResult[]>([]);
+
+  // Security & Expiration settings
+  const [uploadPassword, setUploadPassword] = useState<string>('');
+  const [uploadExpiration, setUploadExpiration] = useState<string>('none');
+  const [showSecurityOptions, setShowSecurityOptions] = useState<boolean>(false);
+
+  // Editor Modal state
+  const [editingFile, setEditingFile] = useState<UploadProgressFile | null>(null);
 
   const isLoggedIn = !!getStoredToken();
 
@@ -114,6 +127,26 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
     showToast('Yükleme iptal edildi.', 'info');
   };
 
+  const handleEditorSave = (editedFile: File, newPreviewUrl: string) => {
+    if (!editingFile) return;
+
+    setFilesList((prev) =>
+      prev.map((item) => {
+        if (item.id === editingFile.id) {
+          return {
+            ...item,
+            file: editedFile,
+            previewUrl: newPreviewUrl,
+          };
+        }
+        return item;
+      })
+    );
+
+    showToast('Resim düzenlemesi uygulandı.', 'success');
+    setEditingFile(null);
+  };
+
   const uploadSingleFile = async (item: UploadProgressFile, targetFolder: string | null): Promise<UploadResult> => {
     const xhrRef: { current: XMLHttpRequest | null } = { current: null };
 
@@ -134,7 +167,11 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
           );
         },
         targetFolder,
-        xhrRef
+        xhrRef,
+        {
+          password: uploadPassword.trim() || undefined,
+          expiration: uploadExpiration,
+        }
       );
 
       setFilesList((prev) =>
@@ -204,6 +241,8 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
   const resetUpload = () => {
     setFilesList([]);
     setCompletedResults([]);
+    setUploadPassword('');
+    setUploadExpiration('none');
     if (fileInputRef.current) fileInputRef.current.value = '';
     if (cameraInputRef.current) cameraInputRef.current.value = '';
   };
@@ -221,31 +260,129 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
       <div className="text-center space-y-2.5">
         <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Hızlı Resim Yükleme</h1>
         <p className="text-slate-400 text-xs sm:text-sm max-w-xl mx-auto">
-          Dosyalarınızı sürükleyin, panodan yapıştırın (Ctrl+V) veya galerinizden seçin. (Tek dosya maks. 20 MB)
+          Dosyalarınızı sürükleyin, panodan yapıştırın (Ctrl+V) veya galerinizden seçin. Yüklemeden önce dilediğiniz gibi düzenleyebilirsiniz!
         </p>
       </div>
 
       {/* Upload Setup Bar */}
       {completedResults.length === 0 && (
         <div className="space-y-6">
-          {isLoggedIn && folders.length > 0 && (
-            <div className="bg-[#0F172A] border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-              <div className="flex items-center gap-2 text-slate-300 text-xs font-semibold">
-                <FolderIcon className="w-4 h-4 text-blue-400" />
-                <span>Yüklenecek Klasör:</span>
+          
+          {/* Top Options Bar: Folder Selection & Security Settings Toggle */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {isLoggedIn && folders.length > 0 ? (
+              <div className="bg-[#0F172A] border border-slate-800 rounded-2xl p-3.5 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 text-slate-300 text-xs font-semibold">
+                  <FolderIcon className="w-4 h-4 text-blue-400" />
+                  <span>Klasör:</span>
+                </div>
+                <select
+                  value={selectedFolderId}
+                  onChange={(e) => setSelectedFolderId(e.target.value)}
+                  className="bg-[#0B0F19] text-slate-200 border border-slate-700/80 rounded-xl px-3 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                >
+                  <option value="">Klasörsüz</option>
+                  {folders.map((f) => (
+                    <option key={f.id} value={f.id}>
+                      📁 {f.name}
+                    </option>
+                  ))}
+                </select>
               </div>
-              <select
-                value={selectedFolderId}
-                onChange={(e) => setSelectedFolderId(e.target.value)}
-                className="w-full sm:w-auto bg-[#0B0F19] text-slate-200 border border-slate-700/80 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            ) : (
+              <div className="hidden sm:block" />
+            )}
+
+            {/* Security Options Toggle Button */}
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowSecurityOptions((prev) => !prev)}
+                className={`w-full sm:w-auto px-4 py-2.5 rounded-2xl border text-xs font-bold flex items-center justify-center sm:justify-start gap-2 transition cursor-pointer ${
+                  showSecurityOptions || uploadPassword || uploadExpiration !== 'none'
+                    ? 'bg-blue-600/15 border-blue-500/40 text-blue-400'
+                    : 'bg-[#0F172A] border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800/80'
+                }`}
               >
-                <option value="">Klasörsüz (Tüm Resimler)</option>
-                {folders.map((f) => (
-                  <option key={f.id} value={f.id}>
-                    📁 {f.name}
-                  </option>
-                ))}
-              </select>
+                <Shield className="w-4 h-4 text-blue-400" />
+                <span>Güvenlik & Süre Ayarları</span>
+                {(uploadPassword || uploadExpiration !== 'none') && (
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Security & Expiration Accordion Panel */}
+          {showSecurityOptions && (
+            <div className="bg-[#0F172A] border border-blue-500/30 rounded-3xl p-5 sm:p-6 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div className="flex items-center gap-2 text-white text-xs sm:text-sm font-bold">
+                  <Lock className="w-4 h-4 text-blue-400" />
+                  <span>Şifreli Paylaşım & Otomatik İmha Ayarları</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowSecurityOptions(false)}
+                  className="text-xs text-slate-400 hover:text-white"
+                >
+                  Kapat
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                {/* 1. Password Protection */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                    <Key className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Şifre Koruması (İsteğe Bağlı)</span>
+                  </label>
+                  <p className="text-[11px] text-slate-400">
+                    Belirlediğiniz şifreyi bilmeyenler resmi görüntüleyemez.
+                  </p>
+                  <input
+                    type="password"
+                    value={uploadPassword}
+                    onChange={(e) => setUploadPassword(e.target.value)}
+                    placeholder="Resim için şifre belirleyin..."
+                    className="w-full bg-[#0B0F19] border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  />
+                </div>
+
+                {/* 2. Auto Expiration / Self-Destruct */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-rose-400" />
+                    <span>Otomatik Silinme & İmha Süresi</span>
+                  </label>
+                  <p className="text-[11px] text-slate-400">
+                    Süre dolduğunda resim kalıcı olarak sistemden silinir.
+                  </p>
+                  <select
+                    value={uploadExpiration}
+                    onChange={(e) => setUploadExpiration(e.target.value)}
+                    className="w-full bg-[#0B0F19] text-slate-200 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  >
+                    <option value="none">⏳ Süresiz (Kalıcı Saklama)</option>
+                    <option value="1view">🔥 1 Görüntüleme Sonrası İmha (Burn after reading)</option>
+                    <option value="10m">⚡ 10 Dakika Sonra Sil</option>
+                    <option value="1h">⏱️ 1 Saat Sonra Sil</option>
+                    <option value="24h">📅 24 Saat Sonra Sil</option>
+                    <option value="7d">🗓️ 7 Gün Sonra Sil</option>
+                    <option value="30d">📆 30 Gün Sonra Sil</option>
+                  </select>
+                </div>
+              </div>
+
+              {(uploadPassword || uploadExpiration !== 'none') && (
+                <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-xs text-blue-300 flex items-center gap-2">
+                  <Shield className="w-4 h-4 shrink-0 text-blue-400" />
+                  <span>
+                    Aktif Güvenlik: {uploadPassword ? '🔒 Şifreli' : ''} {uploadPassword && uploadExpiration !== 'none' ? ' ve ' : ''}
+                    {uploadExpiration === '1view' ? '🔥 Tek Görüntüleme Sonrası İmha' : uploadExpiration !== 'none' ? `⏳ ${uploadExpiration} Süreli` : ''}
+                  </span>
+                </div>
+              )}
             </div>
           )}
 
@@ -299,7 +436,7 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="min-h-[44px] px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md shadow-blue-600/25 flex items-center gap-2 transition-all active:scale-95"
+                  className="min-h-[44px] px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md shadow-blue-600/25 flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
                 >
                   <ImageIcon className="w-4 h-4" />
                   <span>Fotoğraf Seç</span>
@@ -307,7 +444,7 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
                 <button
                   type="button"
                   onClick={() => cameraInputRef.current?.click()}
-                  className="min-h-[44px] px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs shadow-sm flex items-center gap-2 transition-all active:scale-95"
+                  className="min-h-[44px] px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs shadow-sm flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
                 >
                   <Camera className="w-4 h-4 text-emerald-400" />
                   <span>Kamera ile Çek</span>
@@ -335,7 +472,7 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
                 {!isUploading && (
                   <button
                     onClick={resetUpload}
-                    className="text-xs text-rose-400 hover:text-rose-300 flex items-center gap-1 font-semibold"
+                    className="text-xs text-rose-400 hover:text-rose-300 flex items-center gap-1 font-semibold cursor-pointer"
                   >
                     <X className="w-3.5 h-3.5" />
                     Listeyi Temizle
@@ -361,7 +498,7 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+                    <div className="flex items-center gap-2.5 w-full sm:w-auto justify-between sm:justify-end">
                       {/* Status Badges */}
                       {item.status === 'pending' && (
                         <span className="text-slate-400 font-medium px-2 py-0.5 rounded bg-slate-800/80">Bekliyor</span>
@@ -399,12 +536,23 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
                         </span>
                       )}
 
-                      {/* Actions */}
-                      <div className="flex items-center gap-1">
+                      {/* Actions: Edit / Cancel / Delete */}
+                      <div className="flex items-center gap-1.5">
+                        {!isUploading && item.status === 'pending' && (
+                          <button
+                            onClick={() => setEditingFile(item)}
+                            className="px-2.5 py-1.5 rounded-lg bg-blue-600/15 hover:bg-blue-600/30 text-blue-400 hover:text-blue-300 font-bold text-[11px] flex items-center gap-1 transition cursor-pointer border border-blue-500/30"
+                            title="Resmi Kırp, Filtrele veya Boyutlandır"
+                          >
+                            <Sliders className="w-3.5 h-3.5" />
+                            <span>Düzenle</span>
+                          </button>
+                        )}
+
                         {item.status === 'uploading' && (
                           <button
                             onClick={() => cancelUpload(item.id)}
-                            className="p-1.5 rounded-lg bg-slate-800 text-rose-400 hover:bg-rose-500/20"
+                            className="p-1.5 rounded-lg bg-slate-800 text-rose-400 hover:bg-rose-500/20 cursor-pointer"
                             title="Yüklemeyi İptal Et"
                           >
                             <X className="w-4 h-4" />
@@ -414,7 +562,7 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
                         {(item.status === 'error' || item.status === 'cancelled') && !isUploading && (
                           <button
                             onClick={() => retrySingle(item)}
-                            className="p-1.5 rounded-lg bg-slate-800 text-blue-400 hover:bg-blue-500/20 flex items-center gap-1 text-[11px]"
+                            className="p-1.5 rounded-lg bg-slate-800 text-blue-400 hover:bg-blue-500/20 flex items-center gap-1 text-[11px] cursor-pointer"
                             title="Tekrar Dene"
                           >
                             <RotateCcw className="w-3.5 h-3.5" /> Tekrar
@@ -424,7 +572,8 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
                         {!isUploading && item.status !== 'completed' && (
                           <button
                             onClick={() => removeFile(item.id)}
-                            className="text-slate-400 hover:text-rose-400 p-1.5 rounded-lg hover:bg-slate-800"
+                            className="text-slate-400 hover:text-rose-400 p-1.5 rounded-lg hover:bg-slate-800 cursor-pointer"
+                            title="Listeden Kaldır"
                           >
                             <X className="w-4 h-4" />
                           </button>
@@ -439,7 +588,7 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
                 <button
                   onClick={startBatchUpload}
                   disabled={isUploading || filesList.length === 0}
-                  className="w-full min-h-[48px] py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 text-white font-bold text-sm shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 transition-all active:scale-98"
+                  className="w-full min-h-[48px] py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 text-white font-bold text-sm shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 transition-all active:scale-98 cursor-pointer"
                 >
                   {isUploading ? (
                     <>
@@ -469,7 +618,7 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
             </div>
             <button
               onClick={resetUpload}
-              className="px-3.5 py-1.5 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 text-xs font-bold"
+              className="px-3.5 py-1.5 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 text-xs font-bold cursor-pointer"
             >
               Yeni Yükleme Yap
             </button>
@@ -500,7 +649,7 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
                     <div className="pt-1 flex items-center justify-center md:justify-start gap-2">
                       <button
                         onClick={() => navigate(`/i/${res.image.id}`)}
-                        className="min-h-[40px] px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                        className="min-h-[40px] px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
                       >
                         <ExternalLink className="w-3.5 h-3.5" />
                         <span>Detay Sayfası</span>
@@ -526,7 +675,7 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
                         />
                         <button
                           onClick={() => copyToClipboard(res.direct_url, 'Direkt URL')}
-                          className="min-h-[38px] px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1.5 shrink-0 transition-colors"
+                          className="min-h-[38px] px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer"
                         >
                           <Copy className="w-3.5 h-3.5" />
                           <span>Kopyala</span>
@@ -546,7 +695,7 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
                         />
                         <button
                           onClick={() => copyToClipboard(res.share_url, 'Sayfa URL')}
-                          className="min-h-[38px] px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold flex items-center gap-1.5 shrink-0 transition-colors"
+                          className="min-h-[38px] px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer"
                         >
                           <Copy className="w-3.5 h-3.5" />
                           <span>Kopyala</span>
@@ -566,7 +715,7 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
                         />
                         <button
                           onClick={() => copyToClipboard(res.html_code, 'HTML Kodu')}
-                          className="min-h-[38px] px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold flex items-center gap-1.5 shrink-0 transition-colors"
+                          className="min-h-[38px] px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer"
                         >
                           <Copy className="w-3.5 h-3.5" />
                           <span>Kopyala</span>
@@ -586,7 +735,7 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
                         />
                         <button
                           onClick={() => copyToClipboard(res.bbcode, 'BBCode')}
-                          className="min-h-[38px] px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold flex items-center gap-1.5 shrink-0 transition-colors"
+                          className="min-h-[38px] px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer"
                         >
                           <Copy className="w-3.5 h-3.5" />
                           <span>Kopyala</span>
@@ -602,14 +751,14 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-4">
             <button
               onClick={resetUpload}
-              className="w-full sm:w-auto min-h-[44px] px-7 py-3 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 transition-colors"
+              className="w-full sm:w-auto min-h-[44px] px-7 py-3 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 transition-colors cursor-pointer"
             >
               <Upload className="w-4 h-4" />
               <span>Yeni Resim Yükle</span>
             </button>
             <button
               onClick={() => navigate('/galerim')}
-              className="w-full sm:w-auto min-h-[44px] px-7 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs sm:text-sm border border-slate-700 flex items-center justify-center gap-2 transition-colors"
+              className="w-full sm:w-auto min-h-[44px] px-7 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs sm:text-sm border border-slate-700 flex items-center justify-center gap-2 transition-colors cursor-pointer"
             >
               <ImageIcon className="w-4 h-4 text-blue-400" />
               <span>Galerime Git</span>
@@ -617,7 +766,19 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
           </div>
         </div>
       )}
+
+      {/* Embedded Image Editor Modal */}
+      {editingFile && (
+        <ImageEditorModal
+          isOpen={!!editingFile}
+          onClose={() => setEditingFile(null)}
+          imageUrl={editingFile.previewUrl || ''}
+          fileName={editingFile.file.name}
+          onSave={handleEditorSave}
+        />
+      )}
     </div>
   );
 };
+
 
