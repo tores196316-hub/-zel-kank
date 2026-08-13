@@ -1,5 +1,5 @@
 import React from 'react';
-import { Upload, Images, Shield, Zap, Link, CheckCircle, ArrowRight, FileCheck } from 'lucide-react';
+import { Upload, Images, Shield, Zap, Link, CheckCircle, ArrowRight, FileCheck, Copy, Sparkles, Layers, Lock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 interface HomePageProps {
@@ -10,134 +10,146 @@ export const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
   const { user } = useAuth();
 
   return (
-    <div className="space-y-16 pb-16">
+    <div className="space-y-16 sm:space-y-20 pb-16">
       {/* Hero Section */}
-      <section className="relative pt-12 md:pt-20 pb-12 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-blue-950/30 via-slate-900 to-slate-900 -z-10 pointer-events-none" />
-        <div className="max-w-5xl mx-auto px-4 text-center space-y-6">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold tracking-wide uppercase">
-            <Zap className="w-3.5 h-3.5" />
-            <span>Işık Hızında CDN Resim Servisi</span>
+      <section className="relative pt-12 sm:pt-20 pb-8 overflow-hidden">
+        {/* Subtle background glow */}
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-blue-600/10 blur-[120px] rounded-full pointer-events-none -z-10" />
+
+        <div className="max-w-4xl mx-auto px-4 text-center space-y-6 sm:space-y-8">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold tracking-wide">
+            <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
+            <span>Yüksek Hızlı & Kesintisiz Resim Servisi</span>
           </div>
 
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight leading-tight">
-            Resmini yükle. <br className="hidden sm:inline" />
-            <span className="bg-gradient-to-r from-blue-400 via-sky-300 to-indigo-400 bg-clip-text text-transparent">
-              Linkini hemen al.
+          {/* Heading */}
+          <h1 className="text-4xl sm:text-6xl font-black text-white tracking-tight leading-[1.1]">
+            Resmini yükle. <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-sky-300 to-indigo-300">
+              Bağlantını saniyeler içinde al.
             </span>
           </h1>
 
-          <p className="max-w-2xl mx-auto text-base sm:text-lg text-slate-300 font-normal leading-relaxed">
-            Saniyeler içinde resimlerinizi yüksek kalitede yükleyin. Forumlar, web siteleri ve sosyal medya için doğrudan resim bağlantılarınızı anında kopyalayın.
+          {/* Subtitle */}
+          <p className="max-w-2xl mx-auto text-sm sm:text-base text-slate-300 font-normal leading-relaxed">
+            Fotoğraflarınızı hızlı ve güvenli şekilde yükleyin, doğrudan bağlantınızı, HTML, BBCode ve Markdown kodlarını tek tıkla alın.
           </p>
 
-          <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
+          {/* CTAs */}
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3.5">
             <button
               onClick={() => navigate('/yukle')}
-              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-base shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 transition-all transform hover:-translate-y-0.5"
+              className="w-full sm:w-auto min-h-[48px] px-8 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm shadow-lg shadow-blue-600/25 flex items-center justify-center gap-2.5 transition-all transform active:scale-98"
             >
-              <Upload className="w-5 h-5" />
-              Resim Yükle
+              <Upload className="w-4 h-4" />
+              <span>Resim Yükle</span>
             </button>
 
             <button
               onClick={() => navigate(user ? '/galerim' : '/giris')}
-              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-base border border-slate-700 flex items-center justify-center gap-2 transition-all"
+              className="w-full sm:w-auto min-h-[48px] px-7 py-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-200 font-semibold text-sm border border-slate-700/80 flex items-center justify-center gap-2 transition-all active:scale-98"
             >
-              <Images className="w-5 h-5 text-blue-400" />
-              Galerime Git
+              <Images className="w-4 h-4 text-blue-400" />
+              <span>Galeriye Git</span>
             </button>
           </div>
 
-          {/* Quick Stats Banner */}
-          <div className="pt-8 grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-3xl mx-auto text-left">
-            <div className="bg-slate-800/40 border border-slate-800 p-4 rounded-xl">
-              <span className="text-xl font-bold text-white block">20 MB</span>
-              <span className="text-xs text-slate-400">Maks. Dosya Boyutu</span>
+          {/* Minimal Specs Strip */}
+          <div className="pt-8 flex flex-wrap items-center justify-center gap-3 max-w-2xl mx-auto text-xs text-slate-300">
+            <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-800/40 border border-slate-800">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              <span className="font-semibold text-white">20 MB</span>
+              <span className="text-slate-400">/ Dosya Başına</span>
             </div>
-            <div className="bg-slate-800/40 border border-slate-800 p-4 rounded-xl">
-              <span className="text-xl font-bold text-white block">Sınırsız</span>
-              <span className="text-xs text-slate-400">Görüntüleme Sayısı</span>
+            <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-800/40 border border-slate-800">
+              <Zap className="w-3.5 h-3.5 text-cyan-400" />
+              <span className="font-semibold text-white">Hızlı CDN</span>
+              <span className="text-slate-400">Dağıtımı</span>
             </div>
-            <div className="bg-slate-800/40 border border-slate-800 p-4 rounded-xl">
-              <span className="text-xl font-bold text-white block">Cloudinary</span>
-              <span className="text-xs text-slate-400">CDN Depolama Altyapısı</span>
+            <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-800/40 border border-slate-800">
+              <Lock className="w-3.5 h-3.5 text-blue-400" />
+              <span className="font-semibold text-white">HTTPS</span>
+              <span className="text-slate-400">256-Bit SSL</span>
             </div>
-            <div className="bg-slate-800/40 border border-slate-800 p-4 rounded-xl">
-              <span className="text-xl font-bold text-white block">HTTPS</span>
-              <span className="text-xs text-slate-400">256-Bit SSL Güvenliği</span>
+            <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-800/40 border border-slate-800">
+              <Copy className="w-3.5 h-3.5 text-indigo-400" />
+              <span className="font-semibold text-white">Kolay Paylaşım</span>
+              <span className="text-slate-400">Kodları</span>
             </div>
           </div>
         </div>
       </section>
 
       {/* Feature Highlights */}
-      <section className="max-w-6xl mx-auto px-4">
-        <div className="text-center mb-12 space-y-2">
-          <h2 className="text-2xl sm:text-3xl font-bold text-white">Neden Hızlı Yükle?</h2>
-          <p className="text-slate-400 text-sm max-w-lg mx-auto">
-            Gelişmiş resim optimizasyon teknolojisi ve sade arayüz ile resim yükleme deneyimi.
+      <section className="max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="text-center mb-10 space-y-2">
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Neden AnlıkResim?</h2>
+          <p className="text-slate-400 text-xs sm:text-sm max-w-lg mx-auto">
+            Hız, güvenlik ve kullanım kolaylığı için sıfırdan tasarlanmış profesyonel resim barındırma.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-slate-800/50 border border-slate-700/60 p-6 rounded-2xl hover:border-blue-500/40 transition-colors space-y-3">
-            <div className="w-12 h-12 rounded-xl bg-blue-600/10 text-blue-400 flex items-center justify-center">
-              <Zap className="w-6 h-6" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div className="bg-[#0F172A]/70 border border-slate-800/80 p-6 rounded-2xl hover:border-slate-700 transition-all space-y-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-600/10 text-blue-400 flex items-center justify-center border border-blue-500/20">
+              <Zap className="w-5 h-5" />
             </div>
-            <h3 className="text-lg font-bold text-white">Anında Yükleme & CDN</h3>
+            <h3 className="text-base font-bold text-white">Işık Hızında Yükleme & CDN</h3>
             <p className="text-xs text-slate-300 leading-relaxed">
-              Yüklediğiniz tüm resimler dünya genelinde yüksek hızlı Cloudinary CDN sunucularında saklanır ve ışık hızında sunulur.
+              Yüklediğiniz fotoğraflar optimize edilir ve küresel CDN sunucuları üzerinden sıfır bekleme süresiyle sunulur.
             </p>
           </div>
 
-          <div className="bg-slate-800/50 border border-slate-700/60 p-6 rounded-2xl hover:border-blue-500/40 transition-colors space-y-3">
-            <div className="w-12 h-12 rounded-xl bg-indigo-600/10 text-indigo-400 flex items-center justify-center">
-              <Link className="w-6 h-6" />
+          <div className="bg-[#0F172A]/70 border border-slate-800/80 p-6 rounded-2xl hover:border-slate-700 transition-all space-y-3">
+            <div className="w-10 h-10 rounded-xl bg-cyan-600/10 text-cyan-400 flex items-center justify-center border border-cyan-500/20">
+              <Link className="w-5 h-5" />
             </div>
-            <h3 className="text-lg font-bold text-white">Çeşitli Paylaşım Kodları</h3>
+            <h3 className="text-base font-bold text-white">Hazır Paylaşım Formatları</h3>
             <p className="text-xs text-slate-300 leading-relaxed">
-              Direkt resim URL'si, HTML gömme kodu, Markdown formatı ve Forum / BBCode hazır formatlarıyla kopyalamaya hazır.
+              Direkt CDN bağlantısı, HTML gömme kodu, Markdown ve Forum / BBCode formatları tek tıkla kopyalanmaya hazırdır.
             </p>
           </div>
 
-          <div className="bg-slate-800/50 border border-slate-700/60 p-6 rounded-2xl hover:border-blue-500/40 transition-colors space-y-3">
-            <div className="w-12 h-12 rounded-xl bg-emerald-600/10 text-emerald-400 flex items-center justify-center">
-              <Shield className="w-6 h-6" />
+          <div className="bg-[#0F172A]/70 border border-slate-800/80 p-6 rounded-2xl hover:border-slate-700 transition-all space-y-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-600/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
+              <Shield className="w-5 h-5" />
             </div>
-            <h3 className="text-lg font-bold text-white">Güvenli & Gizli</h3>
+            <h3 className="text-base font-bold text-white">Güvenli & Kontrol Sizde</h3>
             <p className="text-xs text-slate-300 leading-relaxed">
-              Resimleriniz sadece bağlantıya sahip kişiler tarafından erişilebilir. Dilediğiniz an kendi galerinizden silebilirsiniz.
+              Yüklemeleriniz otomatik taranır. Kendi oluşturduğunuz klasörlerle organize edebilir, istediğiniz an galerinizden silebilirsiniz.
             </p>
           </div>
         </div>
       </section>
 
-      {/* Supported Formats Banner */}
-      <section className="max-w-4xl mx-auto px-4 bg-slate-800/30 border border-slate-800 rounded-2xl p-8 text-center space-y-4">
-        <h3 className="text-lg font-semibold text-white">Desteklenen Resim Formatları</h3>
-        <div className="flex flex-wrap items-center justify-center gap-3">
-          {['JPG', 'JPEG', 'PNG', 'WEBP', 'GIF'].map((fmt) => (
-            <span key={fmt} className="px-4 py-2 rounded-lg bg-slate-800 text-slate-200 text-xs font-bold border border-slate-700">
-              {fmt}
-            </span>
-          ))}
+      {/* Supported Formats */}
+      <section className="max-w-4xl mx-auto px-4">
+        <div className="bg-[#0F172A]/50 border border-slate-800/80 rounded-2xl p-6 sm:p-8 text-center space-y-4">
+          <h3 className="text-sm font-bold text-slate-200 uppercase tracking-wider">Desteklenen Resim Formatları</h3>
+          <div className="flex flex-wrap items-center justify-center gap-2.5">
+            {['JPG', 'JPEG', 'PNG', 'WEBP', 'GIF'].map((fmt) => (
+              <span key={fmt} className="px-3.5 py-1.5 rounded-lg bg-slate-800/80 text-slate-200 text-xs font-mono font-bold border border-slate-700/60">
+                .{fmt}
+              </span>
+            ))}
+          </div>
+          <p className="text-xs text-slate-400">Üyeliksiz veya kayıtlı kullanıcılar için dosya başına 20 MB'a kadar destek.</p>
         </div>
-        <p className="text-xs text-slate-400">Tek dosya için maksimum yükleme boyutu: 20 MB</p>
       </section>
 
       {/* Call To Action */}
-      <section className="max-w-5xl mx-auto px-4 text-center">
-        <div className="bg-gradient-to-r from-blue-900/40 via-indigo-900/30 to-slate-900 border border-blue-500/20 rounded-3xl p-8 sm:p-12 space-y-6">
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-white">Hemen Resim Yüklemeye Başla</h2>
-          <p className="text-slate-300 text-sm max-w-xl mx-auto">
-            Üye olmadan hızlıca resim yükleyebilir, veya hesap oluşturarak resimlerinizi kişisel galerinizde düzenleyebilirsiniz.
+      <section className="max-w-4xl mx-auto px-4 text-center">
+        <div className="bg-gradient-to-b from-[#1E293B]/40 to-[#0F172A] border border-slate-800 rounded-3xl p-8 sm:p-12 space-y-6">
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Hemen Resim Yüklemeye Başlayın</h2>
+          <p className="text-slate-300 text-xs sm:text-sm max-w-lg mx-auto leading-relaxed">
+            Üye olmadan saniyeler içinde resim yükleyebilir veya ücretsiz hesap oluşturarak kendi medya kütüphanenizi yönetebilirsiniz.
           </p>
           <button
             onClick={() => navigate('/yukle')}
-            className="px-8 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm shadow-md inline-flex items-center gap-2 transition-all"
+            className="px-8 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs sm:text-sm shadow-lg shadow-blue-600/25 inline-flex items-center gap-2 transition-all active:scale-98"
           >
-            <span>Başlamak İçin Tıkla</span>
+            <span>Yükleme Ekranına Git</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>

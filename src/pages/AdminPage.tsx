@@ -235,22 +235,22 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
       {/* Admin Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-6">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center shadow-md">
+          <div className="w-11 h-11 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center shadow-lg shadow-amber-500/5">
             <Shield className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold text-white tracking-tight">Admin Kontrol Paneli</h1>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30">V3</span>
+              <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">Admin Kontrol Paneli</h1>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-blue-500/20 text-blue-300 border border-blue-500/30">V4 PRO</span>
             </div>
-            <p className="text-xs text-slate-400">Tüm sistem metrikleri, planlar, kullanıcılar ve moderasyon</p>
+            <p className="text-xs text-slate-400">Tüm sistem metrikleri, planlar, kullanıcılar ve moderasyon merkezi</p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
           <button
             onClick={loadData}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-all"
+            className="flex items-center gap-2 min-h-[40px] px-4 py-2 rounded-xl bg-[#0F172A] hover:bg-slate-800 text-slate-200 text-xs font-semibold border border-slate-800 transition-all active:scale-95"
             title="Yenile"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
@@ -260,7 +260,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
       </div>
 
       {/* Modern Tabs Bar */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-2 border-b border-slate-800 text-xs scrollbar-none">
+      <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-slate-800 text-xs scrollbar-none">
         {[
           { id: 'dashboard', label: 'Genel Bakış', icon: Activity },
           { id: 'users', label: 'Kullanıcılar', icon: Users, badge: usersList.length },
@@ -279,10 +279,10 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl font-semibold whitespace-nowrap transition-all ${
+              className={`flex items-center gap-2 min-h-[38px] px-3.5 py-2 rounded-xl font-semibold whitespace-nowrap transition-all ${
                 isActive
                   ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
-                  : 'bg-slate-800/60 text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-800'
+                  : 'bg-[#0F172A] text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-800'
               }`}
             >
               <Icon className="w-4 h-4" />
@@ -318,43 +318,43 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
           </div>
 
           {/* Metrics Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-            <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-1">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+            <div className="p-4 rounded-2xl bg-[#0F172A] border border-slate-800 space-y-1">
               <span className="text-2xl font-black text-white block">{stats.total_users}</span>
               <span className="text-xs text-slate-400">Toplam Kullanıcı</span>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-1">
+            <div className="p-4 rounded-2xl bg-[#0F172A] border border-slate-800 space-y-1">
               <span className="text-2xl font-black text-blue-400 block">{stats.total_images}</span>
               <span className="text-xs text-slate-400">Toplam Resim</span>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-1">
+            <div className="p-4 rounded-2xl bg-[#0F172A] border border-slate-800 space-y-1">
               <span className="text-2xl font-black text-emerald-400 block">{stats.today_images ?? 0}</span>
               <span className="text-xs text-slate-400">Bugün Yüklenen</span>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-1">
+            <div className="p-4 rounded-2xl bg-[#0F172A] border border-slate-800 space-y-1">
               <span className="text-2xl font-black text-indigo-400 block">{stats.today_users ?? 0}</span>
               <span className="text-xs text-slate-400">Bugün Kayıt Olan</span>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-1">
+            <div className="p-4 rounded-2xl bg-[#0F172A] border border-slate-800 space-y-1">
               <span className="text-2xl font-black text-purple-400 block">{formatSize(stats.total_storage_bytes)}</span>
               <span className="text-xs text-slate-400">Toplam Depolama</span>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-1">
+            <div className="p-4 rounded-2xl bg-[#0F172A] border border-slate-800 space-y-1">
               <span className="text-2xl font-black text-amber-400 block">{(stats.total_views || 0).toLocaleString()}</span>
               <span className="text-xs text-slate-400">Toplam İzlenme</span>
             </div>
           </div>
 
           {/* Quick Actions / Shortcuts */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div
               onClick={() => setActiveTab('users')}
-              className="p-5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 cursor-pointer transition-all space-y-2"
+              className="p-5 rounded-2xl bg-[#0F172A] border border-slate-800 hover:border-slate-700 cursor-pointer transition-all space-y-2"
             >
               <div className="flex items-center justify-between text-blue-400">
                 <Users className="w-5 h-5" />
@@ -366,7 +366,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
 
             <div
               onClick={() => setActiveTab('plans')}
-              className="p-5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 cursor-pointer transition-all space-y-2"
+              className="p-5 rounded-2xl bg-[#0F172A] border border-slate-800 hover:border-slate-700 cursor-pointer transition-all space-y-2"
             >
               <div className="flex items-center justify-between text-amber-400">
                 <Crown className="w-5 h-5" />
@@ -378,7 +378,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
 
             <div
               onClick={() => setActiveTab('reports')}
-              className="p-5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 cursor-pointer transition-all space-y-2"
+              className="p-5 rounded-2xl bg-[#0F172A] border border-slate-800 hover:border-slate-700 cursor-pointer transition-all space-y-2"
             >
               <div className="flex items-center justify-between text-rose-400">
                 <Flag className="w-5 h-5" />
@@ -402,16 +402,16 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
                 value={userSearch}
                 onChange={(e) => setUserSearch(e.target.value)}
                 placeholder="Kullanıcı adı veya e-posta ara..."
-                className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                className="w-full bg-[#0F172A] border border-slate-800 rounded-xl pl-9 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
               />
             </div>
             <span className="text-xs text-slate-400 self-end sm:self-center">Toplam {filteredUsers.length} kullanıcı listeleniyor</span>
           </div>
 
-          <div className="rounded-2xl bg-slate-900 border border-slate-800 overflow-hidden">
+          <div className="rounded-2xl bg-[#0F172A] border border-slate-800 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-slate-950/80 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+                <thead className="bg-[#0B0F19] text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
                   <tr>
                     <th className="p-4">Kullanıcı</th>
                     <th className="p-4">E-Posta</th>
@@ -443,7 +443,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
                           <select
                             value={u.plan || 'free'}
                             onChange={(e) => handleUserPlanChange(u.id, e.target.value)}
-                            className="bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:border-blue-500"
+                            className="bg-[#0B0F19] border border-slate-800 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:border-blue-500"
                           >
                             <option value="free">Ücretsiz (Free)</option>
                             <option value="premium">Premium</option>
@@ -507,7 +507,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
                 value={imageSearch}
                 onChange={(e) => setImageSearch(e.target.value)}
                 placeholder="Dosya adı veya yükleyen kişi ara..."
-                className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                className="w-full bg-[#0F172A] border border-slate-800 rounded-xl pl-9 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
               />
             </div>
             <span className="text-xs text-slate-400">Toplam {filteredImages.length} resim listeleniyor</span>
@@ -515,8 +515,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5">
             {filteredImages.map((img) => (
-              <div key={img.id} className="group relative bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 p-1.5 flex flex-col hover:border-slate-700 transition-all">
-                <div className="aspect-square bg-slate-950 rounded-xl overflow-hidden relative flex items-center justify-center">
+              <div key={img.id} className="group relative bg-[#0F172A] rounded-2xl overflow-hidden border border-slate-800 p-1.5 flex flex-col hover:border-slate-700 transition-all">
+                <div className="aspect-square bg-[#0B0F19] rounded-xl overflow-hidden relative flex items-center justify-center">
                   <img
                     src={img.cloudinary_url}
                     alt={img.original_filename}
@@ -524,17 +524,17 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
                     loading="lazy"
                     referrerPolicy="no-referrer"
                   />
-                  <div className="absolute inset-0 bg-slate-950/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                  <div className="absolute inset-0 bg-[#0B0F19]/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                     <button
                       onClick={() => navigate(`/i/${img.id}`)}
-                      className="p-2 rounded-lg bg-blue-600 text-white hover:bg-blue-500 shadow-md"
+                      className="p-2 rounded-xl bg-blue-600 text-white hover:bg-blue-500 shadow-md"
                       title="Görüntüle"
                     >
                       <Eye className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => handleDeleteImage(img.id)}
-                      className="p-2 rounded-lg bg-rose-600 text-white hover:bg-rose-500 shadow-md"
+                      className="p-2 rounded-xl bg-rose-600 text-white hover:bg-rose-500 shadow-md"
                       title="Sil"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -561,7 +561,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
             <p className="text-xs text-slate-400">Üyelik paketlerinin limitlerini anlık olarak yönetebilirsiniz.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {['free', 'premium', 'vip'].map((planKey) => {
               const plan = plans[planKey] || {
                 name: planKey.toUpperCase(),
@@ -573,7 +573,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
               };
 
               return (
-                <div key={planKey} className="rounded-2xl bg-slate-900 border border-slate-800 p-5 space-y-4">
+                <div key={planKey} className="rounded-3xl bg-[#0F172A] border border-slate-800 p-5 space-y-4 shadow-xl">
                   <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                     <span className="text-xs font-bold uppercase tracking-wider text-blue-400">{plan.name}</span>
                     <Crown className="w-4 h-4 text-amber-400" />
@@ -591,7 +591,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
                             [planKey]: { ...plan, name: e.target.value },
                           });
                         }}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white"
+                        className="w-full bg-[#0B0F19] border border-slate-800 rounded-xl px-3 py-2 text-white"
                       />
                     </div>
 
@@ -607,7 +607,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
                             [planKey]: { ...plan, max_file_size_mb: parseInt(e.target.value, 10) || 15 },
                           });
                         }}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white"
+                        className="w-full bg-[#0B0F19] border border-slate-800 rounded-xl px-3 py-2 text-white"
                       />
                     </div>
 
@@ -623,7 +623,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
                             [planKey]: { ...plan, daily_upload_limit: parseInt(e.target.value, 10) || 20 },
                           });
                         }}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white"
+                        className="w-full bg-[#0B0F19] border border-slate-800 rounded-xl px-3 py-2 text-white"
                       />
                     </div>
 
@@ -639,7 +639,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
                             [planKey]: { ...plan, storage_limit_gb: parseInt(e.target.value, 10) || 2 },
                           });
                         }}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white"
+                        className="w-full bg-[#0B0F19] border border-slate-800 rounded-xl px-3 py-2 text-white"
                       />
                     </div>
 
@@ -654,7 +654,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
                             [planKey]: { ...plan, ads_enabled: e.target.checked },
                           });
                         }}
-                        className="w-4 h-4 rounded bg-slate-950 border-slate-800 text-blue-600"
+                        className="w-4 h-4 rounded bg-[#0B0F19] border-slate-800 text-blue-600"
                       />
                     </div>
                   </div>
@@ -665,7 +665,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
 
           <button
             type="submit"
-            className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md shadow-blue-600/30"
+            className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md shadow-blue-600/30 transition-all active:scale-95"
           >
             Plan Değişikliklerini Kaydet
           </button>
@@ -680,8 +680,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
               <button
                 key={st}
                 onClick={() => setReportFilter(st)}
-                className={`px-3 py-1.5 rounded-lg capitalize font-medium transition-all ${
-                  reportFilter === st ? 'bg-blue-600 text-white' : 'bg-slate-900 text-slate-400 hover:text-white'
+                className={`px-3 py-1.5 rounded-xl capitalize font-medium transition-all ${
+                  reportFilter === st ? 'bg-blue-600 text-white' : 'bg-[#0F172A] border border-slate-800 text-slate-400 hover:text-white'
                 }`}
               >
                 {st === 'all' ? 'Tümü' : st === 'pending' ? 'Bekleyen' : st === 'investigating' ? 'İncelemede' : st === 'resolved' ? 'Çözüldü' : 'Kapatıldı'}
@@ -690,13 +690,13 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
           </div>
 
           {filteredReports.length === 0 ? (
-            <div className="p-12 text-center rounded-2xl bg-slate-900 border border-slate-800 text-xs text-slate-400">
+            <div className="p-12 text-center rounded-3xl bg-[#0F172A] border border-slate-800 text-xs text-slate-400">
               Bu filtreye uygun şikayet bildirimi bulunmamaktadır.
             </div>
           ) : (
             <div className="space-y-3">
               {filteredReports.map((rep) => (
-                <div key={rep.id} className="rounded-2xl bg-slate-900 border border-slate-800 p-5 space-y-3 text-xs">
+                <div key={rep.id} className="rounded-3xl bg-[#0F172A] border border-slate-800 p-5 space-y-3 text-xs">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
                     <div>
                       <span className="font-bold text-white text-sm">Şikayet Nedeni: {rep.reason}</span>
@@ -704,10 +704,10 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
                         Tarih: {new Date(rep.created_at).toLocaleString('tr-TR')} • IP: {rep.ip}
                       </p>
                     </div>
-                    <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold uppercase self-start sm:self-auto ${
-                      rep.status === 'pending' ? 'bg-rose-500/20 text-rose-300' :
-                      rep.status === 'investigating' ? 'bg-amber-500/20 text-amber-300' :
-                      rep.status === 'resolved' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-700 text-slate-400'
+                    <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase self-start sm:self-auto ${
+                      rep.status === 'pending' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' :
+                      rep.status === 'investigating' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' :
+                      rep.status === 'resolved' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-slate-800 text-slate-400'
                     }`}>
                       {rep.status}
                     </span>
@@ -725,25 +725,25 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
                     <div className="flex items-center gap-2 flex-wrap">
                       <button
                         onClick={() => handleReportAction(rep.id, 'investigating')}
-                        className="px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 font-medium text-xs"
+                        className="px-3 py-1.5 rounded-xl bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 font-medium text-xs border border-amber-500/20"
                       >
                         İncelemeye Al
                       </button>
                       <button
                         onClick={() => handleReportAction(rep.id, 'resolved')}
-                        className="px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 font-medium text-xs"
+                        className="px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 font-medium text-xs border border-emerald-500/20"
                       >
                         Çözüldü Olarak İşaretle
                       </button>
                       <button
                         onClick={() => handleReportAction(rep.id, 'dismissed')}
-                        className="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 font-medium text-xs"
+                        className="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 font-medium text-xs"
                       >
                         Reddet / Kapat
                       </button>
                       <button
                         onClick={() => handleDeleteImage(rep.image_id)}
-                        className="px-3 py-1.5 rounded-lg bg-rose-600/20 text-rose-300 hover:bg-rose-600/30 font-bold text-xs"
+                        className="px-3 py-1.5 rounded-xl bg-rose-600/20 text-rose-300 hover:bg-rose-600/30 font-bold text-xs border border-rose-500/30"
                       >
                         Resmi Sil
                       </button>
@@ -759,7 +759,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
       {/* Tab 6: Announcements */}
       {activeTab === 'announcements' && (
         <div className="space-y-6 animate-in fade-in">
-          <form onSubmit={handleCreateAnnouncement} className="rounded-2xl bg-slate-900 border border-slate-800 p-6 space-y-4">
+          <form onSubmit={handleCreateAnnouncement} className="rounded-3xl bg-[#0F172A] border border-slate-800 p-6 space-y-4 shadow-xl">
             <h3 className="text-sm font-bold text-white">Yeni Sistem Duyurusu Oluştur</h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <input
@@ -768,12 +768,12 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
                 value={annTitle}
                 onChange={(e) => setAnnTitle(e.target.value)}
                 placeholder="Duyuru Başlığı"
-                className="bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-blue-500"
+                className="bg-[#0B0F19] border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-blue-500"
               />
               <select
                 value={annType}
                 onChange={(e) => setAnnType(e.target.value)}
-                className="bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-blue-500"
+                className="bg-[#0B0F19] border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-blue-500"
               >
                 <option value="info">Bilgilendirme (Mavi)</option>
                 <option value="warning">Uyarı / Bakım (Sarı)</option>
@@ -781,7 +781,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
               </select>
               <button
                 type="submit"
-                className="py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold shadow-md"
+                className="py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold shadow-md transition-all active:scale-95"
               >
                 Duyuruyu Yayınla
               </button>
@@ -792,21 +792,21 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
               value={annContent}
               onChange={(e) => setAnnContent(e.target.value)}
               placeholder="Duyuru Metni..."
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-blue-500"
+              className="w-full bg-[#0B0F19] border border-slate-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-blue-500"
             />
           </form>
 
-          <div className="rounded-2xl bg-slate-900 border border-slate-800 p-6 space-y-3">
+          <div className="rounded-3xl bg-[#0F172A] border border-slate-800 p-6 space-y-3 shadow-xl">
             <h3 className="text-sm font-bold text-white">Yayındaki Duyurular ({announcementsList.length})</h3>
             {announcementsList.map((ann) => (
-              <div key={ann.id} className="flex items-center justify-between p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs">
+              <div key={ann.id} className="flex items-center justify-between p-4 rounded-2xl bg-[#0B0F19] border border-slate-800 text-xs">
                 <div className="space-y-1">
                   <span className="font-bold text-white block text-sm">{ann.title}</span>
                   <p className="text-slate-300 leading-relaxed">{ann.content}</p>
                 </div>
                 <button
                   onClick={() => handleDeleteAnnouncement(ann.id)}
-                  className="p-2 text-rose-400 hover:bg-rose-500/10 rounded-lg shrink-0 ml-4"
+                  className="p-2 text-rose-400 hover:bg-rose-500/10 rounded-xl shrink-0 ml-4 transition-colors"
                   title="Duyuruyu Sil"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -819,14 +819,14 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
 
       {/* Tab 7: Audit Logs */}
       {activeTab === 'audit' && (
-        <div className="rounded-2xl bg-slate-900 border border-slate-800 overflow-hidden animate-in fade-in">
-          <div className="p-4 border-b border-slate-800 flex items-center justify-between">
+        <div className="rounded-3xl bg-[#0F172A] border border-slate-800 overflow-hidden animate-in fade-in shadow-xl">
+          <div className="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between">
             <h3 className="text-sm font-bold text-white">Denetim Günlüğü (Audit Logs)</h3>
             <span className="text-xs text-slate-400">Son {auditLogs.length} admin hareketi</span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+              <thead className="bg-[#0B0F19] text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
                 <tr>
                   <th className="p-3.5">Tarih / Saat</th>
                   <th className="p-3.5">İşlem</th>
@@ -858,7 +858,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
         <div className="space-y-6 animate-in fade-in">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Plan Distribution */}
-            <div className="rounded-2xl bg-slate-900 border border-slate-800 p-6 space-y-4">
+            <div className="rounded-3xl bg-[#0F172A] border border-slate-800 p-6 space-y-4 shadow-xl">
               <h3 className="text-sm font-bold text-white">Kullanıcı Paket Dağılımı</h3>
               <div className="space-y-3">
                 {Object.entries(analytics.plan_distribution || {}).map(([pName, count]) => (
@@ -867,7 +867,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
                       <span className="font-semibold text-slate-300 capitalize">{pName}</span>
                       <span className="text-white font-mono">{count} üye</span>
                     </div>
-                    <div className="w-full bg-slate-950 rounded-full h-2">
+                    <div className="w-full bg-[#0B0F19] rounded-full h-2">
                       <div
                         className="h-full rounded-full bg-blue-500"
                         style={{ width: `${Math.min(100, Math.round(((count as number) / (stats?.total_users || 1)) * 100))}%` }}
@@ -879,18 +879,18 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
             </div>
 
             {/* Storage Distribution */}
-            <div className="rounded-2xl bg-slate-900 border border-slate-800 p-6 space-y-4">
+            <div className="rounded-3xl bg-[#0F172A] border border-slate-800 p-6 space-y-4 shadow-xl">
               <h3 className="text-sm font-bold text-white">Depolama & Kullanım Özeti</h3>
               <div className="space-y-3 text-xs">
-                <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex justify-between">
+                <div className="p-3.5 rounded-xl bg-[#0B0F19] border border-slate-800 flex justify-between">
                   <span className="text-slate-400">Toplam Yüklenen Resim</span>
                   <span className="font-bold text-white">{stats?.total_images}</span>
                 </div>
-                <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex justify-between">
+                <div className="p-3.5 rounded-xl bg-[#0B0F19] border border-slate-800 flex justify-between">
                   <span className="text-slate-400">Toplam Kaplanan Alan</span>
                   <span className="font-bold text-blue-400">{formatSize(stats?.total_storage_bytes || 0)}</span>
                 </div>
-                <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex justify-between">
+                <div className="p-3.5 rounded-xl bg-[#0B0F19] border border-slate-800 flex justify-between">
                   <span className="text-slate-400">Toplam Görüntülenme</span>
                   <span className="font-bold text-emerald-400">{stats?.total_views}</span>
                 </div>
@@ -902,7 +902,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
 
       {/* Tab 9: Settings */}
       {activeTab === 'settings' && siteSettings && (
-        <form onSubmit={handleUpdateSettings} className="rounded-2xl bg-slate-900 border border-slate-800 p-6 sm:p-8 space-y-5 max-w-2xl animate-in fade-in">
+        <form onSubmit={handleUpdateSettings} className="rounded-3xl bg-[#0F172A] border border-slate-800 p-6 sm:p-8 space-y-5 max-w-2xl animate-in fade-in shadow-xl">
           <h3 className="text-sm font-bold text-white">Sistem & Site Ayarları</h3>
 
           <div className="space-y-1.5">
@@ -911,7 +911,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
               type="text"
               value={siteSettings.site_title}
               onChange={(e) => setSiteSettings({ ...siteSettings, site_title: e.target.value })}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white"
+              className="w-full bg-[#0B0F19] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500"
             />
           </div>
 
@@ -921,7 +921,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
               type="number"
               value={siteSettings.max_file_size_mb}
               onChange={(e) => setSiteSettings({ ...siteSettings, max_file_size_mb: parseInt(e.target.value, 10) || 20 })}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white"
+              className="w-full bg-[#0B0F19] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500"
             />
           </div>
 
@@ -934,7 +934,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
               type="checkbox"
               checked={siteSettings.allow_guest_upload}
               onChange={(e) => setSiteSettings({ ...siteSettings, allow_guest_upload: e.target.checked })}
-              className="w-4 h-4 rounded bg-slate-950 border-slate-800 text-blue-600"
+              className="w-4 h-4 rounded bg-[#0B0F19] border-slate-800 text-blue-600"
             />
           </div>
 
@@ -947,13 +947,13 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
               type="checkbox"
               checked={siteSettings.allow_user_registration}
               onChange={(e) => setSiteSettings({ ...siteSettings, allow_user_registration: e.target.checked })}
-              className="w-4 h-4 rounded bg-slate-950 border-slate-800 text-blue-600"
+              className="w-4 h-4 rounded bg-[#0B0F19] border-slate-800 text-blue-600"
             />
           </div>
 
           <button
             type="submit"
-            className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md mt-4"
+            className="w-full min-h-[44px] py-3 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md shadow-blue-600/20 mt-4 transition-all active:scale-95"
           >
             Ayarları Kaydet
           </button>
@@ -963,15 +963,15 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
       {/* Tab 10: System Health */}
       {activeTab === 'system' && systemHealth && (
         <div className="space-y-6 animate-in fade-in">
-          <div className="rounded-2xl bg-slate-900 border border-slate-800 p-6 space-y-3 text-xs">
+          <div className="rounded-3xl bg-[#0F172A] border border-slate-800 p-6 space-y-3 text-xs shadow-xl">
             <h3 className="text-sm font-bold text-white">Sunucu Çalışma Bilgileri</h3>
             <p className="text-slate-300">Uptime: {Math.floor(systemHealth.uptime)} saniye</p>
             <p className="text-slate-300">Cloudinary Durumu: {systemHealth.cloudinary?.message}</p>
           </div>
 
-          <div className="rounded-2xl bg-slate-900 border border-slate-800 p-6 space-y-3 text-xs">
+          <div className="rounded-3xl bg-[#0F172A] border border-slate-800 p-6 space-y-3 text-xs shadow-xl">
             <h3 className="text-sm font-bold text-white">Son Sistem Logları</h3>
-            <div className="font-mono text-[11px] bg-slate-950 p-4 rounded-xl max-h-60 overflow-y-auto space-y-1.5 text-slate-300">
+            <div className="font-mono text-[11px] bg-[#0B0F19] p-4 rounded-2xl max-h-60 overflow-y-auto space-y-1.5 text-slate-300 border border-slate-800">
               {systemHealth.recent_logs?.map((log: any) => (
                 <div key={log.id} className="flex items-center gap-2">
                   <span className="text-slate-500">[{log.timestamp.substring(11, 19)}]</span>
@@ -988,8 +988,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
 
       {/* Delete User Modal */}
       {deleteUserModal.open && deleteUserModal.user && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-5 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+          <div className="w-full max-w-md bg-[#0F172A] border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-5 shadow-2xl">
             <div className="flex items-center gap-3 text-rose-400">
               <div className="p-3 rounded-2xl bg-rose-500/10 border border-rose-500/20">
                 <Trash2 className="w-6 h-6" />
@@ -1008,7 +1008,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
               <button
                 type="button"
                 onClick={() => setDeleteUserModal({ open: false, user: null })}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800"
+                className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800"
               >
                 İptal
               </button>
@@ -1016,7 +1016,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
                 type="button"
                 onClick={handleConfirmDeleteUser}
                 disabled={deletingUser}
-                className="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold shadow-md shadow-rose-600/30"
+                className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold shadow-md shadow-rose-600/30 transition-all active:scale-95"
               >
                 {deletingUser ? 'Siliniyor...' : 'Evet, Kullanıcıyı Sil'}
               </button>

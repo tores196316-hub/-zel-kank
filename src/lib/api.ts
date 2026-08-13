@@ -44,13 +44,31 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
       headers,
     });
   } catch (err: any) {
-    throw new ApiError('Sunucuya bağlanılamadı (Ağ hatası).', 0);
+    throw new ApiError('Sunucuya bağlanılamadı (Ağ hatası). Lütfen internet bağlantınızı kontrol edin.', 0);
   }
 
-  const data = await response.json().catch(() => ({}));
+  let data: any = {};
+  try {
+    const text = await response.text();
+    if (text) {
+      data = JSON.parse(text);
+    }
+  } catch {
+    data = {};
+  }
 
   if (!response.ok) {
-    throw new ApiError(data.error || 'İşlem gerçekleştirilirken bir hata oluştu.', response.status);
+    const errorMsg =
+      data.error ||
+      data.message ||
+      (response.status === 401
+        ? 'Oturum süreniz doldu veya bilgiler hatalı.'
+        : response.status === 403
+        ? 'Bu işlem için yetkiniz bulunmamaktadır.'
+        : response.status === 429
+        ? 'Çok fazla istek gönderildi. Lütfen birkaç dakika bekleyin.'
+        : `Sunucu hatası oluştu (HTTP ${response.status}).`);
+    throw new ApiError(errorMsg, response.status);
   }
 
   return data as T;

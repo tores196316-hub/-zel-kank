@@ -33,10 +33,10 @@ export const AnnouncementsPage: React.FC = () => {
       {/* Header */}
       <div className="space-y-2 text-center sm:text-left border-b border-slate-800 pb-6">
         <div className="flex items-center justify-center sm:justify-start gap-2.5">
-          <div className="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400">
+          <div className="p-2.5 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-400">
             <Megaphone className="w-5 h-5" />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Sistem Duyuruları</h1>
+          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">Sistem Duyuruları</h1>
         </div>
         <p className="text-xs text-slate-400">
           AnlıkResim platformundaki güncellemeler, yeni özellikler ve sistem bakım duyuruları.
@@ -47,7 +47,7 @@ export const AnnouncementsPage: React.FC = () => {
       {loading ? (
         <div className="py-16 text-center text-xs text-slate-500">Duyurular yükleniyor...</div>
       ) : announcements.length === 0 ? (
-        <div className="py-16 text-center rounded-3xl bg-slate-900 border border-slate-800 space-y-3">
+        <div className="py-16 text-center rounded-3xl bg-[#0F172A] border border-slate-800 space-y-3 shadow-xl">
           <Megaphone className="w-10 h-10 text-slate-700 mx-auto" />
           <p className="text-sm font-semibold text-slate-300">Şu anda aktif bir duyuru bulunmuyor.</p>
           <p className="text-xs text-slate-500">Tüm sistemler normal ve kesintisiz şekilde çalışmaktadır.</p>
@@ -57,7 +57,7 @@ export const AnnouncementsPage: React.FC = () => {
           {announcements.map((item) => (
             <div
               key={item.id}
-              className="rounded-2xl bg-slate-900 border border-slate-800 p-6 sm:p-7 space-y-4 shadow-sm hover:border-slate-700 transition-all"
+              className="rounded-3xl bg-[#0F172A] border border-slate-800 p-6 sm:p-7 space-y-4 shadow-xl hover:border-slate-700 transition-all"
             >
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
                 <div className="flex items-center gap-3">

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Download, Copy, Share2, Trash2, Flag, Eye, Calendar, HardDrive, Maximize2, Check, ArrowLeft, ExternalLink, Heart, Sparkles } from 'lucide-react';
+import { Download, Copy, Share2, Trash2, Flag, Eye, Calendar, HardDrive, Maximize2, Check, ArrowLeft, ExternalLink, Heart, Sparkles, X } from 'lucide-react';
 import { imageApi } from '../lib/api';
 import { UploadResult } from '../types';
 import { useToast } from '../components/Toast';
@@ -57,7 +57,7 @@ export const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId, navig
         ...data,
         image: { ...data.image, is_favorite: res.is_favorite },
       });
-      showToast(res.is_favorite ? 'Favorilere eklendi ❤️' : 'Favorilerden çıkarıldı.', 'info');
+      showToast(res.is_favorite ? 'Favorilere eklendi.' : 'Favorilerden çıkarıldı.', 'info');
     } catch (err) {
       showToast('Favori durumu güncellenemedi.', 'error');
     }
@@ -116,8 +116,8 @@ export const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId, navig
   if (loading) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-20 text-center space-y-4">
-        <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto" />
-        <p className="text-slate-400 text-sm">Resim detayları yükleniyor...</p>
+        <div className="w-10 h-10 border-3 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto" />
+        <p className="text-slate-400 text-xs sm:text-sm">Resim detayları yükleniyor...</p>
       </div>
     );
   }
@@ -128,74 +128,76 @@ export const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId, navig
         <div className="w-16 h-16 rounded-2xl bg-rose-500/10 text-rose-400 flex items-center justify-center mx-auto border border-rose-500/20">
           <Flag className="w-8 h-8" />
         </div>
-        <h2 className="text-2xl font-bold text-white">Resim Bulunamadı</h2>
-        <p className="text-slate-400 text-sm max-w-md mx-auto">
-          {error || 'Aradığınız resim silinmiş, kalıcı olarak kaldırılmış veya hiç var olmamış olabilir.'}
-        </p>
+        <div className="space-y-1.5">
+          <h2 className="text-2xl font-extrabold text-white">Resim Bulunamadı</h2>
+          <p className="text-slate-400 text-xs sm:text-sm max-w-md mx-auto">
+            {error || 'Aradığınız resim silinmiş, kalıcı olarak kaldırılmış veya hiç var olmamış olabilir.'}
+          </p>
+        </div>
         <button
           onClick={() => navigate('/')}
-          className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm inline-flex items-center gap-2"
+          className="min-h-[44px] px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs sm:text-sm inline-flex items-center gap-2 shadow-md shadow-blue-600/20 transition-all active:scale-95"
         >
           <ArrowLeft className="w-4 h-4" />
-          Ana Sayfaya Dön
+          <span>Ana Sayfaya Dön</span>
         </button>
       </div>
     );
   }
 
-  const shareText = encodeURIComponent(`${data.image.original_filename} - Hızlı Yükle resim servisi`);
+  const shareText = encodeURIComponent(`${data.image.original_filename} - AnlıkResim resim barındırma servisi`);
   const sharePageUrl = encodeURIComponent(data.share_url);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8 space-y-8">
+    <div className="max-w-5xl mx-auto px-4 py-8 sm:py-10 space-y-6">
       {/* Top Bar Navigation */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <button
           onClick={() => navigate('/galerim')}
           className="inline-flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-white transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          Galerime Dön
+          <span>Galerime Dön</span>
         </button>
 
         <div className="flex items-center gap-2">
           {data.is_owner && (
             <button
               onClick={handleToggleFavorite}
-              className={`px-3 py-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1.5 transition-colors ${
+              className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-colors ${
                 data.image.is_favorite
                   ? 'bg-rose-600/20 border-rose-500/40 text-rose-400'
-                  : 'bg-slate-800 border-slate-700 text-slate-300 hover:text-white'
+                  : 'bg-[#0F172A] border-slate-800 text-slate-300 hover:text-white'
               }`}
             >
               <Heart className={`w-3.5 h-3.5 ${data.image.is_favorite ? 'fill-current' : ''}`} />
-              {data.image.is_favorite ? 'Favori' : 'Favorilere Ekle'}
+              <span>{data.image.is_favorite ? 'Favori' : 'Favorilere Ekle'}</span>
             </button>
           )}
 
           {data.is_owner && (
             <button
               onClick={handleDelete}
-              className="px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+              className="px-3 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 text-xs font-semibold flex items-center gap-1.5 transition-colors"
             >
               <Trash2 className="w-3.5 h-3.5" />
-              Resmi Sil
+              <span>Sil</span>
             </button>
           )}
 
           <button
             onClick={() => setReportModalOpen(true)}
-            className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white text-xs font-medium flex items-center gap-1.5 transition-colors"
+            className="px-3 py-1.5 rounded-xl bg-[#0F172A] hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white text-xs font-medium flex items-center gap-1.5 transition-colors"
           >
             <Flag className="w-3.5 h-3.5" />
-            Bildir
+            <span>Bildir</span>
           </button>
         </div>
       </div>
 
       {/* Main Centered Image Display */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-4 sm:p-8 flex flex-col items-center justify-center min-h-[350px] shadow-2xl relative">
-        <div className="max-w-full overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/60 p-2">
+      <div className="bg-[#0F172A] border border-slate-800 rounded-3xl p-4 sm:p-8 flex flex-col items-center justify-center min-h-[350px] shadow-2xl relative">
+        <div className="max-w-full overflow-hidden rounded-2xl border border-slate-800 bg-[#0B0F19] p-2">
           <img
             src={data.direct_url}
             alt={data.image.original_filename}
@@ -207,33 +209,33 @@ export const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId, navig
       {/* Action Controls & Details Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Info Column */}
-        <div className="bg-slate-800/50 border border-slate-700/60 rounded-2xl p-6 space-y-4">
+        <div className="bg-[#0F172A] border border-slate-800 rounded-3xl p-6 space-y-5">
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300">Resim Detayları</h3>
 
           <div className="space-y-3 text-xs">
-            <div className="flex justify-between py-1.5 border-b border-slate-700/50 text-slate-300">
-              <span className="text-slate-400 flex items-center gap-1.5">
+            <div className="flex justify-between py-2 border-b border-slate-800 text-slate-300">
+              <span className="text-slate-400 flex items-center gap-2">
                 <Maximize2 className="w-3.5 h-3.5 text-blue-400" /> Çözünürlük
               </span>
               <span className="font-mono font-medium">{data.image.width} x {data.image.height} px</span>
             </div>
 
-            <div className="flex justify-between py-1.5 border-b border-slate-700/50 text-slate-300">
-              <span className="text-slate-400 flex items-center gap-1.5">
+            <div className="flex justify-between py-2 border-b border-slate-800 text-slate-300">
+              <span className="text-slate-400 flex items-center gap-2">
                 <HardDrive className="w-3.5 h-3.5 text-emerald-400" /> Dosya Boyutu
               </span>
               <span className="font-mono font-medium">{formatSize(data.image.size)}</span>
             </div>
 
-            <div className="flex justify-between py-1.5 border-b border-slate-700/50 text-slate-300">
-              <span className="text-slate-400 flex items-center gap-1.5">
+            <div className="flex justify-between py-2 border-b border-slate-800 text-slate-300">
+              <span className="text-slate-400 flex items-center gap-2">
                 <Eye className="w-3.5 h-3.5 text-amber-400" /> Görüntülenme
               </span>
-              <span className="font-mono font-medium">{data.image.views} kez</span>
+              <span className="font-mono font-medium">{data.image.views || 0} kez</span>
             </div>
 
-            <div className="flex justify-between py-1.5 border-b border-slate-700/50 text-slate-300">
-              <span className="text-slate-400 flex items-center gap-1.5">
+            <div className="flex justify-between py-2 border-b border-slate-800 text-slate-300">
+              <span className="text-slate-400 flex items-center gap-2">
                 <Calendar className="w-3.5 h-3.5 text-indigo-400" /> Yüklenme Tarihi
               </span>
               <span className="font-mono font-medium">
@@ -245,19 +247,19 @@ export const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId, navig
           <div className="pt-2">
             <button
               onClick={handleDownload}
-              className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all"
+              className="w-full min-h-[44px] py-3 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-blue-600/20 transition-all active:scale-95"
             >
               <Download className="w-4 h-4" />
-              Orijinal Resmi İndir
+              <span>Orijinal Resmi İndir</span>
             </button>
           </div>
         </div>
 
         {/* Share Codes Column */}
-        <div className="md:col-span-2 bg-slate-800/50 border border-slate-700/60 rounded-2xl p-6 space-y-4">
+        <div className="md:col-span-2 bg-[#0F172A] border border-slate-800 rounded-3xl p-6 space-y-4">
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300">Paylaşım & Bağlantılar</h3>
 
-          <div className="space-y-3">
+          <div className="space-y-3.5">
             {/* Direct CDN Link */}
             <div className="space-y-1">
               <label className="text-[11px] text-slate-400 font-medium">Direkt Resim Bağlantısı (CDN)</label>
@@ -266,13 +268,13 @@ export const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId, navig
                   type="text"
                   readOnly
                   value={data.direct_url}
-                  className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 font-mono"
+                  className="flex-1 bg-[#0B0F19] border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 font-mono focus:outline-none"
                 />
                 <button
                   onClick={() => copyToClipboard(data.direct_url, 'Direkt Bağlantı')}
-                  className="px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold flex items-center gap-1 shrink-0"
+                  className="min-h-[38px] px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1.5 shrink-0 transition-colors"
                 >
-                  <Copy className="w-3.5 h-3.5" /> Kopyala
+                  <Copy className="w-3.5 h-3.5" /> <span>Kopyala</span>
                 </button>
               </div>
             </div>
@@ -285,13 +287,13 @@ export const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId, navig
                   type="text"
                   readOnly
                   value={data.markdown}
-                  className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 font-mono"
+                  className="flex-1 bg-[#0B0F19] border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 font-mono focus:outline-none"
                 />
                 <button
                   onClick={() => copyToClipboard(data.markdown, 'Markdown Kodu')}
-                  className="px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold flex items-center gap-1 shrink-0"
+                  className="min-h-[38px] px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold flex items-center gap-1.5 shrink-0 transition-colors"
                 >
-                  <Copy className="w-3.5 h-3.5" /> Kopyala
+                  <Copy className="w-3.5 h-3.5" /> <span>Kopyala</span>
                 </button>
               </div>
             </div>
@@ -304,13 +306,13 @@ export const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId, navig
                   type="text"
                   readOnly
                   value={data.html_code}
-                  className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 font-mono"
+                  className="flex-1 bg-[#0B0F19] border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 font-mono focus:outline-none"
                 />
                 <button
                   onClick={() => copyToClipboard(data.html_code, 'HTML Kodu')}
-                  className="px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold flex items-center gap-1 shrink-0"
+                  className="min-h-[38px] px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold flex items-center gap-1.5 shrink-0 transition-colors"
                 >
-                  <Copy className="w-3.5 h-3.5" /> Kopyala
+                  <Copy className="w-3.5 h-3.5" /> <span>Kopyala</span>
                 </button>
               </div>
             </div>
@@ -323,27 +325,27 @@ export const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId, navig
                   type="text"
                   readOnly
                   value={data.bbcode}
-                  className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 font-mono"
+                  className="flex-1 bg-[#0B0F19] border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 font-mono focus:outline-none"
                 />
                 <button
                   onClick={() => copyToClipboard(data.bbcode, 'BBCode')}
-                  className="px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold flex items-center gap-1 shrink-0"
+                  className="min-h-[38px] px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold flex items-center gap-1.5 shrink-0 transition-colors"
                 >
-                  <Copy className="w-3.5 h-3.5" /> Kopyala
+                  <Copy className="w-3.5 h-3.5" /> <span>Kopyala</span>
                 </button>
               </div>
             </div>
           </div>
 
           {/* Social Share Buttons */}
-          <div className="pt-3 border-t border-slate-700/60 space-y-2">
+          <div className="pt-3 border-t border-slate-800 space-y-2">
             <label className="text-[11px] text-slate-400 font-medium block">Sosyal Medyada Paylaş</label>
             <div className="flex flex-wrap items-center gap-2">
               <a
                 href={`https://api.whatsapp.com/send?text=${shareText}%20${sharePageUrl}`}
                 target="_blank"
                 rel="noreferrer"
-                className="px-3 py-1.5 rounded-lg bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 text-xs font-semibold hover:bg-emerald-600/30 transition-colors"
+                className="px-3.5 py-1.5 rounded-xl bg-emerald-600/15 text-emerald-400 border border-emerald-500/30 text-xs font-semibold hover:bg-emerald-600/25 transition-colors"
               >
                 WhatsApp
               </a>
@@ -351,7 +353,7 @@ export const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId, navig
                 href={`https://t.me/share/url?url=${sharePageUrl}&text=${shareText}`}
                 target="_blank"
                 rel="noreferrer"
-                className="px-3 py-1.5 rounded-lg bg-sky-600/20 text-sky-400 border border-sky-500/30 text-xs font-semibold hover:bg-sky-600/30 transition-colors"
+                className="px-3.5 py-1.5 rounded-xl bg-sky-600/15 text-sky-400 border border-sky-500/30 text-xs font-semibold hover:bg-sky-600/25 transition-colors"
               >
                 Telegram
               </a>
@@ -359,7 +361,7 @@ export const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId, navig
                 href={`https://twitter.com/intent/tweet?text=${shareText}&url=${sharePageUrl}`}
                 target="_blank"
                 rel="noreferrer"
-                className="px-3 py-1.5 rounded-lg bg-slate-700 text-slate-200 text-xs font-semibold hover:bg-slate-600 transition-colors"
+                className="px-3.5 py-1.5 rounded-xl bg-slate-800 text-slate-200 border border-slate-700 text-xs font-semibold hover:bg-slate-700 transition-colors"
               >
                 X (Twitter)
               </a>
@@ -370,22 +372,22 @@ export const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId, navig
 
       {/* Report Modal */}
       {reportModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 animate-in zoom-in-95">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#0F172A] border border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4 animate-in zoom-in-95 shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <h3 className="font-bold text-white text-base flex items-center gap-2">
                 <Flag className="w-4 h-4 text-rose-400" />
-                Resmi Şikayet Et
+                <span>Resmi Şikayet Et</span>
               </h3>
               <button
                 onClick={() => setReportModalOpen(false)}
-                className="text-slate-400 hover:text-white"
+                className="text-slate-400 hover:text-white p-1"
               >
-                ×
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            <p className="text-xs text-slate-300">
+            <p className="text-xs text-slate-300 leading-relaxed">
               Bu resim telif hakkı ihlali, uygunsuz içerik veya kullanım şartlarına aykırı bir unsur barındırıyorsa lütfen nedenini belirtin.
             </p>
 
@@ -396,21 +398,21 @@ export const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId, navig
                 placeholder="Şikayet nedeninizi detaylandırın..."
                 rows={4}
                 required
-                className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                className="w-full bg-[#0B0F19] border border-slate-800 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
               />
 
-              <div className="flex items-center justify-end gap-2">
+              <div className="flex items-center justify-end gap-2.5 pt-2">
                 <button
                   type="button"
                   onClick={() => setReportModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white"
+                  className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800"
                 >
                   İptal
                 </button>
                 <button
                   type="submit"
                   disabled={reportSubmitting || !reportReason.trim()}
-                  className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs shadow-md disabled:opacity-50"
+                  className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-md disabled:opacity-50 transition-all active:scale-95"
                 >
                   {reportSubmitting ? 'Gönderiliyor...' : 'Şikayeti Gönder'}
                 </button>
@@ -422,3 +424,4 @@ export const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId, navig
     </div>
   );
 };
+

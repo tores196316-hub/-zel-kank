@@ -62,10 +62,10 @@ export const PremiumPage: React.FC<PremiumPageProps> = ({ navigate }) => {
         <span className="text-xs font-bold px-3 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
           Paketler & Avantajlar
         </span>
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+        <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
           İhtiyacınıza Uygun <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">Planı Seçin</span>
         </h1>
-        <p className="text-sm text-slate-400">
+        <p className="text-xs sm:text-sm text-slate-400">
           Daha yüksek dosya boyutları, genişletilmiş depolama ve reklamsız süper hızlı deneyim için hesabınızı yükseltin.
         </p>
       </div>
@@ -73,7 +73,7 @@ export const PremiumPage: React.FC<PremiumPageProps> = ({ navigate }) => {
       {/* Pricing Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
         {/* Free Plan */}
-        <div className={`relative rounded-3xl bg-slate-900 border ${currentPlan === 'free' ? 'border-blue-500/50' : 'border-slate-800'} p-8 flex flex-col justify-between shadow-xl`}>
+        <div className={`relative rounded-3xl bg-[#0F172A] border ${currentPlan === 'free' ? 'border-blue-500/50' : 'border-slate-800'} p-8 flex flex-col justify-between shadow-xl`}>
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-400">{activePlans.free?.name || 'Ücretsiz'}</span>
@@ -85,8 +85,8 @@ export const PremiumPage: React.FC<PremiumPageProps> = ({ navigate }) => {
             </div>
 
             <div>
-              <span className="text-4xl font-extrabold text-white">₺0</span>
-              <span className="text-xs text-slate-500 ml-1.5 font-medium">/ sonsuza kadar</span>
+              <span className="text-4xl font-black text-white">₺0</span>
+              <span className="text-xs text-slate-400 ml-1.5 font-medium">/ sonsuza kadar</span>
             </div>
 
             <p className="text-xs text-slate-400">Bireysel ve günlük hızlı paylaşımlar için mükemmel başlangıç paketi.</p>
@@ -107,7 +107,7 @@ export const PremiumPage: React.FC<PremiumPageProps> = ({ navigate }) => {
           <div className="pt-8">
             <button
               onClick={() => (!user ? navigate('/kayit') : navigate('/yukle'))}
-              className="w-full py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs transition-all text-center"
+              className="w-full min-h-[44px] py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition-all text-center active:scale-95"
             >
               {user ? 'Kullanmaya Devam Et' : 'Ücretsiz Başla'}
             </button>
@@ -115,7 +115,7 @@ export const PremiumPage: React.FC<PremiumPageProps> = ({ navigate }) => {
         </div>
 
         {/* Premium Plan (Highlighted) */}
-        <div className={`relative rounded-3xl bg-gradient-to-b from-blue-950/40 via-slate-900 to-slate-900 border-2 ${currentPlan === 'premium' ? 'border-blue-400 ring-2 ring-blue-500/20' : 'border-blue-500/40'} p-8 flex flex-col justify-between shadow-2xl shadow-blue-500/10`}>
+        <div className={`relative rounded-3xl bg-gradient-to-b from-blue-950/40 via-[#0F172A] to-[#0F172A] border-2 ${currentPlan === 'premium' ? 'border-blue-400 ring-2 ring-blue-500/20' : 'border-blue-500/40'} p-8 flex flex-col justify-between shadow-2xl shadow-blue-500/10`}>
           <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-md">
             En Çok Tercih Edilen
           </div>
@@ -131,7 +131,7 @@ export const PremiumPage: React.FC<PremiumPageProps> = ({ navigate }) => {
             </div>
 
             <div>
-              <span className="text-4xl font-extrabold text-white">₺49</span>
+              <span className="text-4xl font-black text-white">₺49</span>
               <span className="text-xs text-slate-400 ml-1.5 font-medium">/ ay</span>
             </div>
 
@@ -153,7 +153,7 @@ export const PremiumPage: React.FC<PremiumPageProps> = ({ navigate }) => {
           <div className="pt-8">
             <button
               onClick={() => navigate('/iletisim')}
-              className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-lg shadow-blue-600/30 transition-all flex items-center justify-center gap-1.5"
+              className="w-full min-h-[44px] py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-lg shadow-blue-600/30 transition-all flex items-center justify-center gap-1.5 active:scale-95"
             >
               <span>Yükseltme Talebi İlet</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -162,7 +162,7 @@ export const PremiumPage: React.FC<PremiumPageProps> = ({ navigate }) => {
         </div>
 
         {/* VIP Plan */}
-        <div className={`relative rounded-3xl bg-slate-900 border ${currentPlan === 'vip' ? 'border-purple-500/60' : 'border-slate-800'} p-8 flex flex-col justify-between shadow-xl`}>
+        <div className={`relative rounded-3xl bg-[#0F172A] border ${currentPlan === 'vip' ? 'border-purple-500/60' : 'border-slate-800'} p-8 flex flex-col justify-between shadow-xl`}>
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-wider text-purple-400">{activePlans.vip?.name || 'VIP Pro'}</span>
@@ -174,7 +174,7 @@ export const PremiumPage: React.FC<PremiumPageProps> = ({ navigate }) => {
             </div>
 
             <div>
-              <span className="text-4xl font-extrabold text-white">₺99</span>
+              <span className="text-4xl font-black text-white">₺99</span>
               <span className="text-xs text-slate-400 ml-1.5 font-medium">/ ay</span>
             </div>
 
@@ -196,7 +196,7 @@ export const PremiumPage: React.FC<PremiumPageProps> = ({ navigate }) => {
           <div className="pt-8">
             <button
               onClick={() => navigate('/iletisim')}
-              className="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/30 transition-all flex items-center justify-center gap-1.5"
+              className="w-full min-h-[44px] py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/30 transition-all flex items-center justify-center gap-1.5 active:scale-95"
             >
               <span>VIP Yükseltme Talebi</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -206,7 +206,7 @@ export const PremiumPage: React.FC<PremiumPageProps> = ({ navigate }) => {
       </div>
 
       {/* Comparison Grid */}
-      <div className="rounded-3xl bg-slate-900 border border-slate-800 p-6 sm:p-8 space-y-6">
+      <div className="rounded-3xl bg-[#0F172A] border border-slate-800 p-6 sm:p-8 space-y-6 shadow-xl">
         <h3 className="text-base font-bold text-white text-center">Detaylı Limit Karşılaştırması</h3>
 
         <div className="overflow-x-auto">

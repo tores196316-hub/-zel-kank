@@ -34,8 +34,8 @@ export const HelpPage: React.FC = () => {
           <HelpCircle className="w-4 h-4" />
           <span>Sıkça Sorulan Sorular</span>
         </div>
-        <h1 className="text-3xl font-extrabold text-white">Yardım & Destek Merkezi</h1>
-        <p className="text-slate-400 text-sm">
+        <h1 className="text-3xl font-black text-white tracking-tight">Yardım & Destek Merkezi</h1>
+        <p className="text-slate-400 text-xs sm:text-sm">
           Aklınıza takılan tüm soruların cevaplarını burada bulabilirsiniz.
         </p>
       </div>
@@ -46,7 +46,7 @@ export const HelpPage: React.FC = () => {
           return (
             <div
               key={idx}
-              className="bg-slate-800/40 border border-slate-700/60 rounded-2xl overflow-hidden transition-colors"
+              className="bg-[#0F172A] border border-slate-800 rounded-2xl overflow-hidden transition-colors shadow-md"
             >
               <button
                 onClick={() => setOpenIdx(isOpen ? null : idx)}
@@ -56,7 +56,7 @@ export const HelpPage: React.FC = () => {
                 {isOpen ? <ChevronUp className="w-4 h-4 shrink-0 text-blue-400" /> : <ChevronDown className="w-4 h-4 shrink-0 text-slate-400" />}
               </button>
               {isOpen && (
-                <div className="px-5 pb-5 text-xs text-slate-300 leading-relaxed border-t border-slate-700/40 pt-3">
+                <div className="px-5 pb-5 text-xs text-slate-300 leading-relaxed border-t border-slate-800/80 pt-3 bg-[#0B0F19]/50">
                   {faq.a}
                 </div>
               )}

@@ -31,17 +31,17 @@ export const ContactPage: React.FC = () => {
   return (
     <div className="max-w-3xl mx-auto px-4 py-12 space-y-8">
       <div className="text-center space-y-2">
-        <div className="w-12 h-12 rounded-2xl bg-blue-600/10 text-blue-400 flex items-center justify-center mx-auto border border-blue-500/20">
+        <div className="w-12 h-12 rounded-2xl bg-blue-600/10 text-blue-400 flex items-center justify-center mx-auto border border-blue-500/20 shadow-lg shadow-blue-500/5">
           <Mail className="w-6 h-6" />
         </div>
-        <h1 className="text-3xl font-extrabold text-white">İletişim</h1>
-        <p className="text-slate-400 text-sm">
+        <h1 className="text-3xl font-black text-white tracking-tight">İletişim & Destek</h1>
+        <p className="text-slate-400 text-xs sm:text-sm max-w-md mx-auto">
           Sorularınız, önerileriniz veya telif hakları bildirimleriniz için bize ulaşın.
         </p>
       </div>
 
       {sent ? (
-        <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-8 text-center space-y-3">
+        <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-3xl p-8 text-center space-y-3 shadow-xl">
           <CheckCircle className="w-12 h-12 text-emerald-400 mx-auto" />
           <h3 className="text-lg font-bold text-white">Mesajınız Alındı</h3>
           <p className="text-xs text-slate-300">
@@ -49,60 +49,60 @@ export const ContactPage: React.FC = () => {
           </p>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-6 sm:p-8 space-y-4">
+        <form onSubmit={handleSubmit} className="bg-[#0F172A] border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-4 shadow-xl">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
-              <label className="text-xs font-medium text-slate-300">Adınız Soyadınız *</label>
+              <label className="text-xs font-semibold text-slate-300">Adınız Soyadınız *</label>
               <input
                 type="text"
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Örn: Ahmet Yılmaz"
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                className="w-full bg-[#0B0F19] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-medium text-slate-300">E-Posta Adresiniz *</label>
+              <label className="text-xs font-semibold text-slate-300">E-Posta Adresiniz *</label>
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="ahmet@example.com"
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                className="w-full bg-[#0B0F19] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
               />
             </div>
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-medium text-slate-300">Konu</label>
+            <label className="text-xs font-semibold text-slate-300">Konu</label>
             <input
               type="text"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               placeholder="Mesaj konusu"
-              className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+              className="w-full bg-[#0B0F19] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
             />
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-medium text-slate-300">Mesajınız *</label>
+            <label className="text-xs font-semibold text-slate-300">Mesajınız *</label>
             <textarea
               required
               rows={5}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Detaylı mesajınızı buraya yazın..."
-              className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+              className="w-full bg-[#0B0F19] border border-slate-800 rounded-xl p-3.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
             />
           </div>
 
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md flex items-center justify-center gap-2"
+            className="w-full min-h-[44px] py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md shadow-blue-600/20 flex items-center justify-center gap-2 transition-all active:scale-95"
           >
             <Send className="w-4 h-4" />
             {submitting ? 'Gönderiliyor...' : 'Mesajı Gönder'}

@@ -44,21 +44,21 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ navigate }) => {
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
       {/* Profile Header Card */}
-      <div className="rounded-3xl bg-slate-900 border border-slate-800 p-6 sm:p-8 flex flex-col md:flex-row items-center md:items-start justify-between gap-6 shadow-xl">
+      <div className="rounded-3xl bg-[#0F172A] border border-slate-800 p-6 sm:p-8 flex flex-col md:flex-row items-center md:items-start justify-between gap-6 shadow-xl">
         <div className="flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
-          <div className="w-24 h-24 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-sky-500 text-white flex items-center justify-center font-black text-3xl shadow-lg shadow-blue-600/20 shrink-0">
+          <div className="w-24 h-24 rounded-3xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-sky-500 text-white flex items-center justify-center font-black text-3xl shadow-xl shadow-blue-600/20 shrink-0 border border-white/10">
             {user.username.charAt(0).toUpperCase()}
           </div>
 
           <div className="space-y-1.5">
             <div className="flex items-center justify-center sm:justify-start gap-2.5 flex-wrap">
-              <h1 className="text-2xl font-bold text-white tracking-tight">{user.username}</h1>
+              <h1 className="text-2xl font-black text-white tracking-tight">{user.username}</h1>
               {user.role === 'admin' ? (
-                <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[11px] font-bold uppercase">
+                <span className="px-2.5 py-0.5 rounded-md bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[11px] font-bold uppercase">
                   Yönetici (Admin)
                 </span>
               ) : (
-                <span className="px-2.5 py-0.5 rounded-full bg-blue-500/20 border border-blue-500/40 text-blue-300 text-[11px] font-bold uppercase">
+                <span className="px-2.5 py-0.5 rounded-md bg-blue-500/20 border border-blue-500/40 text-blue-300 text-[11px] font-bold uppercase">
                   {plan.toUpperCase()} Üye
                 </span>
               )}
@@ -79,14 +79,14 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ navigate }) => {
         <div className="flex items-center gap-3 w-full sm:w-auto">
           <button
             onClick={() => navigate('/ayarlar')}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-all"
+            className="flex-1 sm:flex-none min-h-[44px] flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-all active:scale-95"
           >
             <Settings className="w-4 h-4 text-slate-400" />
             Hesap Ayarları
           </button>
           <button
             onClick={() => navigate('/panel')}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-md shadow-blue-600/30 transition-all"
+            className="flex-1 sm:flex-none min-h-[44px] flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-md shadow-blue-600/30 transition-all active:scale-95"
           >
             <LayoutDashboard className="w-4 h-4" />
             Kullanıcı Paneli
@@ -96,40 +96,40 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ navigate }) => {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 text-center space-y-1">
+        <div className="p-5 rounded-3xl bg-[#0F172A] border border-slate-800 text-center space-y-1 shadow-lg">
           <span className="text-xs font-medium text-slate-400 flex items-center justify-center gap-1.5">
             <Images className="w-4 h-4 text-blue-400" /> Resim Sayısı
           </span>
-          <p className="text-2xl font-bold text-white">{user.stats?.total_images || user.image_count || 0}</p>
+          <p className="text-2xl font-black text-white">{user.stats?.total_images || user.image_count || 0}</p>
         </div>
 
-        <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 text-center space-y-1">
+        <div className="p-5 rounded-3xl bg-[#0F172A] border border-slate-800 text-center space-y-1 shadow-lg">
           <span className="text-xs font-medium text-slate-400 flex items-center justify-center gap-1.5">
             <HardDrive className="w-4 h-4 text-indigo-400" /> Kullanılan Alan
           </span>
-          <p className="text-2xl font-bold text-white">{storageMB} MB</p>
+          <p className="text-2xl font-black text-white">{storageMB} MB</p>
         </div>
 
-        <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 text-center space-y-1">
+        <div className="p-5 rounded-3xl bg-[#0F172A] border border-slate-800 text-center space-y-1 shadow-lg">
           <span className="text-xs font-medium text-slate-400 flex items-center justify-center gap-1.5">
             <Eye className="w-4 h-4 text-emerald-400" /> Görüntülenme
           </span>
-          <p className="text-2xl font-bold text-white">{(user.stats?.total_views || 0).toLocaleString()}</p>
+          <p className="text-2xl font-black text-white">{(user.stats?.total_views || 0).toLocaleString()}</p>
         </div>
 
-        <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 text-center space-y-1">
+        <div className="p-5 rounded-3xl bg-[#0F172A] border border-slate-800 text-center space-y-1 shadow-lg">
           <span className="text-xs font-medium text-slate-400 flex items-center justify-center gap-1.5">
             <Heart className="w-4 h-4 text-rose-400" /> Favoriler
           </span>
-          <p className="text-2xl font-bold text-white">{user.stats?.favorite_count || 0}</p>
+          <p className="text-2xl font-black text-white">{user.stats?.favorite_count || 0}</p>
         </div>
       </div>
 
       {/* Plan Details & Limits Card */}
-      <div className="rounded-3xl bg-slate-900 border border-slate-800 p-6 sm:p-8 space-y-6">
+      <div className="rounded-3xl bg-[#0F172A] border border-slate-800 p-6 sm:p-8 space-y-6 shadow-xl">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+            <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
               <Crown className="w-5 h-5" />
             </div>
             <div>
@@ -140,19 +140,19 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ navigate }) => {
 
           <button
             onClick={() => navigate('/premium')}
-            className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-md shadow-amber-500/20 transition-all"
+            className="min-h-[38px] px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-md shadow-amber-500/20 transition-all active:scale-95"
           >
             Tüm Paketleri İncele
           </button>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 text-xs">
-          <div className="p-4 rounded-xl bg-slate-800/40 border border-slate-800 space-y-1">
+          <div className="p-4 rounded-2xl bg-[#0B0F19] border border-slate-800 space-y-1">
             <span className="text-slate-400">Maksimum Dosya Boyutu</span>
             <p className="text-base font-bold text-white">{planLimits.max_file_size_mb} MB / dosya</p>
           </div>
 
-          <div className="p-4 rounded-xl bg-slate-800/40 border border-slate-800 space-y-1">
+          <div className="p-4 rounded-2xl bg-[#0B0F19] border border-slate-800 space-y-1">
             <div className="flex justify-between items-center text-slate-400">
               <span>Günlük Yükleme Limiti</span>
               <span className="text-blue-400 font-bold">{todayUploads} / {dailyUploadLimit}</span>
@@ -166,7 +166,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ navigate }) => {
             </div>
           </div>
 
-          <div className="p-4 rounded-xl bg-slate-800/40 border border-slate-800 space-y-1">
+          <div className="p-4 rounded-2xl bg-[#0B0F19] border border-slate-800 space-y-1">
             <div className="flex justify-between items-center text-slate-400">
               <span>Toplam Depolama</span>
               <span className="text-indigo-400 font-bold">%{storagePercent}</span>

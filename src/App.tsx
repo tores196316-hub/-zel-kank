@@ -108,7 +108,7 @@ export default function App() {
   return (
     <AuthProvider>
       <ToastProvider>
-        <div className="min-h-screen flex flex-col bg-slate-900 text-slate-100 font-sans antialiased selection:bg-blue-600 selection:text-white">
+        <div className="min-h-screen flex flex-col bg-[#0B0F19] text-slate-100 font-sans antialiased selection:bg-blue-600 selection:text-white">
           <Navbar currentPath={currentPath} navigate={navigate} />
           <main className="flex-1">{renderCurrentView()}</main>
           <Footer navigate={navigate} />

@@ -83,7 +83,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ navigate }) => {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
       {/* Page Header */}
       <div className="border-b border-slate-800 pb-5">
-        <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2.5">
+        <h1 className="text-2xl font-black text-white tracking-tight flex items-center gap-2.5">
           <Settings className="w-6 h-6 text-blue-400" />
           Hesap Ayarları
         </h1>
@@ -94,7 +94,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ navigate }) => {
 
       <div className="grid grid-cols-1 gap-8">
         {/* Profile & Security Form */}
-        <div className="rounded-3xl bg-slate-900 border border-slate-800 p-6 sm:p-8 space-y-6">
+        <div className="rounded-3xl bg-[#0F172A] border border-slate-800 p-6 sm:p-8 space-y-6 shadow-xl">
           <h2 className="text-base font-bold text-white flex items-center gap-2">
             <Key className="w-4 h-4 text-blue-400" />
             Hesap Bilgileri & Şifre Değişikliği
@@ -108,7 +108,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ navigate }) => {
                   type="text"
                   disabled
                   value={user.username}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-400 cursor-not-allowed select-none"
+                  className="w-full bg-[#0B0F19] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-400 cursor-not-allowed select-none"
                 />
               </div>
 
@@ -118,11 +118,11 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ navigate }) => {
                   type="email"
                   disabled
                   value={user.email}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-400 cursor-not-allowed select-none"
+                  className="w-full bg-[#0B0F19] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-400 cursor-not-allowed select-none"
                 />
               </div>
             </div>
-            <p className="text-[11px] text-slate-500 bg-slate-950/60 p-2.5 rounded-lg border border-slate-800/80">
+            <p className="text-[11px] text-slate-400 bg-[#0B0F19] p-3 rounded-xl border border-slate-800">
               🔒 Güvenlik ve hesap doğrulaması nedeniyle kullanıcı adı ve e-posta adresi değiştirilemez.
             </p>
 
@@ -136,7 +136,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ navigate }) => {
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   placeholder="Değişiklikleri kaydetmek için gereklidir"
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-[#0B0F19] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
                 />
               </div>
 
@@ -149,7 +149,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ navigate }) => {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                    className="w-full bg-[#0B0F19] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
                   />
                 </div>
 
@@ -161,7 +161,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ navigate }) => {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                    className="w-full bg-[#0B0F19] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
                   />
                 </div>
               </div>
@@ -170,7 +170,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ navigate }) => {
             <button
               type="submit"
               disabled={submittingProfile}
-              className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-md shadow-blue-600/30 transition-all"
+              className="min-h-[44px] px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md shadow-blue-600/30 transition-all active:scale-95"
             >
               {submittingProfile ? 'Kaydediliyor...' : 'Şifreyi Güncelle'}
             </button>
@@ -179,18 +179,18 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ navigate }) => {
 
         {/* Danger Zone */}
         {user.role !== 'admin' && (
-          <div className="rounded-3xl bg-rose-950/20 border border-rose-900/40 p-6 sm:p-8 space-y-4">
+          <div className="rounded-3xl bg-rose-950/10 border border-rose-900/30 p-6 sm:p-8 space-y-4">
             <div className="flex items-center gap-3 text-rose-400">
               <AlertTriangle className="w-5 h-5" />
               <h2 className="text-base font-bold text-rose-300">Tehlikeli Bölge</h2>
             </div>
-            <p className="text-xs text-slate-400 max-w-xl">
+            <p className="text-xs text-slate-400 max-w-xl leading-relaxed">
               Hesabınızı kalıcı olarak silebilirsiniz. Hesabınız silindiğinde profiliniz, klasörleriniz ve bildirimleriniz tamamen kaldırılır.
             </p>
 
             <button
               onClick={() => setDeleteModalOpen(true)}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/40 text-xs font-bold transition-all"
+              className="min-h-[44px] flex items-center gap-2 px-5 py-2.5 rounded-xl bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/40 text-xs font-bold transition-all active:scale-95"
             >
               <Trash2 className="w-4 h-4" />
               Hesabımı Kalıcı Olarak Sil
@@ -201,8 +201,8 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ navigate }) => {
 
       {/* Delete Confirmation Modal */}
       {deleteModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-5 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+          <div className="w-full max-w-md bg-[#0F172A] border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-5 shadow-2xl">
             <div className="flex items-center gap-3 text-rose-400">
               <div className="p-3 rounded-2xl bg-rose-500/10 border border-rose-500/20">
                 <Trash2 className="w-6 h-6" />
@@ -225,7 +225,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ navigate }) => {
                 value={deletePassword}
                 onChange={(e) => setDeletePassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-rose-500"
+                className="w-full bg-[#0B0F19] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-rose-500"
               />
             </div>
 
@@ -236,7 +236,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ navigate }) => {
                   setDeleteModalOpen(false);
                   setDeletePassword('');
                 }}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800"
+                className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800"
               >
                 İptal
               </button>
@@ -244,7 +244,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ navigate }) => {
                 type="button"
                 onClick={handleDeleteAccount}
                 disabled={deletingAccount}
-                className="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold shadow-md shadow-rose-600/30"
+                className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold shadow-md shadow-rose-600/30 transition-all active:scale-95"
               >
                 {deletingAccount ? 'Siliniyor...' : 'Evet, Hesabımı Sil'}
               </button>

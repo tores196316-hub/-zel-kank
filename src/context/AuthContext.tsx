@@ -48,16 +48,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } catch (err: any) {
       // ONLY clear token if the server definitively rejected the session (HTTP 401 / 403)
-      // Do NOT clear token on network errors or transient server restarts!
       if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
         setStoredToken(null);
         localStorage.removeItem(USER_CACHE_KEY);
         setUser(null);
-      } else {
-        // Temporary server restart or network glitch: keep cached user state and retry after 2 seconds
-        setTimeout(() => {
-          refreshUser();
-        }, 2500);
       }
     } finally {
       setLoading(false);
@@ -74,6 +68,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       localStorage.setItem(USER_CACHE_KEY, JSON.stringify(userData));
     } catch {}
+    // Fetch detailed profile (plans, stats, quotas) in the background
+    refreshUser();
   };
 
   const logout = async () => {
