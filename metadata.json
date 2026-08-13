@@ -1,0 +1,6 @@
+{
+  "name": "Hızlı Yükle",
+  "description": "Hızlı, güvenli ve kolay resim yükleme ve paylaşım platformu",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
