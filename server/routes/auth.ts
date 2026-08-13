@@ -1,4 +1,5 @@
 import { Router, Response } from 'express';
+import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import { db, UserRecord } from '../db.js';
 import { authenticateToken, generateToken, requireAuth, AuthRequest } from '../middleware/auth.js';
@@ -46,7 +47,7 @@ router.post('/register', authRateLimiter, async (req: AuthRequest, res: Response
     const password_hash = await bcrypt.hash(password, 10);
 
     const newUser: UserRecord = {
-      id: 'usr_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+      id: 'usr_' + Date.now() + '_' + crypto.randomBytes(4).toString('hex'),
       email: cleanEmail,
       username: cleanUsername,
       password_hash,

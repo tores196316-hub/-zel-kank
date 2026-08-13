@@ -6,6 +6,8 @@ import bcrypt from 'bcryptjs';
 const DATA_DIR = path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DATA_DIR, 'hizliyukle_db.json');
 const DB_BACKUP_FILE = path.join(DATA_DIR, 'hizliyukle_db.backup.json');
+const DB_USERS_ARCHIVE = path.join(DATA_DIR, 'hizliyukle_users_archive.json');
+const DB_IMAGES_ARCHIVE = path.join(DATA_DIR, 'hizliyukle_images_archive.json');
 
 export interface UserRecord {
   id: string;
@@ -200,58 +202,181 @@ class Database {
         fs.mkdirSync(DATA_DIR, { recursive: true });
       }
 
-      let loaded = false;
+      const sources: any[] = [];
 
-      // Try primary DB file
+      // 1. Primary DB file
       if (fs.existsSync(DB_FILE)) {
         try {
-          const fileContent = fs.readFileSync(DB_FILE, 'utf-8');
-          if (fileContent && fileContent.trim().length > 0) {
-            const parsed = JSON.parse(fileContent);
-            this.populateFromData(parsed);
-            loaded = true;
+          const content = fs.readFileSync(DB_FILE, 'utf-8');
+          if (content && content.trim().length > 0) {
+            sources.push(JSON.parse(content));
           }
         } catch (e) {
-          console.warn('Failed to parse primary DB file, trying backup:', e);
+          console.warn('[DB] Failed reading primary DB file:', e);
         }
       }
 
-      // If primary failed or was empty, try backup DB file
-      if (!loaded && fs.existsSync(DB_BACKUP_FILE)) {
+      // 2. Backup DB file
+      if (fs.existsSync(DB_BACKUP_FILE)) {
         try {
-          const backupContent = fs.readFileSync(DB_BACKUP_FILE, 'utf-8');
-          if (backupContent && backupContent.trim().length > 0) {
-            const parsed = JSON.parse(backupContent);
-            this.populateFromData(parsed);
-            loaded = true;
+          const content = fs.readFileSync(DB_BACKUP_FILE, 'utf-8');
+          if (content && content.trim().length > 0) {
+            sources.push(JSON.parse(content));
           }
         } catch (e) {
-          console.error('Failed to parse backup DB file:', e);
+          console.warn('[DB] Failed reading backup DB file:', e);
         }
       }
 
+      // 3. Dedicated Users Archive
+      if (fs.existsSync(DB_USERS_ARCHIVE)) {
+        try {
+          const content = fs.readFileSync(DB_USERS_ARCHIVE, 'utf-8');
+          if (content && content.trim().length > 0) {
+            const parsed = JSON.parse(content);
+            if (Array.isArray(parsed)) {
+              sources.push({ users: parsed });
+            } else if (parsed && Array.isArray(parsed.users)) {
+              sources.push({ users: parsed.users });
+            }
+          }
+        } catch (e) {
+          console.warn('[DB] Failed reading users archive:', e);
+        }
+      }
+
+      // 4. Dedicated Images Archive
+      if (fs.existsSync(DB_IMAGES_ARCHIVE)) {
+        try {
+          const content = fs.readFileSync(DB_IMAGES_ARCHIVE, 'utf-8');
+          if (content && content.trim().length > 0) {
+            const parsed = JSON.parse(content);
+            if (Array.isArray(parsed)) {
+              sources.push({ images: parsed });
+            } else if (parsed && Array.isArray(parsed.images)) {
+              sources.push({ images: parsed.images });
+            }
+          }
+        } catch (e) {
+          console.warn('[DB] Failed reading images archive:', e);
+        }
+      }
+
+      this.mergeFromSources(sources);
       this.seedInitialData();
       this.save();
     } catch (err) {
-      console.error('Database initialization error:', err);
+      console.error('[DB] Database initialization error:', err);
       this.seedInitialData();
       this.save();
     }
   }
 
-  private populateFromData(parsed: any) {
+  private mergeFromSources(sources: any[]) {
+    const userMap = new Map<string, UserRecord>();
+    const imageMap = new Map<string, ImageRecord>();
+    const folderMap = new Map<string, FolderRecord>();
+    const reportMap = new Map<string, ReportRecord>();
+    const announcementMap = new Map<string, AnnouncementRecord>();
+    const notificationMap = new Map<string, NotificationRecord>();
+    const auditLogs: AuditLogRecord[] = [];
+    const logs: { id: string; level: string; message: string; timestamp: string }[] = [];
+    let customSettings: Partial<SiteSettingsRecord> = {};
+
+    for (const src of sources) {
+      if (!src || typeof src !== 'object') continue;
+
+      // Users merging: match by ID or Email/Username
+      if (Array.isArray(src.users)) {
+        for (const u of src.users) {
+          if (!u || !u.id) continue;
+          const existing = userMap.get(u.id);
+          if (!existing) {
+            userMap.set(u.id, u);
+          } else {
+            userMap.set(u.id, {
+              ...existing,
+              ...u,
+              password_hash: u.password_hash || existing.password_hash,
+              plan: u.plan || existing.plan || (u.role === 'admin' ? 'admin' : 'free'),
+            });
+          }
+        }
+      }
+
+      // Images merging
+      if (Array.isArray(src.images)) {
+        for (const img of src.images) {
+          if (!img || !img.id) continue;
+          if (!imageMap.has(img.id)) {
+            imageMap.set(img.id, img);
+          } else {
+            const prev = imageMap.get(img.id)!;
+            imageMap.set(img.id, { ...prev, ...img });
+          }
+        }
+      }
+
+      // Folders merging
+      if (Array.isArray(src.folders)) {
+        for (const f of src.folders) {
+          if (f && f.id && !folderMap.has(f.id)) folderMap.set(f.id, f);
+        }
+      }
+
+      // Reports merging
+      if (Array.isArray(src.reports)) {
+        for (const r of src.reports) {
+          if (r && r.id && !reportMap.has(r.id)) reportMap.set(r.id, r);
+        }
+      }
+
+      // Announcements merging
+      if (Array.isArray(src.announcements)) {
+        for (const a of src.announcements) {
+          if (a && a.id && !announcementMap.has(a.id)) announcementMap.set(a.id, a);
+        }
+      }
+
+      // Notifications merging
+      if (Array.isArray(src.notifications)) {
+        for (const n of src.notifications) {
+          if (n && n.id && !notificationMap.has(n.id)) notificationMap.set(n.id, n);
+        }
+      }
+
+      // Audit logs
+      if (Array.isArray(src.audit_logs)) {
+        auditLogs.push(...src.audit_logs);
+      }
+
+      // Logs
+      if (Array.isArray(src.logs)) {
+        logs.push(...src.logs);
+      }
+
+      // Settings
+      if (src.settings && typeof src.settings === 'object') {
+        customSettings = { ...customSettings, ...src.settings };
+      }
+    }
+
+    const dedupAuditLogs = Array.from(new Map(auditLogs.map((l) => [l.id || Math.random().toString(), l])).values());
+    const dedupLogs = Array.from(new Map(logs.map((l) => [l.id || Math.random().toString(), l])).values());
+
     this.data = {
-      users: Array.isArray(parsed.users) ? parsed.users : [],
-      images: Array.isArray(parsed.images) ? parsed.images : [],
-      folders: Array.isArray(parsed.folders) ? parsed.folders : [],
-      reports: Array.isArray(parsed.reports) ? parsed.reports : [],
-      announcements: Array.isArray(parsed.announcements) ? parsed.announcements : [],
-      notifications: Array.isArray(parsed.notifications) ? parsed.notifications : [],
-      audit_logs: Array.isArray(parsed.audit_logs) ? parsed.audit_logs : [],
-      settings: { ...defaultSettings, ...(parsed.settings || {}) },
-      logs: Array.isArray(parsed.logs) ? parsed.logs : [],
-      view_logs: Array.isArray(parsed.view_logs) ? parsed.view_logs : [],
+      users: Array.from(userMap.values()),
+      images: Array.from(imageMap.values()),
+      folders: Array.from(folderMap.values()),
+      reports: Array.from(reportMap.values()),
+      announcements: Array.from(announcementMap.values()),
+      notifications: Array.from(notificationMap.values()),
+      audit_logs: dedupAuditLogs,
+      settings: { ...defaultSettings, ...customSettings },
+      logs: dedupLogs,
+      view_logs: [],
     };
+
     if (!this.data.settings.plans) {
       this.data.settings.plans = defaultPlans;
     }
@@ -357,23 +482,52 @@ class Database {
       if (!fs.existsSync(DATA_DIR)) {
         fs.mkdirSync(DATA_DIR, { recursive: true });
       }
+
+      // Safeguard: never overwrite with an empty user list if disk archive has users
+      if ((!this.data.users || this.data.users.length === 0) && fs.existsSync(DB_USERS_ARCHIVE)) {
+        try {
+          const archiveContent = fs.readFileSync(DB_USERS_ARCHIVE, 'utf-8');
+          if (archiveContent && archiveContent.trim().length > 0) {
+            const archiveUsers = JSON.parse(archiveContent);
+            if (Array.isArray(archiveUsers) && archiveUsers.length > 0) {
+              this.data.users = archiveUsers;
+            }
+          }
+        } catch (e) {
+          console.warn('[DB] Could not re-read users archive during save safeguard:', e);
+        }
+      }
+
       const serialized = JSON.stringify(this.data, null, 2);
       
-      // Atomic write to primary DB file
+      // 1. Atomic write to primary DB file
       const tmpFile = DB_FILE + '.tmp';
       fs.writeFileSync(tmpFile, serialized, 'utf-8');
       fs.renameSync(tmpFile, DB_FILE);
 
-      // Write to backup DB file for extra safety
+      // 2. Backup DB file
       fs.writeFileSync(DB_BACKUP_FILE, serialized, 'utf-8');
+
+      // 3. Persistent Users Archive
+      if (this.data.users && this.data.users.length > 0) {
+        fs.writeFileSync(DB_USERS_ARCHIVE, JSON.stringify(this.data.users, null, 2), 'utf-8');
+      }
+
+      // 4. Persistent Images Archive
+      if (this.data.images && this.data.images.length > 0) {
+        fs.writeFileSync(DB_IMAGES_ARCHIVE, JSON.stringify(this.data.images, null, 2), 'utf-8');
+      }
     } catch (err) {
-      console.error('Database save error:', err);
+      console.error('[DB] Database save error:', err);
       try {
         const serialized = JSON.stringify(this.data, null, 2);
         fs.writeFileSync(DB_FILE, serialized, 'utf-8');
         fs.writeFileSync(DB_BACKUP_FILE, serialized, 'utf-8');
+        if (this.data.users && this.data.users.length > 0) {
+          fs.writeFileSync(DB_USERS_ARCHIVE, JSON.stringify(this.data.users, null, 2), 'utf-8');
+        }
       } catch (e) {
-        console.error('Fallback database save error:', e);
+        console.error('[DB] Fallback database save error:', e);
       }
     }
   }
