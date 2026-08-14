@@ -100,7 +100,7 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ navigate }) => {
         <p className="text-slate-400 text-xs sm:text-sm">Resimlerinizi güvenle saklayın, kategorize edin ve yönetin.</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-[#0F172A] border border-slate-800 rounded-3xl p-6 sm:p-7 space-y-4 shadow-xl">
+      <form onSubmit={handleSubmit} className="bg-[#0A1020] border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-4 shadow-2xl">
         {errorMessage && (
           <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-start gap-2.5 animate-in fade-in duration-200">
             <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
@@ -122,7 +122,7 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ navigate }) => {
                 if (errorMessage) setErrorMessage(null);
               }}
               placeholder="ornek@domain.com"
-              className="w-full bg-[#0B0F19] border border-slate-800 rounded-xl pl-10 pr-3.5 py-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+              className="w-full bg-[#070B14] border border-slate-800 rounded-xl pl-10 pr-3.5 py-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all"
             />
           </div>
         </div>
@@ -141,7 +141,7 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ navigate }) => {
                 if (errorMessage) setErrorMessage(null);
               }}
               placeholder="kullanici_adi"
-              className="w-full bg-[#0B0F19] border border-slate-800 rounded-xl pl-10 pr-3.5 py-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+              className="w-full bg-[#070B14] border border-slate-800 rounded-xl pl-10 pr-3.5 py-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all"
             />
           </div>
           <p className="text-[11px] text-slate-500">3-20 karakter, sadece harf, rakam, tire ve alt tire.</p>
@@ -162,13 +162,13 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ navigate }) => {
                 if (errorMessage) setErrorMessage(null);
               }}
               placeholder="••••••••"
-              className="w-full bg-[#0B0F19] border border-slate-800 rounded-xl pl-10 pr-10 py-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+              className="w-full bg-[#070B14] border border-slate-800 rounded-xl pl-10 pr-10 py-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               tabIndex={-1}
-              className="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-200 transition-colors"
+              className="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
               aria-label={showPassword ? 'Şifreyi gizle' : 'Şifreyi göster'}
             >
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -191,7 +191,7 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ navigate }) => {
                 if (errorMessage) setErrorMessage(null);
               }}
               placeholder="••••••••"
-              className="w-full bg-[#0B0F19] border border-slate-800 rounded-xl pl-10 pr-3.5 py-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+              className="w-full bg-[#070B14] border border-slate-800 rounded-xl pl-10 pr-3.5 py-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all"
             />
           </div>
         </div>
@@ -201,7 +201,7 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ navigate }) => {
           <button
             type="button"
             onClick={() => navigate('/sartlar')}
-            className="text-blue-400 hover:underline font-semibold"
+            className="text-sky-400 hover:underline font-semibold cursor-pointer"
           >
             Kullanım Şartları
           </button>
@@ -209,7 +209,7 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ navigate }) => {
           <button
             type="button"
             onClick={() => navigate('/gizlilik')}
-            className="text-blue-400 hover:underline font-semibold"
+            className="text-sky-400 hover:underline font-semibold cursor-pointer"
           >
             Gizlilik Politikası
           </button>
@@ -219,7 +219,7 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ navigate }) => {
         <button
           type="submit"
           disabled={submitting}
-          className="w-full min-h-[44px] py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs sm:text-sm shadow-md shadow-blue-600/20 flex items-center justify-center gap-2 transition-all mt-2 active:scale-95 disabled:opacity-50"
+          className="w-full min-h-[48px] py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-sky-500 hover:from-blue-500 hover:to-sky-400 text-white font-bold text-xs sm:text-sm shadow-lg shadow-sky-500/20 flex items-center justify-center gap-2 transition-all mt-2 active:scale-95 disabled:opacity-50 cursor-pointer"
         >
           {submitting ? (
             <span className="flex items-center gap-2">
@@ -242,7 +242,7 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ navigate }) => {
           <button
             type="button"
             onClick={() => navigate('/giris')}
-            className="text-blue-400 hover:underline font-bold"
+            className="text-sky-400 hover:underline font-bold cursor-pointer"
           >
             Giriş Yapın
           </button>

@@ -13,7 +13,7 @@ export const Logo: React.FC<LogoProps> = ({
   size = 'md',
   variant = 'horizontal',
   showSlogan = false,
-  badgeText,
+  badgeText = 'V5',
   className = '',
   glow = true,
 }) => {

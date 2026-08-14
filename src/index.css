@@ -2,18 +2,18 @@
 
 @layer base {
   body {
-    background-color: #0b0f19;
-    color: #f8fafc;
+    background-color: #070b14;
+    color: #f1f5f9;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 
-  /* Custom subtle scrollbar */
+  /* Custom sleek scrollbar */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
   ::-webkit-scrollbar-track {
-    background: #0b0f19;
+    background: #070b14;
   }
   ::-webkit-scrollbar-thumb {
     background: #1e293b;
@@ -22,4 +22,10 @@
   ::-webkit-scrollbar-thumb:hover {
     background: #334155;
   }
+}
+
+/* Midnight Background Grid and Radial Glows */
+.midnight-grid {
+  background-image: radial-gradient(rgba(56, 189, 248, 0.05) 1px, transparent 0);
+  background-size: 32px 32px;
 }

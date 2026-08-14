@@ -258,7 +258,11 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
     <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12 space-y-8">
       {/* Header */}
       <div className="text-center space-y-2.5">
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Hızlı Resim Yükleme</h1>
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-semibold">
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>Işık Hızında & Güvenli Medya Yükleme</span>
+        </div>
+        <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight">Hızlı Resim Yükleme</h1>
         <p className="text-slate-400 text-xs sm:text-sm max-w-xl mx-auto">
           Dosyalarınızı sürükleyin, panodan yapıştırın (Ctrl+V) veya galerinizden seçin. Yüklemeden önce dilediğiniz gibi düzenleyebilirsiniz!
         </p>
@@ -271,17 +275,17 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
           {/* Top Options Bar: Folder Selection & Security Settings Toggle */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {isLoggedIn && folders.length > 0 ? (
-              <div className="bg-[#0F172A] border border-slate-800 rounded-2xl p-3.5 flex items-center justify-between gap-3">
+              <div className="bg-[#0A1020] border border-slate-800 rounded-2xl p-3.5 flex items-center justify-between gap-3 shadow-sm">
                 <div className="flex items-center gap-2 text-slate-300 text-xs font-semibold">
-                  <FolderIcon className="w-4 h-4 text-blue-400" />
-                  <span>Klasör:</span>
+                  <FolderIcon className="w-4 h-4 text-sky-400" />
+                  <span>Hedef Klasör:</span>
                 </div>
                 <select
                   value={selectedFolderId}
                   onChange={(e) => setSelectedFolderId(e.target.value)}
-                  className="bg-[#0B0F19] text-slate-200 border border-slate-700/80 rounded-xl px-3 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="bg-[#070B14] text-slate-200 border border-slate-700/80 rounded-xl px-3 py-1.5 text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none"
                 >
-                  <option value="">Klasörsüz</option>
+                  <option value="">Klasörsüz (Genel Galeri)</option>
                   {folders.map((f) => (
                     <option key={f.id} value={f.id}>
                       📁 {f.name}
@@ -300,11 +304,11 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
                 onClick={() => setShowSecurityOptions((prev) => !prev)}
                 className={`w-full sm:w-auto px-4 py-2.5 rounded-2xl border text-xs font-bold flex items-center justify-center sm:justify-start gap-2 transition cursor-pointer ${
                   showSecurityOptions || uploadPassword || uploadExpiration !== 'none'
-                    ? 'bg-blue-600/15 border-blue-500/40 text-blue-400'
-                    : 'bg-[#0F172A] border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800/80'
+                    ? 'bg-sky-500/15 border-sky-500/40 text-sky-300'
+                    : 'bg-[#0A1020] border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800/80'
                 }`}
               >
-                <Shield className="w-4 h-4 text-blue-400" />
+                <Shield className="w-4 h-4 text-sky-400" />
                 <span>Güvenlik & Süre Ayarları</span>
                 {(uploadPassword || uploadExpiration !== 'none') && (
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -315,16 +319,16 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
 
           {/* Security & Expiration Accordion Panel */}
           {showSecurityOptions && (
-            <div className="bg-[#0F172A] border border-blue-500/30 rounded-3xl p-5 sm:p-6 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="bg-[#0A1020] border border-sky-500/30 rounded-3xl p-5 sm:p-6 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
               <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                 <div className="flex items-center gap-2 text-white text-xs sm:text-sm font-bold">
-                  <Lock className="w-4 h-4 text-blue-400" />
+                  <Lock className="w-4 h-4 text-sky-400" />
                   <span>Şifreli Paylaşım & Otomatik İmha Ayarları</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setShowSecurityOptions(false)}
-                  className="text-xs text-slate-400 hover:text-white"
+                  className="text-xs text-slate-400 hover:text-white cursor-pointer"
                 >
                   Kapat
                 </button>
@@ -345,7 +349,7 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
                     value={uploadPassword}
                     onChange={(e) => setUploadPassword(e.target.value)}
                     placeholder="Resim için şifre belirleyin..."
-                    className="w-full bg-[#0B0F19] border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full bg-[#070B14] border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:ring-2 focus:ring-sky-500 focus:outline-none"
                   />
                 </div>
 
@@ -361,7 +365,7 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
                   <select
                     value={uploadExpiration}
                     onChange={(e) => setUploadExpiration(e.target.value)}
-                    className="w-full bg-[#0B0F19] text-slate-200 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full bg-[#070B14] text-slate-200 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none"
                   >
                     <option value="none">⏳ Süresiz (Kalıcı Saklama)</option>
                     <option value="1view">🔥 1 Görüntüleme Sonrası İmha (Burn after reading)</option>
@@ -375,8 +379,8 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
               </div>
 
               {(uploadPassword || uploadExpiration !== 'none') && (
-                <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-xs text-blue-300 flex items-center gap-2">
-                  <Shield className="w-4 h-4 shrink-0 text-blue-400" />
+                <div className="p-3 rounded-xl bg-sky-500/10 border border-sky-500/20 text-xs text-sky-300 flex items-center gap-2">
+                  <Shield className="w-4 h-4 shrink-0 text-sky-400" />
                   <span>
                     Aktif Güvenlik: {uploadPassword ? '🔒 Şifreli' : ''} {uploadPassword && uploadExpiration !== 'none' ? ' ve ' : ''}
                     {uploadExpiration === '1view' ? '🔥 Tek Görüntüleme Sonrası İmha' : uploadExpiration !== 'none' ? `⏳ ${uploadExpiration} Süreli` : ''}
@@ -394,10 +398,10 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
             }}
             onDragLeave={() => setIsDragging(false)}
             onDrop={handleDrop}
-            className={`relative border-2 border-dashed rounded-3xl p-8 sm:p-12 text-center cursor-pointer transition-all duration-200 ${
+            className={`relative border-2 border-dashed rounded-3xl p-8 sm:p-12 text-center cursor-pointer transition-all duration-300 ${
               isDragging
-                ? 'border-blue-500 bg-blue-500/10'
-                : 'border-slate-700/80 bg-[#0F172A]/70 hover:border-slate-600 hover:bg-[#0F172A]'
+                ? 'border-cyan-400 bg-cyan-500/10 shadow-2xl shadow-cyan-500/20'
+                : 'border-slate-800 bg-[#0A1020]/90 hover:border-slate-700 hover:bg-[#0F172A]'
             }`}
           >
             <input
@@ -418,13 +422,13 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
             />
 
             <div className="flex flex-col items-center gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-blue-600/10 text-blue-400 flex items-center justify-center border border-blue-500/20 shadow-sm">
+              <div className="w-16 h-16 rounded-2xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center border border-cyan-500/25 shadow-sm">
                 <Upload className="w-8 h-8" />
               </div>
 
               <div>
                 <p className="text-sm sm:text-base font-bold text-white">
-                  Resimleri buraya sürükleyin veya <span className="text-blue-400 underline">göz atın</span>
+                  Resimleri buraya sürükleyin veya <span className="text-sky-400 underline">göz atın</span>
                 </p>
                 <p className="text-xs text-slate-400 mt-1">
                   Birden fazla dosya seçebilir veya panodan doğrudan yapıştırabilirsiniz (Ctrl+V)
@@ -436,7 +440,7 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="min-h-[44px] px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md shadow-blue-600/25 flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
+                  className="min-h-[48px] px-6 py-3 rounded-2xl bg-gradient-to-r from-blue-600 via-sky-500 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-bold text-xs shadow-lg shadow-sky-500/25 flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
                 >
                   <ImageIcon className="w-4 h-4" />
                   <span>Fotoğraf Seç</span>
@@ -444,7 +448,7 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
                 <button
                   type="button"
                   onClick={() => cameraInputRef.current?.click()}
-                  className="min-h-[44px] px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs shadow-sm flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
+                  className="min-h-[48px] px-6 py-3 rounded-2xl bg-[#0F172A] hover:bg-[#131D2F] text-slate-200 border border-slate-800 font-semibold text-xs shadow-sm flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
                 >
                   <Camera className="w-4 h-4 text-emerald-400" />
                   <span>Kamera ile Çek</span>
@@ -453,7 +457,7 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
 
               <div className="flex flex-wrap items-center justify-center gap-1.5 pt-2">
                 {['JPG', 'PNG', 'WEBP', 'GIF'].map((ext) => (
-                  <span key={ext} className="px-2.5 py-1 rounded-md bg-[#0B0F19] text-[10px] font-mono text-slate-400 border border-slate-800">
+                  <span key={ext} className="px-2.5 py-1 rounded-md bg-[#070B14] text-[10px] font-mono text-slate-400 border border-slate-800">
                     .{ext}
                   </span>
                 ))}
@@ -463,10 +467,10 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
 
           {/* Selected Files Progress List */}
           {filesList.length > 0 && (
-            <div className="bg-[#0F172A] border border-slate-800 rounded-3xl p-5 sm:p-6 space-y-4">
+            <div className="bg-[#0A1020] border border-slate-800 rounded-3xl p-5 sm:p-6 space-y-4 shadow-xl">
               <div className="flex items-center justify-between pb-3 border-b border-slate-800">
                 <div className="flex items-center gap-2 text-white font-bold text-sm">
-                  <Layers className="w-4 h-4 text-blue-400" />
+                  <Layers className="w-4 h-4 text-sky-400" />
                   <span>Seçilen Resimler ({filesList.length})</span>
                 </div>
                 {!isUploading && (
@@ -588,12 +592,12 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
                 <button
                   onClick={startBatchUpload}
                   disabled={isUploading || filesList.length === 0}
-                  className="w-full min-h-[48px] py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 text-white font-bold text-sm shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 transition-all active:scale-98 cursor-pointer"
+                  className="w-full min-h-[48px] py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 via-sky-500 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 disabled:from-slate-800 disabled:to-slate-850 text-white font-bold text-sm shadow-xl shadow-sky-500/25 flex items-center justify-center gap-2 transition-all active:scale-98 cursor-pointer"
                 >
                   {isUploading ? (
                     <>
                       <RefreshCw className="w-4 h-4 animate-spin" />
-                      <span>Yükleniyor...</span>
+                      <span>Yükleniyor ve İşleniyor...</span>
                     </>
                   ) : (
                     <>
@@ -618,7 +622,7 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
             </div>
             <button
               onClick={resetUpload}
-              className="px-3.5 py-1.5 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 text-xs font-bold cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 text-xs font-bold cursor-pointer"
             >
               Yeni Yükleme Yap
             </button>
@@ -628,12 +632,12 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
             {completedResults.map((res) => (
               <div
                 key={res.image.id}
-                className="bg-[#0F172A] border border-slate-800 rounded-3xl p-6 space-y-6"
+                className="bg-[#0A1020] border border-slate-800 rounded-3xl p-6 space-y-6 shadow-xl"
               >
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
                   {/* Image Preview Box */}
                   <div className="space-y-3 text-center md:text-left">
-                    <div className="relative group rounded-2xl overflow-hidden border border-slate-800 bg-[#0B0F19] aspect-video md:aspect-square flex items-center justify-center">
+                    <div className="relative group rounded-2xl overflow-hidden border border-slate-800 bg-[#070B14] aspect-video md:aspect-square flex items-center justify-center">
                       <img
                         src={formatImageUrl(res.thumbnail_url || res.direct_url)}
                         alt={res.image.original_filename}
@@ -649,9 +653,9 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
                     <div className="pt-1 flex items-center justify-center md:justify-start gap-2">
                       <button
                         onClick={() => navigate(`/i/${res.image.id}`)}
-                        className="min-h-[40px] px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                        className="min-h-[40px] px-3.5 py-2 rounded-xl bg-[#0F172A] hover:bg-[#131D2F] border border-slate-800 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
                       >
-                        <ExternalLink className="w-3.5 h-3.5" />
+                        <ExternalLink className="w-3.5 h-3.5 text-sky-400" />
                         <span>Detay Sayfası</span>
                       </button>
                     </div>
@@ -671,11 +675,11 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
                           type="text"
                           readOnly
                           value={res.direct_url}
-                          className="flex-1 bg-[#0B0F19] border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 font-mono focus:outline-none"
+                          className="flex-1 bg-[#070B14] border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 font-mono focus:outline-none"
                         />
                         <button
                           onClick={() => copyToClipboard(res.direct_url, 'Direkt URL')}
-                          className="min-h-[38px] px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer"
+                          className="min-h-[38px] px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer active:scale-95"
                         >
                           <Copy className="w-3.5 h-3.5" />
                           <span>Kopyala</span>
@@ -691,11 +695,11 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
                           type="text"
                           readOnly
                           value={res.share_url}
-                          className="flex-1 bg-[#0B0F19] border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 font-mono focus:outline-none"
+                          className="flex-1 bg-[#070B14] border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 font-mono focus:outline-none"
                         />
                         <button
                           onClick={() => copyToClipboard(res.share_url, 'Sayfa URL')}
-                          className="min-h-[38px] px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer"
+                          className="min-h-[38px] px-4 py-2 rounded-xl bg-[#0F172A] hover:bg-[#131D2F] border border-slate-800 text-white text-xs font-semibold flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer active:scale-95"
                         >
                           <Copy className="w-3.5 h-3.5" />
                           <span>Kopyala</span>
@@ -711,11 +715,11 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
                           type="text"
                           readOnly
                           value={res.html_code}
-                          className="flex-1 bg-[#0B0F19] border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 font-mono focus:outline-none"
+                          className="flex-1 bg-[#070B14] border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 font-mono focus:outline-none"
                         />
                         <button
                           onClick={() => copyToClipboard(res.html_code, 'HTML Kodu')}
-                          className="min-h-[38px] px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer"
+                          className="min-h-[38px] px-4 py-2 rounded-xl bg-[#0F172A] hover:bg-[#131D2F] border border-slate-800 text-white text-xs font-semibold flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer active:scale-95"
                         >
                           <Copy className="w-3.5 h-3.5" />
                           <span>Kopyala</span>
@@ -731,11 +735,11 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
                           type="text"
                           readOnly
                           value={res.bbcode}
-                          className="flex-1 bg-[#0B0F19] border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 font-mono focus:outline-none"
+                          className="flex-1 bg-[#070B14] border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 font-mono focus:outline-none"
                         />
                         <button
                           onClick={() => copyToClipboard(res.bbcode, 'BBCode')}
-                          className="min-h-[38px] px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer"
+                          className="min-h-[38px] px-4 py-2 rounded-xl bg-[#0F172A] hover:bg-[#131D2F] border border-slate-800 text-white text-xs font-semibold flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer active:scale-95"
                         >
                           <Copy className="w-3.5 h-3.5" />
                           <span>Kopyala</span>
@@ -751,16 +755,16 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-4">
             <button
               onClick={resetUpload}
-              className="w-full sm:w-auto min-h-[44px] px-7 py-3 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 transition-colors cursor-pointer"
+              className="w-full sm:w-auto min-h-[44px] px-7 py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-sky-500 hover:from-blue-500 hover:to-sky-400 text-white font-bold text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 transition-colors cursor-pointer"
             >
               <Upload className="w-4 h-4" />
               <span>Yeni Resim Yükle</span>
             </button>
             <button
               onClick={() => navigate('/galerim')}
-              className="w-full sm:w-auto min-h-[44px] px-7 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs sm:text-sm border border-slate-700 flex items-center justify-center gap-2 transition-colors cursor-pointer"
+              className="w-full sm:w-auto min-h-[44px] px-7 py-3 rounded-2xl bg-[#0A1020] hover:bg-[#131D2F] text-slate-200 font-semibold text-xs sm:text-sm border border-slate-800 flex items-center justify-center gap-2 transition-colors cursor-pointer"
             >
-              <ImageIcon className="w-4 h-4 text-blue-400" />
+              <ImageIcon className="w-4 h-4 text-sky-400" />
               <span>Galerime Git</span>
             </button>
           </div>

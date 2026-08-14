@@ -1,48 +1,139 @@
-import React from 'react';
-import { Upload, Images, Shield, Zap, Link, CheckCircle, ArrowRight, FileCheck, Copy, Sparkles, Layers, Lock, Sliders, ShieldCheck } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import {
+  Upload,
+  Images,
+  Shield,
+  Zap,
+  Link as LinkIcon,
+  Copy,
+  Sparkles,
+  Lock,
+  ArrowRight,
+  Cloud,
+  FileCheck,
+  CheckCircle2,
+  Sliders,
+  Maximize2,
+  HardDrive,
+  RefreshCw,
+  ExternalLink
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Logo } from '../components/Logo';
+import { imageApi } from '../lib/api';
+import { useToast } from '../components/Toast';
+import { UploadResult } from '../types';
+import { formatImageUrl } from '../lib/imageUrl';
 
 interface HomePageProps {
   navigate: (path: string) => void;
 }
 
 export const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
+  const { showToast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [isDragging, setIsDragging] = useState(false);
+  const [isQuickUploading, setIsQuickUploading] = useState(false);
+  const [quickUploadProgress, setQuickUploadProgress] = useState(0);
+  const [recentUploadResult, setRecentUploadResult] = useState<UploadResult | null>(null);
+
+  // Paste support on home page
+  useEffect(() => {
+    const handlePaste = (e: ClipboardEvent) => {
+      if (recentUploadResult) return;
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+          const blob = items[i].getAsFile();
+          if (blob) {
+            handleQuickUpload(blob);
+            break;
+          }
+        }
+      }
+    };
+
+    window.addEventListener('paste', handlePaste);
+    return () => window.removeEventListener('paste', handlePaste);
+  }, [recentUploadResult]);
+
+  const handleQuickUpload = async (file: File) => {
+    if (!file) return;
+
+    if (file.size > 20 * 1024 * 1024) {
+      showToast('Dosya boyutu maksimum 20 MB olabilir.', 'error');
+      return;
+    }
+
+    try {
+      setIsQuickUploading(true);
+      setQuickUploadProgress(10);
+
+      const res = await imageApi.uploadFile(
+        file,
+        (percent) => setQuickUploadProgress(percent),
+        null
+      );
+
+      setRecentUploadResult(res);
+      showToast('Resim başarıyla yüklendi!', 'success');
+      refreshUser().catch(() => {});
+    } catch (err: any) {
+      showToast(err.message || 'Yükleme başarısız oldu.', 'error');
+    } finally {
+      setIsQuickUploading(false);
+    }
+  };
+
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    showToast(`${label} kopyalandı!`, 'success');
+  };
 
   return (
-    <div className="space-y-16 sm:space-y-20 pb-16">
-      {/* Hero Section */}
-      <section className="relative pt-8 sm:pt-14 pb-8 overflow-hidden">
-        {/* Subtle background glow */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[350px] bg-cyan-600/15 blur-[140px] rounded-full pointer-events-none -z-10" />
+    <div className="space-y-20 sm:space-y-28 pb-20 overflow-hidden">
+      {/* ━━━━━━━━━━━━━━━━━━━━
+          HERO SECTION (MIDNIGHT PREMIUM)
+          ━━━━━━━━━━━━━━━━━━━━ */}
+      <section className="relative pt-8 sm:pt-16 pb-6 overflow-hidden midnight-grid">
+        {/* Subtle Ambient Glow Blobs */}
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[360px] bg-gradient-to-tr from-blue-600/15 via-sky-500/10 to-cyan-400/15 blur-[140px] rounded-full pointer-events-none -z-10" />
+        <div className="absolute top-1/2 right-10 w-[300px] h-[250px] bg-indigo-600/10 blur-[120px] rounded-full pointer-events-none -z-10" />
 
-        <div className="max-w-4xl mx-auto px-4 text-center space-y-6 sm:space-y-8">
-          {/* Logo Showcase with Slogan */}
-          <div className="flex justify-center mb-2">
-            <div className="p-4 sm:p-6 rounded-3xl bg-gradient-to-b from-[#0F172A]/80 to-[#070A11]/90 border border-cyan-500/20 shadow-2xl shadow-cyan-500/10 backdrop-blur-xl group hover:border-cyan-500/40 transition-all">
-              <Logo size="lg" variant="banner" showSlogan={true} />
+        <div className="max-w-4xl mx-auto px-4 text-center space-y-8 sm:space-y-10">
+          {/* 1. Premium Mini Badge */}
+          <div className="flex justify-center">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#0F172A]/90 border border-cyan-500/30 text-cyan-300 text-xs font-semibold shadow-lg shadow-cyan-500/10 backdrop-blur-md">
+              <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+              <span>⚡ Hızlı • Güvenli • Kolay</span>
+              <span className="text-slate-500 font-mono text-[10px]">V5</span>
             </div>
           </div>
 
-          {/* Heading */}
-          <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-[1.15]">
-            Resmini anında yükle. <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-cyan-300 to-blue-500">
+          {/* 2. Main High-Impact Typography Headline */}
+          <div className="space-y-2 sm:space-y-3">
+            <h1 className="text-4xl sm:text-6xl md:text-7xl font-black text-white tracking-tight leading-[1.1]">
+              Resmini yükle.
+            </h1>
+            <h2 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight leading-[1.15] text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-cyan-300 to-blue-500 drop-shadow-[0_0_25px_rgba(56,189,248,0.35)]">
               Bağlantını saniyeler içinde al.
-            </span>
-          </h1>
+            </h2>
+          </div>
 
-          {/* Subtitle */}
+          {/* 3. Short, Clean Subtitle */}
           <p className="max-w-2xl mx-auto text-sm sm:text-base text-slate-300 font-normal leading-relaxed">
-            Fotoğraflarınızı hızlı ve güvenli şekilde yükleyin, doğrudan bağlantınızı, HTML, BBCode ve Markdown kodlarını tek tıkla alın.
+            Fotoğraflarını saniyeler içinde yükle, doğrudan bağlantını ve paylaşım kodlarını hemen al.
           </p>
 
-          {/* CTAs */}
-          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3.5">
+          {/* 4. Action CTAs */}
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3.5 max-w-md mx-auto">
             <button
               onClick={() => navigate('/yukle')}
-              className="w-full sm:w-auto min-h-[48px] px-8 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm shadow-lg shadow-blue-600/25 flex items-center justify-center gap-2.5 transition-all transform active:scale-98"
+              className="w-full sm:w-auto min-h-[48px] px-8 py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 via-sky-500 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-bold text-sm shadow-xl shadow-sky-500/25 flex items-center justify-center gap-2.5 transition-all transform active:scale-95 cursor-pointer hover:shadow-cyan-500/40"
             >
               <Upload className="w-4 h-4" />
               <span>Resim Yükle</span>
@@ -50,110 +141,331 @@ export const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
 
             <button
               onClick={() => navigate(user ? '/galerim' : '/giris')}
-              className="w-full sm:w-auto min-h-[48px] px-7 py-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-200 font-semibold text-sm border border-slate-700/80 flex items-center justify-center gap-2 transition-all active:scale-98"
+              className="w-full sm:w-auto min-h-[48px] px-7 py-3.5 rounded-2xl bg-[#0F172A] hover:bg-[#131D2F] text-slate-200 font-semibold text-sm border border-slate-800 flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer"
             >
-              <Images className="w-4 h-4 text-blue-400" />
-              <span>Galeriye Git</span>
+              <Images className="w-4 h-4 text-sky-400" />
+              <span>Galeriyi Keşfet</span>
             </button>
           </div>
 
-          {/* Minimal Specs Strip */}
-          <div className="pt-8 flex flex-wrap items-center justify-center gap-3 max-w-2xl mx-auto text-xs text-slate-300">
-            <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-800/40 border border-slate-800">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              <span className="font-semibold text-white">20 MB</span>
-              <span className="text-slate-400">/ Dosya Başına</span>
-            </div>
-            <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-800/40 border border-slate-800">
-              <Zap className="w-3.5 h-3.5 text-cyan-400" />
-              <span className="font-semibold text-white">Hızlı CDN</span>
-              <span className="text-slate-400">Dağıtımı</span>
-            </div>
-            <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-800/40 border border-slate-800">
-              <Lock className="w-3.5 h-3.5 text-blue-400" />
-              <span className="font-semibold text-white">HTTPS</span>
-              <span className="text-slate-400">256-Bit SSL</span>
-            </div>
-            <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-800/40 border border-slate-800">
-              <Copy className="w-3.5 h-3.5 text-indigo-400" />
-              <span className="font-semibold text-white">Kolay Paylaşım</span>
-              <span className="text-slate-400">Kodları</span>
-            </div>
+          {/* ━━━━━━━━━━━━━━━━━━━━
+              7. QUICK INTERACTIVE UPLOAD EXPERIENCE
+              ━━━━━━━━━━━━━━━━━━━━ */}
+          <div className="pt-4 max-w-2xl mx-auto">
+            {!recentUploadResult ? (
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setIsDragging(true);
+                }}
+                onDragLeave={() => setIsDragging(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setIsDragging(false);
+                  if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                    handleQuickUpload(e.dataTransfer.files[0]);
+                  }
+                }}
+                className={`relative border-2 border-dashed rounded-3xl p-6 sm:p-10 text-center cursor-pointer transition-all duration-300 ${
+                  isDragging
+                    ? 'border-cyan-400 bg-cyan-500/10 shadow-2xl shadow-cyan-500/20'
+                    : 'border-slate-800 bg-[#0A1020]/90 hover:border-slate-700 hover:bg-[#0F172A]'
+                }`}
+              >
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      handleQuickUpload(e.target.files[0]);
+                    }
+                  }}
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  className="hidden"
+                />
+
+                {isQuickUploading ? (
+                  <div className="space-y-4 py-4">
+                    <RefreshCw className="w-10 h-10 text-sky-400 animate-spin mx-auto" />
+                    <div className="space-y-1.5">
+                      <p className="text-sm font-bold text-white">Resim Yükleniyor ve Optimize Ediliyor...</p>
+                      <div className="w-48 bg-slate-800 rounded-full h-2 mx-auto overflow-hidden">
+                        <div
+                          className="bg-gradient-to-r from-blue-500 to-cyan-400 h-full transition-all duration-300"
+                          style={{ width: `${quickUploadProgress}%` }}
+                        />
+                      </div>
+                      <span className="text-xs text-sky-400 font-mono font-bold">%{quickUploadProgress}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/25 flex items-center justify-center mx-auto shadow-inner">
+                      <Upload className="w-7 h-7" />
+                    </div>
+                    <div>
+                      <h3 className="text-base sm:text-lg font-bold text-white">
+                        Resmini buraya bırak veya <span className="text-sky-400 underline">dosya seç</span>
+                      </h3>
+                      <p className="text-xs text-slate-400 mt-1">
+                        Panodan doğrudan <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 font-mono text-[10px]">Ctrl + V</kbd> ile yapıştırabilirsiniz
+                      </p>
+                    </div>
+                    <div className="pt-1 flex items-center justify-center gap-2 text-[11px] text-slate-400">
+                      <span>JPG • PNG • GIF • WEBP</span>
+                      <span>•</span>
+                      <span>Maks. 20 MB</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* Quick Upload Success Card */
+              <div className="bg-[#0A1020] border border-cyan-500/40 rounded-3xl p-5 sm:p-6 text-left space-y-4 shadow-2xl animate-in fade-in zoom-in-95">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                  <div className="flex items-center gap-2 text-emerald-400 text-xs sm:text-sm font-bold">
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Yükleme Tamamlandı!</span>
+                  </div>
+                  <button
+                    onClick={() => setRecentUploadResult(null)}
+                    className="text-xs text-slate-400 hover:text-white cursor-pointer font-medium"
+                  >
+                    Yeni Yükle
+                  </button>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center gap-4">
+                  <div className="w-20 h-20 rounded-xl bg-black border border-slate-800 overflow-hidden shrink-0">
+                    <img
+                      src={formatImageUrl(recentUploadResult.thumbnail_url || recentUploadResult.direct_url)}
+                      alt="Yüklenen resim"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+
+                  <div className="flex-1 w-full space-y-2">
+                    <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                      Direkt Resim Bağlantısı (CDN)
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        readOnly
+                        value={recentUploadResult.direct_url}
+                        className="flex-1 bg-[#070B14] border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-slate-200 focus:outline-none"
+                      />
+                      <button
+                        onClick={() => copyToClipboard(recentUploadResult.direct_url, 'Direkt URL')}
+                        className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer active:scale-95"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>Kopyala</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-2 border-t border-slate-800/80 text-xs">
+                  <button
+                    onClick={() => navigate(`/i/${recentUploadResult.image.id}`)}
+                    className="text-sky-400 hover:text-sky-300 font-semibold flex items-center gap-1 cursor-pointer"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    <span>Tüm Paylaşım Kodlarını Gör</span>
+                  </button>
+                  <button
+                    onClick={() => navigate('/yukle')}
+                    className="text-slate-400 hover:text-white cursor-pointer"
+                  >
+                    Gelişmiş Yükleme Paneli →
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </section>
 
-      {/* Feature Highlights */}
+      {/* ━━━━━━━━━━━━━━━━━━━━
+          5. MODERN FEATURE STRIP CARDS
+          ━━━━━━━━━━━━━━━━━━━━ */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6">
-        <div className="text-center mb-10 space-y-2">
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Neden AnlıkResim?</h2>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          {/* Card 1: 20 MB */}
+          <div className="bg-[#0A1020] border border-slate-800/90 rounded-2xl p-4 sm:p-5 hover:border-slate-700 transition-all space-y-1.5 group">
+            <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-sky-400 border border-blue-500/20 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+              <HardDrive className="w-4 h-4" />
+            </div>
+            <div className="text-base sm:text-lg font-black text-white tracking-tight">20 MB</div>
+            <div className="text-xs text-slate-400">Dosya Başına Kapasite</div>
+          </div>
+
+          {/* Card 2: CDN */}
+          <div className="bg-[#0A1020] border border-slate-800/90 rounded-2xl p-4 sm:p-5 hover:border-slate-700 transition-all space-y-1.5 group">
+            <div className="w-8 h-8 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+              <Cloud className="w-4 h-4" />
+            </div>
+            <div className="text-base sm:text-lg font-black text-white tracking-tight">Global CDN</div>
+            <div className="text-xs text-slate-400">Hızlı & Kesintisiz Dağıtım</div>
+          </div>
+
+          {/* Card 3: HTTPS */}
+          <div className="bg-[#0A1020] border border-slate-800/90 rounded-2xl p-4 sm:p-5 hover:border-slate-700 transition-all space-y-1.5 group">
+            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+              <Lock className="w-4 h-4" />
+            </div>
+            <div className="text-base sm:text-lg font-black text-white tracking-tight">HTTPS</div>
+            <div className="text-xs text-slate-400">Güvenli 256-Bit Bağlantı</div>
+          </div>
+
+          {/* Card 4: Kolay Paylaşım */}
+          <div className="bg-[#0A1020] border border-slate-800/90 rounded-2xl p-4 sm:p-5 hover:border-slate-700 transition-all space-y-1.5 group">
+            <div className="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+              <Copy className="w-4 h-4" />
+            </div>
+            <div className="text-base sm:text-lg font-black text-white tracking-tight">Kolay Paylaşım</div>
+            <div className="text-xs text-slate-400">BBCode • HTML • Markdown</div>
+          </div>
+        </div>
+      </section>
+
+      {/* ━━━━━━━━━━━━━━━━━━━━
+          6. "NEDEN ANLIKRESİM?" SECTION
+          ━━━━━━━━━━━━━━━━━━━━ */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 space-y-10">
+        <div className="text-center space-y-2">
+          <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight">Neden AnlıkResim?</h2>
           <p className="text-slate-400 text-xs sm:text-sm max-w-lg mx-auto">
-            Hız, güvenlik ve kullanım kolaylığı için sıfırdan tasarlanmış profesyonel resim barındırma.
+            Hızlı yükleme. Kolay paylaşım. Gereksiz karmaşa yok.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <div className="bg-[#0F172A]/70 border border-slate-800/80 p-6 rounded-2xl hover:border-slate-700 transition-all space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-600/10 text-blue-400 flex items-center justify-center border border-blue-500/20">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+          {/* Advantage 1 */}
+          <div className="bg-[#0A1020] border border-slate-800/90 rounded-3xl p-6 hover:border-sky-500/40 transition-all duration-300 space-y-3 group">
+            <div className="w-10 h-10 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
               <Zap className="w-5 h-5" />
             </div>
-            <h3 className="text-base font-bold text-white">Işık Hızında Yükleme & CDN</h3>
-            <p className="text-xs text-slate-300 leading-relaxed">
-              Yüklediğiniz fotoğraflar optimize edilir ve küresel CDN sunucuları üzerinden sıfır bekleme süresiyle sunulur.
+            <h3 className="text-base font-bold text-white">Saniyeler İçinde Yükle</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Üye olmadan tek tıkla dosyanızı yükleyin veya panodan yapıştırarak ışık hızında hazır hale getirin.
             </p>
           </div>
 
-          <div className="bg-[#0F172A]/70 border border-slate-800/80 p-6 rounded-2xl hover:border-slate-700 transition-all space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-cyan-600/10 text-cyan-400 flex items-center justify-center border border-cyan-500/20">
-              <Link className="w-5 h-5" />
+          {/* Advantage 2 */}
+          <div className="bg-[#0A1020] border border-slate-800/90 rounded-3xl p-6 hover:border-cyan-500/40 transition-all duration-300 space-y-3 group">
+            <div className="w-10 h-10 rounded-2xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Cloud className="w-5 h-5" />
             </div>
-            <h3 className="text-base font-bold text-white">Hazır Paylaşım Formatları</h3>
-            <p className="text-xs text-slate-300 leading-relaxed">
-              Direkt CDN bağlantısı, HTML gömme kodu, Markdown ve Forum / BBCode formatları tek tıkla kopyalanmaya hazırdır.
+            <h3 className="text-base font-bold text-white">Güvenilir CDN Altyapısı</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Resimleriniz tüm dünyada en yakın kenar sunuculardan gecikmesiz ve yüksek bant genişliğiyle sunulur.
             </p>
           </div>
 
-          <div className="bg-[#0F172A]/70 border border-slate-800/80 p-6 rounded-2xl hover:border-slate-700 transition-all space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-600/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
+          {/* Advantage 3 */}
+          <div className="bg-[#0A1020] border border-slate-800/90 rounded-3xl p-6 hover:border-blue-500/40 transition-all duration-300 space-y-3 group">
+            <div className="w-10 h-10 rounded-2xl bg-blue-500/10 text-sky-400 border border-blue-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <LinkIcon className="w-5 h-5" />
+            </div>
+            <h3 className="text-base font-bold text-white">Tek Tıkla Paylaş</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Forumlar, web siteleri, bloglar ve sosyal platformlar için tam uyumlu hazır kodları anında kopyalayın.
+            </p>
+          </div>
+
+          {/* Advantage 4 */}
+          <div className="bg-[#0A1020] border border-slate-800/90 rounded-3xl p-6 hover:border-emerald-500/40 transition-all duration-300 space-y-3 group">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
               <Shield className="w-5 h-5" />
             </div>
-            <h3 className="text-base font-bold text-white">Güvenli & Kontrol Sizde</h3>
-            <p className="text-xs text-slate-300 leading-relaxed">
-              Yüklemeleriniz otomatik taranır. Kendi oluşturduğunuz klasörlerle organize edebilir, istediğiniz an galerinizden silebilirsiniz.
+            <h3 className="text-base font-bold text-white">Güvenli Bağlantı</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              İsteğe bağlı şifreli koruma ve süreli imha (Burn after reading) seçenekleriyle tam veri gizliliği.
             </p>
           </div>
         </div>
       </section>
 
-      {/* Supported Formats */}
-      <section className="max-w-4xl mx-auto px-4">
-        <div className="bg-[#0F172A]/50 border border-slate-800/80 rounded-2xl p-6 sm:p-8 text-center space-y-4">
-          <h3 className="text-sm font-bold text-slate-200 uppercase tracking-wider">Desteklenen Resim Formatları</h3>
-          <div className="flex flex-wrap items-center justify-center gap-2.5">
-            {['JPG', 'JPEG', 'PNG', 'WEBP', 'GIF'].map((fmt) => (
-              <span key={fmt} className="px-3.5 py-1.5 rounded-lg bg-slate-800/80 text-slate-200 text-xs font-mono font-bold border border-slate-700/60">
-                .{fmt}
-              </span>
-            ))}
+      {/* ━━━━━━━━━━━━━━━━━━━━
+          SPOTLIGHT: WEBP & AVIF CONVERTER TOOL
+          ━━━━━━━━━━━━━━━━━━━━ */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="bg-gradient-to-r from-blue-950/40 via-[#0A1020] to-cyan-950/40 border border-cyan-500/30 rounded-3xl p-6 sm:p-10 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-8">
+          <div className="space-y-3 max-w-xl text-center md:text-left">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-[11px] font-bold">
+              <Sparkles className="w-3 h-3" />
+              <span>Yeni Nesil Web Optimizasyonu</span>
+            </div>
+            <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              WebP & AVIF Format Dönüştürücü
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              Resimlerinizi modern formatlara dönüştürerek kaliteden ödün vermeden <strong>%70-%90</strong> daha küçük boyutlara getirin. Toplu ZIP indirme veya tek tıkla galerinize kaydetme özelliğiyle hazır.
+            </p>
           </div>
-          <p className="text-xs text-slate-400">Üyeliksiz veya kayıtlı kullanıcılar için dosya başına 20 MB'a kadar destek.</p>
+
+          <div className="flex flex-col sm:flex-row items-center gap-3 shrink-0 w-full md:w-auto">
+            <button
+              onClick={() => navigate('/donusturucu')}
+              className="w-full sm:w-auto min-h-[44px] px-6 py-3 rounded-2xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs sm:text-sm shadow-lg shadow-cyan-600/25 flex items-center justify-center gap-2 transition-all cursor-pointer"
+            >
+              <Sliders className="w-4 h-4" />
+              <span>Dönüştürücüye Git</span>
+            </button>
+          </div>
         </div>
       </section>
 
-      {/* Call To Action */}
+      {/* ━━━━━━━━━━━━━━━━━━━━
+          SUPPORTED FORMATS STRIP
+          ━━━━━━━━━━━━━━━━━━━━ */}
+      <section className="max-w-4xl mx-auto px-4 text-center space-y-4">
+        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+          Desteklenen Formatlar
+        </h4>
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          {['JPG', 'JPEG', 'PNG', 'WEBP', 'GIF', 'AVIF'].map((fmt) => (
+            <span
+              key={fmt}
+              className="px-3 py-1.5 rounded-xl bg-[#0A1020] text-slate-300 text-xs font-mono font-bold border border-slate-800"
+            >
+              .{fmt}
+            </span>
+          ))}
+        </div>
+      </section>
+
+      {/* ━━━━━━━━━━━━━━━━━━━━
+          CALL TO ACTION / REGISTRATION STRIP
+          ━━━━━━━━━━━━━━━━━━━━ */}
       <section className="max-w-4xl mx-auto px-4 text-center">
-        <div className="bg-gradient-to-b from-[#1E293B]/40 to-[#0F172A] border border-slate-800 rounded-3xl p-8 sm:p-12 space-y-6">
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Hemen Resim Yüklemeye Başlayın</h2>
+        <div className="bg-gradient-to-b from-[#0F172A] to-[#070B14] border border-slate-800 rounded-3xl p-8 sm:p-12 space-y-6 shadow-xl">
+          <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+            Hemen Resim Yüklemeye Başlayın
+          </h2>
           <p className="text-slate-300 text-xs sm:text-sm max-w-lg mx-auto leading-relaxed">
-            Üye olmadan saniyeler içinde resim yükleyebilir veya ücretsiz hesap oluşturarak kendi medya kütüphanenizi yönetebilirsiniz.
+            Üye olmadan hemen dosya yükleyebilir veya ücretsiz üyelik açarak kendi özel albüm kütüphanenizi yönetebilirsiniz.
           </p>
-          <button
-            onClick={() => navigate('/yukle')}
-            className="px-8 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs sm:text-sm shadow-lg shadow-blue-600/25 inline-flex items-center gap-2 transition-all active:scale-98"
-          >
-            <span>Yükleme Ekranına Git</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <button
+              onClick={() => navigate('/yukle')}
+              className="w-full sm:w-auto min-h-[44px] px-8 py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-sky-500 hover:from-blue-500 hover:to-sky-400 text-white font-bold text-xs sm:text-sm shadow-lg shadow-blue-600/25 flex items-center justify-center gap-2 transition-all cursor-pointer"
+            >
+              <span>Resim Yükle</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+            {!user && (
+              <button
+                onClick={() => navigate('/kayit')}
+                className="w-full sm:w-auto min-h-[44px] px-7 py-3.5 rounded-2xl bg-[#0A1020] hover:bg-[#131D2F] text-slate-200 font-semibold text-xs sm:text-sm border border-slate-800 transition-all cursor-pointer"
+              >
+                <span>Ücretsiz Hesap Oluştur</span>
+              </button>
+            )}
+          </div>
         </div>
       </section>
     </div>
