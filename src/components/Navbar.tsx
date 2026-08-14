@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Upload, Images, HelpCircle, User, LogOut, Shield, Menu, X, ImagePlus, Bell, Crown, Settings, LayoutDashboard, CheckCircle2, Megaphone } from 'lucide-react';
+import { Upload, Images, HelpCircle, User, LogOut, Shield, Menu, X, Bell, Crown, Settings, LayoutDashboard, CheckCircle2, Megaphone, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { authApi } from '../lib/api';
 import { Notification } from '../types';
+import { Logo } from './Logo';
 
 interface NavbarProps {
   currentPath: string;
@@ -59,6 +60,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPath, navigate }) => {
   const navLinks = [
     { label: 'Yükle', path: '/yukle', icon: Upload },
     { label: 'Galerim', path: '/galerim', icon: Images },
+    { label: 'Sıkıştır & Dönüştür', path: '/donusturucu', icon: Sparkles },
     { label: 'Planlar', path: '/premium', icon: Crown },
     { label: 'Duyurular', path: '/duyurular', icon: Megaphone },
     { label: 'Yardım', path: '/yardim', icon: HelpCircle },
@@ -85,19 +87,9 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPath, navigate }) => {
         {/* Brand Logo */}
         <button
           onClick={() => handleNav('/')}
-          className="flex items-center gap-2.5 group focus:outline-none focus:ring-2 focus:ring-blue-500/50 rounded-xl p-1 transition-all"
+          className="flex items-center group focus:outline-none focus:ring-2 focus:ring-blue-500/50 rounded-xl p-1 transition-all cursor-pointer"
         >
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-500 flex items-center justify-center text-white shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
-            <ImagePlus className="w-5 h-5" />
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-lg font-bold tracking-tight text-white leading-none">
-              Anlık<span className="text-blue-400">Resim</span>
-            </span>
-            <span className="px-1.5 py-0.5 rounded text-[9px] font-bold tracking-wider bg-blue-500/10 text-blue-400 border border-blue-500/20 uppercase">
-              V4
-            </span>
-          </div>
+          <Logo size="sm" variant="horizontal" badgeText="V4" />
         </button>
 
         {/* Desktop Nav Links */}

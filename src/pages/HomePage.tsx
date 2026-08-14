@@ -1,6 +1,7 @@
 import React from 'react';
-import { Upload, Images, Shield, Zap, Link, CheckCircle, ArrowRight, FileCheck, Copy, Sparkles, Layers, Lock } from 'lucide-react';
+import { Upload, Images, Shield, Zap, Link, CheckCircle, ArrowRight, FileCheck, Copy, Sparkles, Layers, Lock, Sliders, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { Logo } from '../components/Logo';
 
 interface HomePageProps {
   navigate: (path: string) => void;
@@ -12,21 +13,22 @@ export const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
   return (
     <div className="space-y-16 sm:space-y-20 pb-16">
       {/* Hero Section */}
-      <section className="relative pt-12 sm:pt-20 pb-8 overflow-hidden">
+      <section className="relative pt-8 sm:pt-14 pb-8 overflow-hidden">
         {/* Subtle background glow */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-blue-600/10 blur-[120px] rounded-full pointer-events-none -z-10" />
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[350px] bg-cyan-600/15 blur-[140px] rounded-full pointer-events-none -z-10" />
 
         <div className="max-w-4xl mx-auto px-4 text-center space-y-6 sm:space-y-8">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold tracking-wide">
-            <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
-            <span>Yüksek Hızlı & Kesintisiz Resim Servisi</span>
+          {/* Logo Showcase with Slogan */}
+          <div className="flex justify-center mb-2">
+            <div className="p-4 sm:p-6 rounded-3xl bg-gradient-to-b from-[#0F172A]/80 to-[#070A11]/90 border border-cyan-500/20 shadow-2xl shadow-cyan-500/10 backdrop-blur-xl group hover:border-cyan-500/40 transition-all">
+              <Logo size="lg" variant="banner" showSlogan={true} />
+            </div>
           </div>
 
           {/* Heading */}
-          <h1 className="text-4xl sm:text-6xl font-black text-white tracking-tight leading-[1.1]">
-            Resmini yükle. <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-sky-300 to-indigo-300">
+          <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-[1.15]">
+            Resmini anında yükle. <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-cyan-300 to-blue-500">
               Bağlantını saniyeler içinde al.
             </span>
           </h1>

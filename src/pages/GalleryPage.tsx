@@ -1,10 +1,35 @@
 import React, { useEffect, useState } from 'react';
-import { Images, Search, Copy, ExternalLink, Trash2, Upload, Plus, Lock, Heart, Folder as FolderIcon, LayoutGrid, List, ArrowUpDown, Filter, FolderPlus, X, Sparkles } from 'lucide-react';
+import {
+  Images,
+  Search,
+  Copy,
+  ExternalLink,
+  Trash2,
+  Upload,
+  Plus,
+  Lock,
+  Heart,
+  Folder as FolderIcon,
+  LayoutGrid,
+  List,
+  ArrowUpDown,
+  Filter,
+  FolderPlus,
+  X,
+  Archive,
+  CheckSquare,
+  Square,
+  Sparkles,
+  RefreshCw,
+  Sliders,
+  Download
+} from 'lucide-react';
 import { imageApi } from '../lib/api';
 import { Folder, UploadResult } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 import { formatImageUrl } from '../lib/imageUrl';
+import { exportImagesToZip, ZipExportProgress } from '../lib/zipExport';
 
 interface GalleryPageProps {
   navigate: (path: string) => void;
@@ -24,6 +49,14 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({ navigate }) => {
   const [formatFilter, setFormatFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'largest' | 'most_viewed'>('newest');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+
+  // Multi-Selection State
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedImageIds, setSelectedImageIds] = useState<Set<string>>(new Set());
+
+  // ZIP Export Progress
+  const [isZipping, setIsZipping] = useState(false);
+  const [zipProgress, setZipProgress] = useState<ZipExportProgress | null>(null);
 
   // Create Folder Modal State
   const [showFolderModal, setShowFolderModal] = useState(false);
@@ -107,6 +140,83 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({ navigate }) => {
       showToast('Resim klasörü güncellendi.', 'success');
     } catch (err) {
       showToast('Klasör güncellenemedi.', 'error');
+    }
+  };
+
+  // Multi-selection helpers
+  const toggleSelectImage = (imageId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedImageIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(imageId)) {
+        next.delete(imageId);
+      } else {
+        next.add(imageId);
+      }
+      return next;
+    });
+  };
+
+  const handleSelectAll = () => {
+    if (selectedImageIds.size === processedImages.length) {
+      setSelectedImageIds(new Set());
+    } else {
+      setSelectedImageIds(new Set(processedImages.map((i) => i.image.id)));
+    }
+  };
+
+  // ZIP Export Handler for Album / Selection
+  const handleExportZip = async (specificImages?: UploadResult[], customAlbumName?: string) => {
+    const listToExport = specificImages || (
+      selectedImageIds.size > 0
+        ? processedImages.filter((i) => selectedImageIds.has(i.image.id))
+        : processedImages
+    );
+
+    if (listToExport.length === 0) {
+      showToast('İndirilecek resim bulunamadı.', 'error');
+      return;
+    }
+
+    try {
+      setIsZipping(true);
+      const itemsToZip = listToExport.map((item) => ({
+        url: formatImageUrl(item.direct_url),
+        filename: item.image.original_filename || `resim_${item.image.id}.${item.image.format}`,
+      }));
+
+      // Determine album name
+      let albumName = customAlbumName;
+      if (!albumName) {
+        if (activeFolderTab === 'favorites') {
+          albumName = 'AnlikResim_Favoriler';
+        } else if (activeFolderTab !== 'all') {
+          const currentFolder = folders.find((f) => f.id === activeFolderTab);
+          albumName = currentFolder ? `AnlikResim_Album_${currentFolder.name}` : 'AnlikResim_Album';
+        } else if (selectedImageIds.size > 0) {
+          albumName = `AnlikResim_Secilen_${selectedImageIds.size}_Resim`;
+        } else {
+          albumName = 'AnlikResim_Tum_Galeri';
+        }
+      }
+
+      const dateStr = new Date().toISOString().slice(0, 10);
+      const finalZipName = `${albumName.replace(/[^a-zA-Z0-9_-]/g, '_')}_${dateStr}.zip`;
+
+      await exportImagesToZip(itemsToZip, finalZipName, (p) => {
+        setZipProgress(p);
+      });
+
+      showToast(`ZIP arşivi hazırlandı: ${listToExport.length} resim indirildi!`, 'success');
+      if (isSelectionMode) {
+        setIsSelectionMode(false);
+        setSelectedImageIds(new Set());
+      }
+    } catch (err: any) {
+      showToast('ZIP arşivi oluşturulurken hata meydana geldi.', 'error');
+    } finally {
+      setIsZipping(false);
+      setZipProgress(null);
     }
   };
 
@@ -283,6 +393,115 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({ navigate }) => {
           );
         })}
       </div>
+
+      {/* Folder / Album Summary & ZIP Action Banner */}
+      <div className="bg-gradient-to-r from-blue-950/40 via-[#0F172A] to-cyan-950/30 border border-blue-500/20 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-lg">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-cyan-400 uppercase tracking-wider">
+              {activeFolderTab === 'all'
+                ? 'Tüm Galeri'
+                : activeFolderTab === 'favorites'
+                ? 'Favoriler Albümü'
+                : `Albüm: ${folders.find((f) => f.id === activeFolderTab)?.name || 'Özel Albüm'}`}
+            </span>
+            <span className="px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-[10px] font-black">
+              {processedImages.length} Resim
+            </span>
+          </div>
+          <p className="text-xs text-slate-400">
+            Toplam Boyut:{' '}
+            <strong className="text-slate-200">
+              {formatSize(processedImages.reduce((sum, i) => sum + i.image.size, 0))}
+            </strong>{' '}
+            • Tek tıkla sıkıştırılmış ZIP paketi olarak indirebilirsiniz.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
+          {/* Toggle Multi-selection */}
+          <button
+            type="button"
+            onClick={() => {
+              setIsSelectionMode(!isSelectionMode);
+              if (isSelectionMode) setSelectedImageIds(new Set());
+            }}
+            className={`min-h-[40px] px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 border transition-all cursor-pointer ${
+              isSelectionMode
+                ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300'
+                : 'bg-[#0B0F19] border-slate-800 text-slate-300 hover:bg-slate-800'
+            }`}
+          >
+            {isSelectionMode ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
+            <span>{isSelectionMode ? 'Seçimi Bitir' : 'Çoklu Seçim'}</span>
+          </button>
+
+          {/* Quick Album ZIP Export */}
+          <button
+            type="button"
+            disabled={isZipping || processedImages.length === 0}
+            onClick={() => handleExportZip()}
+            className="min-h-[40px] px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-bold text-xs shadow-md shadow-blue-600/25 flex items-center gap-2 transition-all cursor-pointer active:scale-95 disabled:opacity-50"
+          >
+            <Archive className="w-4 h-4" />
+            <span>
+              {isZipping
+                ? `ZIP Hazırlanıyor (${zipProgress?.percent || 0}%)...`
+                : selectedImageIds.size > 0
+                ? `Seçilenleri ZIP İndir (${selectedImageIds.size})`
+                : 'Albümü ZIP İndir'}
+            </span>
+          </button>
+        </div>
+      </div>
+
+      {/* Selection Mode Action Bar */}
+      {isSelectionMode && (
+        <div className="bg-cyan-950/30 border border-cyan-500/30 rounded-2xl p-3.5 flex items-center justify-between gap-4 animate-in fade-in">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={handleSelectAll}
+              className="px-3 py-1.5 rounded-lg bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500/30 text-xs font-bold transition-colors cursor-pointer"
+            >
+              {selectedImageIds.size === processedImages.length ? 'Seçimi Kaldır' : 'Tümünü Seç'}
+            </button>
+            <span className="text-xs text-slate-300">
+              <strong className="text-white font-bold">{selectedImageIds.size}</strong> / {processedImages.length} resim seçildi
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              disabled={selectedImageIds.size === 0 || isZipping}
+              onClick={() => handleExportZip()}
+              className="px-4 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-blue-600/20 disabled:opacity-40 cursor-pointer"
+            >
+              <Archive className="w-3.5 h-3.5" />
+              <span>Seçilenleri ZIP Olarak İndir ({selectedImageIds.size})</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ZIP Downloading Progress Card */}
+      {isZipping && zipProgress && (
+        <div className="bg-[#0F172A] border border-cyan-500/40 rounded-2xl p-4 flex items-center justify-between animate-pulse">
+          <div className="flex items-center gap-3">
+            <Archive className="w-5 h-5 text-cyan-400 animate-bounce" />
+            <div>
+              <div className="text-xs sm:text-sm font-bold text-white">
+                Albüm Sıkıştırılıyor & Paketleniyor...
+              </div>
+              <div className="text-[11px] text-slate-400">
+                {zipProgress.current} / {zipProgress.total} - {zipProgress.currentFilename}
+              </div>
+            </div>
+          </div>
+          <div className="text-xs font-black text-cyan-400">%{zipProgress.percent}</div>
+        </div>
+      )}
 
       {/* Control Toolbar (Search, Format Filter, Sorting, View Mode) */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-[#0F172A] p-3 rounded-2xl border border-slate-800">

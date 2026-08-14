@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <defs>
+    <!-- Background Glow Filter -->
+    <filter id="neonGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <!-- Linear Gradients -->
+    <linearGradient id="cloudGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0284c7" />
+      <stop offset="50%" stop-color="#0369a1" />
+      <stop offset="100%" stop-color="#0c4a6e" />
+    </linearGradient>
+
+    <linearGradient id="rimGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="50%" stop-color="#00f2fe" />
+      <stop offset="100%" stop-color="#0284c7" />
+    </linearGradient>
+
+    <linearGradient id="arrowGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="70%" stop-color="#e0f2fe" />
+      <stop offset="100%" stop-color="#ffffff" />
+    </linearGradient>
+
+    <linearGradient id="lensGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="50%" stop-color="#0369a1" />
+      <stop offset="100%" stop-color="#0284c7" />
+    </linearGradient>
+  </defs>
+
+  <!-- Dark Background Plate with rounded corners -->
+  <rect width="120" height="120" rx="28" fill="#0B0F19" />
+  <rect width="120" height="120" rx="28" fill="url(#cloudGrad)" opacity="0.15" />
+  <rect width="118" height="118" x="1" y="1" rx="27" stroke="#1E293B" stroke-width="1.5" />
+
+  <!-- Cloud Base with Glow -->
+  <g filter="url(#neonGlow)">
+    <!-- Ambient Blue Cloud Aura -->
+    <path d="M35 72 C22 72 16 60 22 49 C25 43 32 38 39 40 C43 28 58 22 70 28 C76 31 80 37 82 43 C92 42 100 50 98 60 C97 68 89 72 80 72 Z" fill="#0284c7" opacity="0.35" />
+    
+    <!-- Outer Cloud Rim -->
+    <path d="M35 70 C24 70 18 60 23 50 C26 44 33 40 39 42 C43 30 57 25 68 30 C74 33 78 38 80 44 C89 44 96 51 95 60 C94 66 87 70 80 70 Z" fill="url(#cloudGrad)" stroke="url(#rimGrad)" stroke-width="2.5" />
+  </g>
+
+  <!-- Camera Body in the center -->
+  <g transform="translate(34, 38)">
+    <!-- Camera Upper Bump -->
+    <path d="M16 6 L20 2 L32 2 L36 6 Z" fill="#0f172a" stroke="#38bdf8" stroke-width="1.5" stroke-linejoin="round" />
+    <!-- Camera Flash Dot -->
+    <circle cx="40" cy="11" r="2.5" fill="#38bdf8" />
+    
+    <!-- Camera Main Body -->
+    <rect x="6" y="6" width="40" height="28" rx="7" fill="#0B132B" stroke="#38bdf8" stroke-width="2" />
+
+    <!-- Lens Outer Ring -->
+    <circle cx="26" cy="20" r="10" fill="#070d1d" stroke="#00f2fe" stroke-width="1.8" />
+    <!-- Lens Inner Glass -->
+    <circle cx="26" cy="20" r="6.5" fill="url(#lensGrad)" />
+    <!-- Lens Reflection Glint -->
+    <circle cx="28" cy="18" r="2.2" fill="#ffffff" opacity="0.85" />
+  </g>
+
+  <!-- Orbiting Upload Arrow -->
+  <g filter="url(#neonGlow)">
+    <!-- Curved Trail -->
+    <path d="M28 78 C35 86 52 88 68 84 C78 81 86 74 94 64" fill="none" stroke="url(#arrowGrad)" stroke-width="4.5" stroke-linecap="round" />
+    <!-- Arrow Head -->
+    <path d="M82 58 L98 60 L92 76 Z" fill="url(#arrowGrad)" stroke="#ffffff" stroke-width="1" stroke-linejoin="round" />
+  </g>
+
+  <!-- Sparkle Rays at Top Right -->
+  <line x1="88" y1="26" x2="88" y2="20" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" />
+  <line x1="94" y1="30" x2="100" y2="26" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" />
+  <line x1="97" y1="38" x2="103" y2="38" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" />
+</svg>

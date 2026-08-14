@@ -22,6 +22,7 @@ import { ContactPage } from './pages/ContactPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { AdminPage } from './pages/AdminPage';
+import { ConverterPage } from './pages/ConverterPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 export default function App() {
@@ -54,6 +55,9 @@ export default function App() {
     }
     if (path === '/galerim') {
       return <GalleryPage navigate={navigate} />;
+    }
+    if (path === '/donusturucu') {
+      return <ConverterPage navigate={navigate} />;
     }
     if (path === '/panel') {
       return <DashboardPage navigate={navigate} />;

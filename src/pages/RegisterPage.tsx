@@ -3,6 +3,7 @@ import { UserPlus, User, Mail, Lock, ArrowRight, Eye, EyeOff, AlertCircle, Check
 import { authApi } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
+import { Logo } from '../components/Logo';
 
 interface RegisterPageProps {
   navigate: (path: string) => void;
@@ -90,12 +91,12 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ navigate }) => {
   };
 
   return (
-    <div className="max-w-md mx-auto px-4 py-12 sm:py-16 space-y-6">
-      <div className="text-center space-y-2">
-        <div className="w-12 h-12 rounded-2xl bg-blue-600/10 text-blue-400 flex items-center justify-center mx-auto border border-blue-500/20 shadow-lg shadow-blue-500/5">
-          <UserPlus className="w-6 h-6" />
+    <div className="max-w-md mx-auto px-4 py-10 sm:py-14 space-y-6">
+      <div className="text-center space-y-3">
+        <div className="flex justify-center">
+          <Logo size="md" variant="vertical" showSlogan={true} />
         </div>
-        <h1 className="text-2xl font-black text-white tracking-tight">Yeni Hesap Oluşturun</h1>
+        <h1 className="text-xl font-black text-white tracking-tight">Yeni Hesap Oluşturun</h1>
         <p className="text-slate-400 text-xs sm:text-sm">Resimlerinizi güvenle saklayın, kategorize edin ve yönetin.</p>
       </div>
 

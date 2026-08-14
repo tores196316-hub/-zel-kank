@@ -27,6 +27,7 @@ import {
   Info,
 } from 'lucide-react';
 import { assistantApi } from '../lib/api';
+import { Logo } from './Logo';
 
 interface Message {
   id: string;
@@ -496,8 +497,8 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({ navigate }) => {
             {/* Header */}
             <div className="px-4 py-3.5 bg-gradient-to-r from-slate-900 via-blue-950/40 to-slate-900 border-b border-slate-800 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2.5">
-                <div className="relative w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white shadow-md shadow-blue-600/30 border border-blue-400/30">
-                  <Bot className="w-4 h-4" />
+                <div className="relative">
+                  <Logo size="xs" variant="icon" />
                   <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-[#0F172A]" />
                 </div>
                 <div>

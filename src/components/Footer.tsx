@@ -1,5 +1,6 @@
 import React from 'react';
-import { ImagePlus, Shield, Lock, Zap } from 'lucide-react';
+import { Shield, Lock, Zap } from 'lucide-react';
+import { Logo } from './Logo';
 
 interface FooterProps {
   navigate: (path: string) => void;
@@ -12,19 +13,12 @@ export const Footer: React.FC<FooterProps> = ({ navigate }) => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           {/* Brand Col */}
           <div className="space-y-4 md:col-span-1">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-500 flex items-center justify-center text-white shadow-sm">
-                <ImagePlus className="w-4 h-4" />
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-base font-bold text-white tracking-tight">
-                  Anlık<span className="text-blue-400">Resim</span>
-                </span>
-                <span className="px-1.5 py-0.5 rounded text-[8px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                  V4
-                </span>
-              </div>
-            </div>
+            <button
+              onClick={() => navigate('/')}
+              className="text-left focus:outline-none cursor-pointer"
+            >
+              <Logo size="sm" variant="horizontal" showSlogan={true} badgeText="V4" />
+            </button>
             <p className="text-xs leading-relaxed text-slate-400">
               Işık hızında, güvenli ve kolay resim yükleme ve paylaşım servisi. Küresel CDN altyapısıyla kesintisiz doğrudan bağlantı.
             </p>

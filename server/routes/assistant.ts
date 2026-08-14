@@ -203,7 +203,7 @@ YANITLAMA KURALLARI:
 
     try {
       const aiResponse = await client.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-flash-latest',
         contents,
         config: {
           systemInstruction: systemPrompt,

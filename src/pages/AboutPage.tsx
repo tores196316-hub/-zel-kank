@@ -1,13 +1,13 @@
 import React from 'react';
 import { Info, ShieldCheck, Zap, Server, Globe } from 'lucide-react';
+import { Logo } from '../components/Logo';
 
 export const AboutPage: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto px-4 py-12 space-y-12">
       <div className="text-center space-y-4">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold">
-          <Info className="w-4 h-4" />
-          <span>AnlıkResim Platformu</span>
+        <div className="flex justify-center mb-4">
+          <Logo size="lg" variant="banner" showSlogan={true} />
         </div>
         <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">Hakkımızda</h1>
         <p className="text-slate-300 text-xs sm:text-sm max-w-xl mx-auto leading-relaxed">
