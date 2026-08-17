@@ -74,6 +74,9 @@ export interface UploadResult {
   is_password_protected?: boolean;
   expires_at?: string | null;
   is_one_time_view?: boolean;
+  session_id?: string;
+  session_token?: string;
+  expires_in_seconds?: number;
 }
 
 export interface Report {

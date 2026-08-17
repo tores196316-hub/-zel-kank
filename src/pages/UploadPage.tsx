@@ -638,11 +638,19 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
                   {/* Image Preview Box */}
                   <div className="space-y-3 text-center md:text-left">
                     <div className="relative group rounded-2xl overflow-hidden border border-slate-800 bg-[#070B14] aspect-video md:aspect-square flex items-center justify-center">
-                      <img
-                        src={formatImageUrl(res.thumbnail_url || res.direct_url)}
-                        alt={res.image.original_filename}
-                        className="max-h-full max-w-full object-contain"
-                      />
+                      {res.is_one_time_view ? (
+                        <div className="flex flex-col items-center justify-center p-6 text-center space-y-2 text-rose-400">
+                          <Flame className="w-10 h-10 animate-pulse" />
+                          <span className="text-xs font-bold">Tek Kullanımlık Görsel</span>
+                          <span className="text-[10px] text-slate-400">Alıcı linki açtığında görüntülenecek</span>
+                        </div>
+                      ) : (
+                        <img
+                          src={formatImageUrl(res.thumbnail_url || res.direct_url)}
+                          alt={res.image.original_filename}
+                          className="max-h-full max-w-full object-contain"
+                        />
+                      )}
                     </div>
                     <div>
                       <p className="text-xs font-bold text-white truncate">{res.image.original_filename}</p>
@@ -656,7 +664,7 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
                         className="min-h-[40px] px-3.5 py-2 rounded-xl bg-[#0F172A] hover:bg-[#131D2F] border border-slate-800 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
                       >
                         <ExternalLink className="w-3.5 h-3.5 text-sky-400" />
-                        <span>Detay Sayfası</span>
+                        <span>Görsel Sayfası</span>
                       </button>
                     </div>
                   </div>

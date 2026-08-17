@@ -10,6 +10,7 @@ import { useToast } from '../components/Toast';
 import { useAuth } from '../context/AuthContext';
 import { formatImageUrl } from '../lib/imageUrl';
 import { ImageEditorModal } from '../components/ImageEditorModal';
+import { BurnViewer } from '../components/BurnViewer';
 
 interface ImageDetailPageProps {
   imageId: string;
@@ -260,6 +261,11 @@ export const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId, navig
         </div>
       </div>
     );
+  }
+
+  // --- BURN AFTER READING / ONE-TIME SECURE VIEWER ---
+  if (data.image.is_one_time_view) {
+    return <BurnViewer data={data} navigate={navigate} />;
   }
 
   const shareText = encodeURIComponent(`${data.image.original_filename} - IMGIVO resim barındırma servisi`);

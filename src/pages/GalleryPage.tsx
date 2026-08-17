@@ -22,7 +22,8 @@ import {
   Sparkles,
   RefreshCw,
   Sliders,
-  Download
+  Download,
+  Flame
 } from 'lucide-react';
 import { imageApi } from '../lib/api';
 import { Folder, UploadResult } from '../types';
@@ -587,12 +588,19 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({ navigate }) => {
               >
                 {/* Thumbnail */}
                 <div className="aspect-square bg-[#0B0F19] overflow-hidden relative flex items-center justify-center p-2">
-                  <img
-                    src={formatImageUrl(item.thumbnail_url || item.direct_url)}
-                    alt={item.image.original_filename}
-                    loading="lazy"
-                    className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform duration-300"
-                  />
+                  {item.image.is_one_time_view ? (
+                    <div className="w-full h-full flex flex-col items-center justify-center bg-rose-950/20 text-rose-400 p-2 text-center select-none">
+                      <Flame className="w-8 h-8 animate-pulse mb-1" />
+                      <span className="text-[10px] font-bold">1 Görüntüleme</span>
+                    </div>
+                  ) : (
+                    <img
+                      src={formatImageUrl(item.thumbnail_url || item.direct_url)}
+                      alt={item.image.original_filename}
+                      loading="lazy"
+                      className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform duration-300"
+                    />
+                  )}
 
                   {/* Favorite Heart Badge */}
                   <button

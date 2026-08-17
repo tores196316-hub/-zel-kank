@@ -233,6 +233,26 @@ export const imageApi = {
     request<{ success: boolean }>(`/api/images/${id}/download`, {
       method: 'POST',
     }),
+
+  sendBurnHeartbeat: (id: string, sessionId: string) =>
+    request<{ ok: boolean; active: boolean }>(`/api/images/${id}/burn-session/heartbeat`, {
+      method: 'POST',
+      body: JSON.stringify({ session_id: sessionId }),
+    }),
+
+  completeBurnSession: (id: string, sessionId?: string) => {
+    const payload = JSON.stringify({ session_id: sessionId });
+    // Prefer sendBeacon for reliable leave detection
+    if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
+      const blob = new Blob([payload], { type: 'application/json' });
+      navigator.sendBeacon(`/api/images/${id}/burn-session/complete`, blob);
+      return Promise.resolve({ ok: true, burned: true });
+    }
+    return request<{ ok: boolean; burned: true }>(`/api/images/${id}/burn-session/complete`, {
+      method: 'POST',
+      body: payload,
+    });
+  },
 };
 
 // Public API

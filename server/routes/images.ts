@@ -6,6 +6,7 @@ import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import { db, ImageRecord, FolderRecord } from '../db.js';
 import { uploadToCloudinary, deleteFromCloudinary, getCloudinaryThumbnailUrl, resolveImageUrl, UPLOADS_DIR } from '../cloudinary.js';
+import { burnSessionManager } from '../burnSession.js';
 import { authenticateToken, requireAuth, AuthRequest } from '../middleware/auth.js';
 import { uploadRateLimiter, contactRateLimiter } from '../middleware/rateLimiter.js';
 
@@ -73,7 +74,7 @@ function buildUploadResult(
   img: ImageRecord,
   appUrl: string,
   isLocked: boolean = false,
-  unlockToken?: string
+  sessionToken?: string
 ) {
   const baseUrl = appUrl || process.env.APP_URL || 'http://localhost:3000';
   const shareUrl = `${baseUrl}/i/${img.id}`;
@@ -86,7 +87,7 @@ function buildUploadResult(
   let thumbnailUrl: string;
 
   if (isOneTime) {
-    const tokenQuery = unlockToken ? `?token=${encodeURIComponent(unlockToken)}` : '';
+    const tokenQuery = sessionToken ? `?token=${encodeURIComponent(sessionToken)}` : '';
     directUrl = `${baseUrl}/api/images/${img.id}/view${tokenQuery}`;
     thumbnailUrl = `${baseUrl}/api/images/${img.id}/view${tokenQuery}`;
   } else {
@@ -373,8 +374,8 @@ router.get('/my', authenticateToken, requireAuth, (req: AuthRequest, res: Respon
   }
 });
 
-// Helper function: Serves image buffer to user and guarantees immediate destruction for burn-after-reading images
-async function serveAndBurnImage(img: ImageRecord, res: Response) {
+// Helper function: Serves image buffer to user safely with anti-caching headers
+async function serveImageStream(img: ImageRecord, res: Response) {
   const mimeTypes: Record<string, string> = {
     jpg: 'image/jpeg',
     jpeg: 'image/jpeg',
@@ -396,10 +397,10 @@ async function serveAndBurnImage(img: ImageRecord, res: Response) {
         buffer = Buffer.from(arrayBuf);
         contentType = response.headers.get('content-type') || fallbackMime;
       } else {
-        console.error('[Burn View] Failed to fetch image from Cloudinary:', response.status);
+        console.error('[Burn View Stream] Failed to fetch image from Cloudinary:', response.status);
       }
     } catch (fetchErr) {
-      console.error('[Burn View] Cloudinary fetch error:', fetchErr);
+      console.error('[Burn View Stream] Cloudinary fetch error:', fetchErr);
     }
   }
 
@@ -420,14 +421,11 @@ async function serveAndBurnImage(img: ImageRecord, res: Response) {
         }
       }
     } catch (localErr) {
-      console.error('[Burn View] Local file read error:', localErr);
+      console.error('[Burn View Stream] Local file read error:', localErr);
     }
   }
 
   if (!buffer) {
-    // If image could not be loaded
-    db.purgeImage(img.id);
-    deleteFromCloudinary(img.cloudinary_public_id).catch(() => {});
     return res.status(404).json({
       error: 'Görsel artık mevcut değil veya daha önce görüntülenmiş.',
     });
@@ -436,42 +434,13 @@ async function serveAndBurnImage(img: ImageRecord, res: Response) {
   // Set anti-caching headers so client/proxies never cache the 1-time image
   res.setHeader('Content-Type', contentType);
   res.setHeader('Content-Length', buffer.length);
-  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0, private');
   res.setHeader('Pragma', 'no-cache');
   res.setHeader('Expires', '0');
   res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(img.original_filename)}"`);
 
   // Deliver response to client
-  res.send(buffer);
-
-  // IMMUTABLE POST-SERVICE PURGE GUARANTEE
-  // 1. Cloudinary destroy
-  deleteFromCloudinary(img.cloudinary_public_id).catch((e) => {
-    console.error('[Burn Destroy] Cloudinary error:', e);
-  });
-
-  // 2. Local disk file destroy
-  try {
-    const safePublicId = path.basename(img.cloudinary_public_id);
-    if (fs.existsSync(UPLOADS_DIR)) {
-      const files = fs.readdirSync(UPLOADS_DIR);
-      const target = files.find(
-        (f) => path.parse(f).name === safePublicId || f === safePublicId || f === img.original_filename
-      );
-      if (target) {
-        const filePath = path.join(UPLOADS_DIR, target);
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-        }
-      }
-    }
-  } catch (e) {
-    console.error('[Burn Destroy] Local unlink error:', e);
-  }
-
-  // 3. Purge from database records & add audit log
-  db.purgeImage(img.id);
-  db.addLog('info', `🔥 1 Görüntüleme Sonrası İmha: Görsel başarıyla servis edildi ve kalıcı olarak imha edildi (ID: ${img.id})`);
+  return res.send(buffer);
 }
 
 // Controlled View / Raw Stream Endpoint (for Burn-after-reading & Direct Serving)
@@ -488,6 +457,28 @@ router.get('/:id/view', async (req: Request, res: Response) => {
       });
     }
 
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // BURN AFTER READING SESSION VALIDATION
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    if (img.is_one_time_view) {
+      if (!token) {
+        return res.status(401).json({
+          error: 'Bu tek kullanımlık görsel için oturum anahtarı (token) gereklidir.',
+        });
+      }
+
+      const { sessionId, valid } = burnSessionManager.verifySessionToken(id, token);
+      if (!valid || !burnSessionManager.isSessionActive(id, sessionId)) {
+        return res.status(404).json({
+          error: 'Görsel görüntüleme oturumu geçersiz veya süresi dolmuş.',
+        });
+      }
+
+      // Serve image buffer with anti-caching headers without destroying mid-stream
+      await serveImageStream(img, res);
+      return;
+    }
+
     // Password verification check if image has password
     if (img.password_hash) {
       const isTokenValid = verifyUnlockToken(id, token);
@@ -496,24 +487,6 @@ router.get('/:id/view', async (req: Request, res: Response) => {
           error: 'Bu görsel şifrelidir. Görüntülemek için önce şifre kilidini açmalısınız.',
         });
       }
-    }
-
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // BURN AFTER READING ATOMIC MECHANISM
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    if (img.is_one_time_view) {
-      // 1. Atomically claim image from DB synchronously
-      const claimed = db.claimAndBurnImage(id);
-      if (!claimed) {
-        // Race condition: already claimed/destroyed by a simultaneous request
-        return res.status(404).json({
-          error: 'Görsel artık mevcut değil veya daha önce görüntülenmiş.',
-        });
-      }
-
-      // 2. Fetch and serve image binary buffer with guaranteed destruction
-      await serveAndBurnImage(claimed, res);
-      return;
     }
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -549,6 +522,61 @@ router.get('/:id/view', async (req: Request, res: Response) => {
   }
 });
 
+// Burn Session Heartbeat
+router.post('/:id/burn-session/heartbeat', (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    let sessionId = req.body?.session_id || req.query.session_id;
+
+    if (!sessionId && typeof req.body === 'string') {
+      try {
+        const parsed = JSON.parse(req.body);
+        sessionId = parsed.session_id;
+      } catch (e) {}
+    }
+
+    if (!sessionId) {
+      return res.status(400).json({ error: 'Oturum ID gereklidir.' });
+    }
+
+    const recorded = burnSessionManager.recordHeartbeat(String(sessionId), id);
+    if (!recorded) {
+      return res.status(404).json({ error: 'Oturum aktif değil veya süresi dolmuş.' });
+    }
+
+    return res.json({ ok: true, active: true });
+  } catch (err) {
+    return res.status(500).json({ error: 'Heartbeat hatası.' });
+  }
+});
+
+// Burn Session Complete / Destroy (supports sendBeacon, fetch keepalive, and JSON POST)
+router.post('/:id/burn-session/complete', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    let sessionId = req.body?.session_id || req.query.session_id;
+
+    if (!sessionId && typeof req.body === 'string') {
+      try {
+        const parsed = JSON.parse(req.body);
+        sessionId = parsed.session_id;
+      } catch (e) {
+        sessionId = req.body;
+      }
+    }
+
+    if (sessionId) {
+      await burnSessionManager.completeAndBurnSession(String(sessionId));
+    } else {
+      await burnSessionManager.destroyAndBurn(id);
+    }
+
+    return res.json({ ok: true, burned: true });
+  } catch (err) {
+    return res.status(500).json({ error: 'İmha işlemi başarısız.' });
+  }
+});
+
 // Unlock Password-Protected Image
 router.post('/:id/unlock', async (req: AuthRequest, res: Response) => {
   try {
@@ -556,35 +584,46 @@ router.post('/:id/unlock', async (req: AuthRequest, res: Response) => {
     const { password } = req.body;
 
     const img = db.getImageById(id);
-    if (!img) {
+    if (!img || img.status === 'deleted') {
       return res.status(404).json({ error: 'Aradığınız resim bulunamadı veya daha önce görüntülenip silinmiş.' });
     }
 
+    const clientIp = (req.headers['x-forwarded-for'] as string) || req.ip || '127.0.0.1';
     const appUrl = (req.protocol + '://' + req.get('host')) || process.env.APP_URL || 'http://localhost:3000';
 
-    if (!img.password_hash) {
-      const unlockToken = createUnlockToken(img.id);
-      return res.json({
-        ...buildUploadResult(img, appUrl, false, unlockToken),
-        unlocked: true,
-        unlock_token: unlockToken,
-      });
+    if (img.password_hash) {
+      if (!password) {
+        return res.status(400).json({ error: 'Lütfen resmi görüntülemek için şifreyi girin.' });
+      }
+
+      const isValid = await bcrypt.compare(String(password), img.password_hash);
+      if (!isValid) {
+        return res.status(401).json({ error: 'Hatalı şifre girdiniz. Lütfen tekrar deneyin.' });
+      }
     }
 
-    if (!password) {
-      return res.status(400).json({ error: 'Lütfen resmi görüntülemek için şifreyi girin.' });
+    let sessionToken: string | undefined;
+    let sessionId: string | undefined;
+
+    if (img.is_one_time_view) {
+      const sessionResult = burnSessionManager.getOrCreateSession(id, clientIp);
+      if (!sessionResult.session) {
+        return res.status(404).json({
+          error: sessionResult.error || 'Görsel artık mevcut değil veya oturum süresi doldu.',
+        });
+      }
+      sessionToken = sessionResult.token;
+      sessionId = sessionResult.session.sessionId;
+    } else {
+      sessionToken = createUnlockToken(img.id);
     }
 
-    const isValid = await bcrypt.compare(String(password), img.password_hash);
-    if (!isValid) {
-      return res.status(401).json({ error: 'Hatalı şifre girdiniz. Lütfen tekrar deneyin.' });
-    }
-
-    const unlockToken = createUnlockToken(img.id);
     return res.json({
-      ...buildUploadResult(img, appUrl, false, unlockToken),
+      ...buildUploadResult(img, appUrl, false, sessionToken),
       unlocked: true,
-      unlock_token: unlockToken,
+      unlock_token: sessionToken,
+      session_id: sessionId,
+      session_token: sessionToken,
     });
   } catch (err: any) {
     return res.status(500).json({ error: 'Şifre doğrulanamadı.' });
@@ -597,7 +636,7 @@ router.get('/:id', authenticateToken, (req: AuthRequest, res: Response) => {
     const { id } = req.params;
     const img = db.getImageById(id);
 
-    if (!img) {
+    if (!img || img.status === 'deleted') {
       return res.status(404).json({ error: 'Görsel artık mevcut değil veya daha önce görüntülenmiş.' });
     }
 
@@ -610,10 +649,30 @@ router.get('/:id', authenticateToken, (req: AuthRequest, res: Response) => {
     // Password lock check
     const isLocked = !!img.password_hash && !isOwner;
 
-    const result = buildUploadResult(img, appUrl, isLocked);
+    // View Session creation for burn-after-reading images
+    let sessionToken: string | undefined;
+    let sessionId: string | undefined;
+    let expiresInSeconds: number | undefined;
+
+    if (img.is_one_time_view && !isLocked) {
+      const sessionResult = burnSessionManager.getOrCreateSession(id, clientIp);
+      if (!sessionResult.session) {
+        return res.status(404).json({
+          error: sessionResult.error || 'Görsel artık mevcut değil veya başka bir görüntüleme oturumunda.',
+        });
+      }
+      sessionToken = sessionResult.token;
+      sessionId = sessionResult.session.sessionId;
+      expiresInSeconds = Math.max(1, Math.floor((sessionResult.session.expiresAt - Date.now()) / 1000));
+    }
+
+    const result = buildUploadResult(img, appUrl, isLocked, sessionToken);
 
     return res.json({
       ...result,
+      session_id: sessionId,
+      session_token: sessionToken,
+      expires_in_seconds: expiresInSeconds,
       is_owner: isOwner,
     });
   } catch (err: any) {

@@ -73,6 +73,102 @@
   ],
   "images": [
     {
+      "id": "ab1f2800",
+      "user_id": null,
+      "uploader_username": "Misafir",
+      "cloudinary_public_id": "local_1786970459016_9c626400",
+      "cloudinary_url": "http://localhost:3000/uploads/local_1786970459016_9c626400.png",
+      "original_filename": "normal_test.png",
+      "format": "png",
+      "width": 1200,
+      "height": 800,
+      "size": 70,
+      "created_at": "2026-08-17T12:40:59.016Z",
+      "views": 1,
+      "downloads": 0,
+      "is_public": true,
+      "status": "active",
+      "delete_token": "del_9bbc9f4f9a8cd19e1b2a274ec9cad29b",
+      "is_favorite": false,
+      "folder_id": null,
+      "password_hash": null,
+      "expires_at": null,
+      "is_one_time_view": false,
+      "view_limit": null
+    },
+    {
+      "id": "d6ac70a0",
+      "user_id": null,
+      "uploader_username": "Misafir",
+      "cloudinary_public_id": "local_1786970432436_c173b31b",
+      "cloudinary_url": "http://localhost:3000/uploads/local_1786970432436_c173b31b.png",
+      "original_filename": "normal_test.png",
+      "format": "png",
+      "width": 1200,
+      "height": 800,
+      "size": 70,
+      "created_at": "2026-08-17T12:40:32.436Z",
+      "views": 1,
+      "downloads": 0,
+      "is_public": true,
+      "status": "active",
+      "delete_token": "del_bb98d4895f6ba3368e7ee59ef657bad5",
+      "is_favorite": false,
+      "folder_id": null,
+      "password_hash": null,
+      "expires_at": null,
+      "is_one_time_view": false,
+      "view_limit": null
+    },
+    {
+      "id": "959b7554",
+      "user_id": null,
+      "uploader_username": "Misafir",
+      "cloudinary_public_id": "local_1786970423926_5fe91eef",
+      "cloudinary_url": "http://localhost:3000/uploads/local_1786970423926_5fe91eef.png",
+      "original_filename": "pw_burn.png",
+      "format": "png",
+      "width": 1200,
+      "height": 800,
+      "size": 70,
+      "created_at": "2026-08-17T12:40:23.926Z",
+      "views": 1,
+      "downloads": 0,
+      "is_public": true,
+      "status": "active",
+      "delete_token": "del_1900200e1e14765cc04f1f6550e19429",
+      "is_favorite": false,
+      "folder_id": null,
+      "password_hash": "$2b$10$9OF4Lbm0ZP9FxW0xRmaBk.jtOKOuljdqTNmRnrZFOraTN2EM79kdm",
+      "expires_at": null,
+      "is_one_time_view": true,
+      "view_limit": 1
+    },
+    {
+      "id": "01a9de90",
+      "user_id": null,
+      "uploader_username": "Misafir",
+      "cloudinary_public_id": "local_1786970423678_cfe3d6f0",
+      "cloudinary_url": "http://localhost:3000/uploads/local_1786970423678_cfe3d6f0.png",
+      "original_filename": "normal_test.png",
+      "format": "png",
+      "width": 1200,
+      "height": 800,
+      "size": 70,
+      "created_at": "2026-08-17T12:40:23.678Z",
+      "views": 1,
+      "downloads": 0,
+      "is_public": true,
+      "status": "active",
+      "delete_token": "del_46a044f826c7ecf665525a5974d297bf",
+      "is_favorite": false,
+      "folder_id": null,
+      "password_hash": null,
+      "expires_at": null,
+      "is_one_time_view": false,
+      "view_limit": null
+    },
+    {
       "id": "b633466d",
       "user_id": null,
       "uploader_username": "Misafir",
@@ -395,6 +491,114 @@
   },
   "logs": [
     {
+      "id": "log_1786970459528_k3p6",
+      "level": "info",
+      "message": "🔥 1 Görüntüleme Sonrası İmha: Görsel oturumu tamamlandı ve kalıcı olarak imha edildi (ID: 183c0a1f)",
+      "timestamp": "2026-08-17T12:40:59.528Z"
+    },
+    {
+      "id": "log_1786970459517_ti92",
+      "level": "info",
+      "message": "Resim yüklendi: 183c0a1f (concurrent_test.png) - 70 bytes",
+      "timestamp": "2026-08-17T12:40:59.518Z"
+    },
+    {
+      "id": "log_1786970459505_pbtu",
+      "level": "info",
+      "message": "🔥 1 Görüntüleme Sonrası İmha: Görsel oturumu tamamlandı ve kalıcı olarak imha edildi (ID: 950d3116)",
+      "timestamp": "2026-08-17T12:40:59.505Z"
+    },
+    {
+      "id": "log_1786970459492_e7hd",
+      "level": "info",
+      "message": "Resim yüklendi: 950d3116 (unauth_test.png) - 70 bytes",
+      "timestamp": "2026-08-17T12:40:59.492Z"
+    },
+    {
+      "id": "log_1786970459481_gvf4",
+      "level": "info",
+      "message": "🔥 1 Görüntüleme Sonrası İmha: Görsel oturumu tamamlandı ve kalıcı olarak imha edildi (ID: e14ed788)",
+      "timestamp": "2026-08-17T12:40:59.481Z"
+    },
+    {
+      "id": "log_1786970459225_97r3",
+      "level": "info",
+      "message": "Resim yüklendi: e14ed788 (pw_burn.png) - 70 bytes",
+      "timestamp": "2026-08-17T12:40:59.225Z"
+    },
+    {
+      "id": "log_1786970459099_zxp1",
+      "level": "info",
+      "message": "🔥 1 Görüntüleme Sonrası İmha: Görsel oturumu tamamlandı ve kalıcı olarak imha edildi (ID: 4f08a6b8)",
+      "timestamp": "2026-08-17T12:40:59.100Z"
+    },
+    {
+      "id": "log_1786970459050_glwn",
+      "level": "info",
+      "message": "Resim yüklendi: 4f08a6b8 (secret_burn.png) - 70 bytes",
+      "timestamp": "2026-08-17T12:40:59.050Z"
+    },
+    {
+      "id": "log_1786970459018_cfhk",
+      "level": "info",
+      "message": "Resim yüklendi: ab1f2800 (normal_test.png) - 70 bytes",
+      "timestamp": "2026-08-17T12:40:59.018Z"
+    },
+    {
+      "id": "log_1786970432930_pevz",
+      "level": "info",
+      "message": "🔥 1 Görüntüleme Sonrası İmha: Görsel oturumu tamamlandı ve kalıcı olarak imha edildi (ID: 36bb3791)",
+      "timestamp": "2026-08-17T12:40:32.930Z"
+    },
+    {
+      "id": "log_1786970432695_jh2c",
+      "level": "info",
+      "message": "Resim yüklendi: 36bb3791 (pw_burn.png) - 70 bytes",
+      "timestamp": "2026-08-17T12:40:32.695Z"
+    },
+    {
+      "id": "log_1786970432545_sxxe",
+      "level": "info",
+      "message": "🔥 1 Görüntüleme Sonrası İmha: Görsel oturumu tamamlandı ve kalıcı olarak imha edildi (ID: ffab0806)",
+      "timestamp": "2026-08-17T12:40:32.545Z"
+    },
+    {
+      "id": "log_1786970432469_5ivr",
+      "level": "info",
+      "message": "Resim yüklendi: ffab0806 (secret_burn.png) - 70 bytes",
+      "timestamp": "2026-08-17T12:40:32.469Z"
+    },
+    {
+      "id": "log_1786970432437_xswu",
+      "level": "info",
+      "message": "Resim yüklendi: d6ac70a0 (normal_test.png) - 70 bytes",
+      "timestamp": "2026-08-17T12:40:32.437Z"
+    },
+    {
+      "id": "log_1786970423927_banu",
+      "level": "info",
+      "message": "Resim yüklendi: 959b7554 (pw_burn.png) - 70 bytes",
+      "timestamp": "2026-08-17T12:40:23.927Z"
+    },
+    {
+      "id": "log_1786970423751_2s0q",
+      "level": "info",
+      "message": "🔥 1 Görüntüleme Sonrası İmha: Görsel başarıyla servis edildi ve kalıcı olarak imha edildi (ID: 5f3a4594)",
+      "timestamp": "2026-08-17T12:40:23.751Z"
+    },
+    {
+      "id": "log_1786970423709_musx",
+      "level": "info",
+      "message": "Resim yüklendi: 5f3a4594 (secret_burn.png) - 70 bytes",
+      "timestamp": "2026-08-17T12:40:23.709Z"
+    },
+    {
+      "id": "log_1786970423679_dg7n",
+      "level": "info",
+      "message": "Resim yüklendi: 01a9de90 (normal_test.png) - 70 bytes",
+      "timestamp": "2026-08-17T12:40:23.679Z"
+    },
+    {
       "id": "log_1786969763675_9gyu",
       "level": "info",
       "message": "🔥 1 Görüntüleme Sonrası İmha: Görsel başarıyla servis edildi ve kalıcı olarak imha edildi (ID: b99f0d70)",
@@ -601,9 +805,39 @@
   ],
   "view_logs": [
     {
-      "image_id": "b633466d",
+      "image_id": "d6ac70a0",
       "ip": "127.0.0.1",
-      "timestamp": 1786969763080
+      "timestamp": 1786970432456
+    },
+    {
+      "image_id": "ffab0806",
+      "ip": "127.0.0.1",
+      "timestamp": 1786970432474
+    },
+    {
+      "image_id": "36bb3791",
+      "ip": "127.0.0.1",
+      "timestamp": 1786970432699
+    },
+    {
+      "image_id": "ab1f2800",
+      "ip": "127.0.0.1",
+      "timestamp": 1786970459035
+    },
+    {
+      "image_id": "4f08a6b8",
+      "ip": "127.0.0.1",
+      "timestamp": 1786970459056
+    },
+    {
+      "image_id": "e14ed788",
+      "ip": "127.0.0.1",
+      "timestamp": 1786970459231
+    },
+    {
+      "image_id": "183c0a1f",
+      "ip": "127.0.0.1",
+      "timestamp": 1786970459522
     }
   ]
 }
