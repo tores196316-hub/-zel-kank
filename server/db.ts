@@ -792,6 +792,45 @@ class Database {
     return false;
   }
 
+  public purgeImage(id: string): boolean {
+    const idx = this.data.images.findIndex((i) => i.id === id);
+    if (idx !== -1) {
+      this.data.images.splice(idx, 1);
+      this.save();
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Atomically claims a burn-after-reading image.
+   * If the image exists, is active, and is marked as is_one_time_view,
+   * its status is immediately set to 'deleted' and changes saved synchronously,
+   * preventing any race condition or duplicate concurrent views.
+   */
+  public claimAndBurnImage(id: string): ImageRecord | null {
+    const idx = this.data.images.findIndex((i) => i.id === id);
+    if (idx === -1) return null;
+    const img = this.data.images[idx];
+    if (img.status === 'deleted') return null;
+
+    if (img.expires_at && new Date(img.expires_at).getTime() <= Date.now()) {
+      img.status = 'deleted';
+      this.save();
+      return null;
+    }
+
+    if (img.is_one_time_view) {
+      const cloned = { ...img };
+      // Atomically mark as deleted so no second request can claim it
+      img.status = 'deleted';
+      this.save();
+      return cloned;
+    }
+
+    return img;
+  }
+
   public incrementImageViews(id: string): void {
     const img = this.getImageById(id);
     if (img) {

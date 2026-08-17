@@ -1,10 +1,11 @@
-import { Router, Response } from 'express';
+import { Router, Response, Request } from 'express';
 import multer from 'multer';
+import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import { db, ImageRecord, FolderRecord } from '../db.js';
-import { uploadToCloudinary, deleteFromCloudinary, getCloudinaryThumbnailUrl, resolveImageUrl } from '../cloudinary.js';
+import { uploadToCloudinary, deleteFromCloudinary, getCloudinaryThumbnailUrl, resolveImageUrl, UPLOADS_DIR } from '../cloudinary.js';
 import { authenticateToken, requireAuth, AuthRequest } from '../middleware/auth.js';
 import { uploadRateLimiter, contactRateLimiter } from '../middleware/rateLimiter.js';
 
@@ -47,14 +48,51 @@ const upload = multer({
   },
 });
 
-function buildUploadResult(img: ImageRecord, appUrl: string, isLocked: boolean = false) {
+function createUnlockToken(imageId: string): string {
+  const secret = process.env.JWT_SECRET || 'imgivo_secret_burn_2026';
+  const timestamp = Date.now();
+  const signature = crypto.createHmac('sha256', secret).update(`${imageId}:${timestamp}`).digest('hex');
+  return `${timestamp}.${signature}`;
+}
+
+function verifyUnlockToken(imageId: string, token?: string): boolean {
+  if (!token) return false;
+  const parts = token.split('.');
+  if (parts.length !== 2) return false;
+  const [timestampStr, signature] = parts;
+  const timestamp = parseInt(timestampStr, 10);
+  if (isNaN(timestamp) || Date.now() - timestamp > 15 * 60 * 1000) {
+    return false;
+  }
+  const secret = process.env.JWT_SECRET || 'imgivo_secret_burn_2026';
+  const expectedSignature = crypto.createHmac('sha256', secret).update(`${imageId}:${timestamp}`).digest('hex');
+  return signature === expectedSignature;
+}
+
+function buildUploadResult(
+  img: ImageRecord,
+  appUrl: string,
+  isLocked: boolean = false,
+  unlockToken?: string
+) {
   const baseUrl = appUrl || process.env.APP_URL || 'http://localhost:3000';
   const shareUrl = `${baseUrl}/i/${img.id}`;
-  const directUrl = resolveImageUrl(img.cloudinary_url, baseUrl);
-  const thumbnailUrl = getCloudinaryThumbnailUrl(img.cloudinary_url, 400, 400, baseUrl);
-
   const hasPassword = !!img.password_hash;
   const isOneTime = !!img.is_one_time_view;
+
+  // IMPORTANT: For burn-after-reading images, NEVER give direct Cloudinary URL to client!
+  // Instead, direct_url and all embed codes point to the backend controlled /api/images/:id/view endpoint.
+  let directUrl: string;
+  let thumbnailUrl: string;
+
+  if (isOneTime) {
+    const tokenQuery = unlockToken ? `?token=${encodeURIComponent(unlockToken)}` : '';
+    directUrl = `${baseUrl}/api/images/${img.id}/view${tokenQuery}`;
+    thumbnailUrl = `${baseUrl}/api/images/${img.id}/view${tokenQuery}`;
+  } else {
+    directUrl = resolveImageUrl(img.cloudinary_url, baseUrl);
+    thumbnailUrl = getCloudinaryThumbnailUrl(img.cloudinary_url, 400, 400, baseUrl);
+  }
 
   if (isLocked && hasPassword) {
     const lockedImage: Partial<ImageRecord> = {
@@ -335,6 +373,182 @@ router.get('/my', authenticateToken, requireAuth, (req: AuthRequest, res: Respon
   }
 });
 
+// Helper function: Serves image buffer to user and guarantees immediate destruction for burn-after-reading images
+async function serveAndBurnImage(img: ImageRecord, res: Response) {
+  const mimeTypes: Record<string, string> = {
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    png: 'image/png',
+    webp: 'image/webp',
+    gif: 'image/gif',
+  };
+  const fallbackMime = mimeTypes[img.format.toLowerCase()] || 'image/jpeg';
+
+  let buffer: Buffer | null = null;
+  let contentType = fallbackMime;
+
+  // Case 1: Cloudinary URL
+  if (img.cloudinary_url && (img.cloudinary_url.startsWith('http://') || img.cloudinary_url.startsWith('https://'))) {
+    try {
+      const response = await fetch(img.cloudinary_url);
+      if (response.ok) {
+        const arrayBuf = await response.arrayBuffer();
+        buffer = Buffer.from(arrayBuf);
+        contentType = response.headers.get('content-type') || fallbackMime;
+      } else {
+        console.error('[Burn View] Failed to fetch image from Cloudinary:', response.status);
+      }
+    } catch (fetchErr) {
+      console.error('[Burn View] Cloudinary fetch error:', fetchErr);
+    }
+  }
+
+  // Case 2: Local storage fallback if not fetched from Cloudinary
+  if (!buffer) {
+    try {
+      const safePublicId = path.basename(img.cloudinary_public_id);
+      if (fs.existsSync(UPLOADS_DIR)) {
+        const files = fs.readdirSync(UPLOADS_DIR);
+        const target = files.find(
+          (f) => path.parse(f).name === safePublicId || f === safePublicId || f === img.original_filename
+        );
+        if (target) {
+          const filePath = path.join(UPLOADS_DIR, target);
+          if (fs.existsSync(filePath)) {
+            buffer = fs.readFileSync(filePath);
+          }
+        }
+      }
+    } catch (localErr) {
+      console.error('[Burn View] Local file read error:', localErr);
+    }
+  }
+
+  if (!buffer) {
+    // If image could not be loaded
+    db.purgeImage(img.id);
+    deleteFromCloudinary(img.cloudinary_public_id).catch(() => {});
+    return res.status(404).json({
+      error: 'Görsel artık mevcut değil veya daha önce görüntülenmiş.',
+    });
+  }
+
+  // Set anti-caching headers so client/proxies never cache the 1-time image
+  res.setHeader('Content-Type', contentType);
+  res.setHeader('Content-Length', buffer.length);
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(img.original_filename)}"`);
+
+  // Deliver response to client
+  res.send(buffer);
+
+  // IMMUTABLE POST-SERVICE PURGE GUARANTEE
+  // 1. Cloudinary destroy
+  deleteFromCloudinary(img.cloudinary_public_id).catch((e) => {
+    console.error('[Burn Destroy] Cloudinary error:', e);
+  });
+
+  // 2. Local disk file destroy
+  try {
+    const safePublicId = path.basename(img.cloudinary_public_id);
+    if (fs.existsSync(UPLOADS_DIR)) {
+      const files = fs.readdirSync(UPLOADS_DIR);
+      const target = files.find(
+        (f) => path.parse(f).name === safePublicId || f === safePublicId || f === img.original_filename
+      );
+      if (target) {
+        const filePath = path.join(UPLOADS_DIR, target);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+      }
+    }
+  } catch (e) {
+    console.error('[Burn Destroy] Local unlink error:', e);
+  }
+
+  // 3. Purge from database records & add audit log
+  db.purgeImage(img.id);
+  db.addLog('info', `🔥 1 Görüntüleme Sonrası İmha: Görsel başarıyla servis edildi ve kalıcı olarak imha edildi (ID: ${img.id})`);
+}
+
+// Controlled View / Raw Stream Endpoint (for Burn-after-reading & Direct Serving)
+router.get('/:id/view', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const token = req.query.token as string | undefined;
+
+    // Check if image exists in DB
+    const img = db.getImageById(id);
+    if (!img || img.status === 'deleted') {
+      return res.status(404).json({
+        error: 'Görsel artık mevcut değil veya daha önce görüntülenmiş.',
+      });
+    }
+
+    // Password verification check if image has password
+    if (img.password_hash) {
+      const isTokenValid = verifyUnlockToken(id, token);
+      if (!isTokenValid) {
+        return res.status(401).json({
+          error: 'Bu görsel şifrelidir. Görüntülemek için önce şifre kilidini açmalısınız.',
+        });
+      }
+    }
+
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // BURN AFTER READING ATOMIC MECHANISM
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    if (img.is_one_time_view) {
+      // 1. Atomically claim image from DB synchronously
+      const claimed = db.claimAndBurnImage(id);
+      if (!claimed) {
+        // Race condition: already claimed/destroyed by a simultaneous request
+        return res.status(404).json({
+          error: 'Görsel artık mevcut değil veya daha önce görüntülenmiş.',
+        });
+      }
+
+      // 2. Fetch and serve image binary buffer with guaranteed destruction
+      await serveAndBurnImage(claimed, res);
+      return;
+    }
+
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // NORMAL IMAGES (burn_after_reading === false)
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    const clientIp = (req.headers['x-forwarded-for'] as string) || req.ip || '127.0.0.1';
+    db.incrementImageViewsThrottled(id, clientIp);
+
+    // If Cloudinary URL, redirect directly
+    if (img.cloudinary_url && (img.cloudinary_url.startsWith('http://') || img.cloudinary_url.startsWith('https://'))) {
+      return res.redirect(302, img.cloudinary_url);
+    }
+
+    // If local file, serve from UPLOADS_DIR
+    const safePublicId = path.basename(img.cloudinary_public_id);
+    if (fs.existsSync(UPLOADS_DIR)) {
+      const files = fs.readdirSync(UPLOADS_DIR);
+      const target = files.find(
+        (f) => path.parse(f).name === safePublicId || f === safePublicId || f === img.original_filename
+      );
+      if (target) {
+        const filePath = path.join(UPLOADS_DIR, target);
+        if (fs.existsSync(filePath)) {
+          return res.sendFile(filePath);
+        }
+      }
+    }
+
+    return res.redirect(302, resolveImageUrl(img.cloudinary_url));
+  } catch (err: any) {
+    console.error('Image view route error:', err);
+    return res.status(500).json({ error: 'Görsel yüklenirken bir hata oluştu.' });
+  }
+});
+
 // Unlock Password-Protected Image
 router.post('/:id/unlock', async (req: AuthRequest, res: Response) => {
   try {
@@ -343,14 +557,17 @@ router.post('/:id/unlock', async (req: AuthRequest, res: Response) => {
 
     const img = db.getImageById(id);
     if (!img) {
-      return res.status(404).json({ error: 'Aradığınız resim bulunamadı veya silinmiş.' });
+      return res.status(404).json({ error: 'Aradığınız resim bulunamadı veya daha önce görüntülenip silinmiş.' });
     }
 
+    const appUrl = (req.protocol + '://' + req.get('host')) || process.env.APP_URL || 'http://localhost:3000';
+
     if (!img.password_hash) {
-      const appUrl = (req.protocol + '://' + req.get('host')) || process.env.APP_URL || 'http://localhost:3000';
+      const unlockToken = createUnlockToken(img.id);
       return res.json({
-        ...buildUploadResult(img, appUrl, false),
+        ...buildUploadResult(img, appUrl, false, unlockToken),
         unlocked: true,
+        unlock_token: unlockToken,
       });
     }
 
@@ -363,10 +580,11 @@ router.post('/:id/unlock', async (req: AuthRequest, res: Response) => {
       return res.status(401).json({ error: 'Hatalı şifre girdiniz. Lütfen tekrar deneyin.' });
     }
 
-    const appUrl = (req.protocol + '://' + req.get('host')) || process.env.APP_URL || 'http://localhost:3000';
+    const unlockToken = createUnlockToken(img.id);
     return res.json({
-      ...buildUploadResult(img, appUrl, false),
+      ...buildUploadResult(img, appUrl, false, unlockToken),
       unlocked: true,
+      unlock_token: unlockToken,
     });
   } catch (err: any) {
     return res.status(500).json({ error: 'Şifre doğrulanamadı.' });
@@ -380,7 +598,7 @@ router.get('/:id', authenticateToken, (req: AuthRequest, res: Response) => {
     const img = db.getImageById(id);
 
     if (!img) {
-      return res.status(404).json({ error: 'Aradığınız resim bulunamadı veya saklama süresi dolduğu için silinmiş.' });
+      return res.status(404).json({ error: 'Görsel artık mevcut değil veya daha önce görüntülenmiş.' });
     }
 
     const clientIp = (req.headers['x-forwarded-for'] as string) || req.ip || '127.0.0.1';
@@ -392,17 +610,7 @@ router.get('/:id', authenticateToken, (req: AuthRequest, res: Response) => {
     // Password lock check
     const isLocked = !!img.password_hash && !isOwner;
 
-    // One-time self-destruct check: If visited by someone and is_one_time_view is true
     const result = buildUploadResult(img, appUrl, isLocked);
-
-    // If one-time view and not owner, mark it for auto-deletion after this view
-    if (img.is_one_time_view && !isOwner && img.views > 1) {
-      setTimeout(() => {
-        try {
-          db.deleteImage(img.id);
-        } catch (e) {}
-      }, 5000);
-    }
 
     return res.json({
       ...result,
