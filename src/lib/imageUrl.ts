@@ -14,8 +14,13 @@ export function formatImageUrl(url?: string): string {
   // If the URL contains /uploads/
   if (url.includes('/uploads/')) {
     const idx = url.indexOf('/uploads/');
-    const path = url.substring(idx);
-    return path;
+    return url.substring(idx);
+  }
+
+  // If the URL contains /api/images/
+  if (url.includes('/api/images/')) {
+    const idx = url.indexOf('/api/images/');
+    return url.substring(idx);
   }
 
   return url;

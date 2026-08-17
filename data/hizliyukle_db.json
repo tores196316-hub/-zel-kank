@@ -73,6 +73,30 @@
   ],
   "images": [
     {
+      "id": "e7e94fdf",
+      "user_id": null,
+      "uploader_username": "Misafir",
+      "cloudinary_public_id": "local_1786970991998_3366542c",
+      "cloudinary_url": "http://localhost:3000/uploads/local_1786970991998_3366542c.png",
+      "original_filename": "normal_file.png",
+      "format": "png",
+      "width": 1200,
+      "height": 800,
+      "size": 70,
+      "created_at": "2026-08-17T12:49:51.998Z",
+      "views": 1,
+      "downloads": 0,
+      "is_public": true,
+      "status": "active",
+      "delete_token": "del_adb6f9ebedcfb44316456f7806edc9d5",
+      "is_favorite": false,
+      "folder_id": null,
+      "password_hash": null,
+      "expires_at": null,
+      "is_one_time_view": false,
+      "view_limit": null
+    },
+    {
       "id": "ab1f2800",
       "user_id": null,
       "uploader_username": "Misafir",
@@ -491,6 +515,36 @@
   },
   "logs": [
     {
+      "id": "log_1786970992563_j7l5",
+      "level": "info",
+      "message": "🔥 1 Görüntüleme Sonrası İmha: Görsel oturumu tamamlandı ve kalıcı olarak imha edildi (ID: e5189ae0)",
+      "timestamp": "2026-08-17T12:49:52.563Z"
+    },
+    {
+      "id": "log_1786970992314_ev81",
+      "level": "info",
+      "message": "Resim yüklendi: e5189ae0 (pw_burn_token.png) - 70 bytes",
+      "timestamp": "2026-08-17T12:49:52.314Z"
+    },
+    {
+      "id": "log_1786970992139_r0fm",
+      "level": "info",
+      "message": "🔥 1 Görüntüleme Sonrası İmha: Görsel oturumu tamamlandı ve kalıcı olarak imha edildi (ID: e76b43b4)",
+      "timestamp": "2026-08-17T12:49:52.139Z"
+    },
+    {
+      "id": "log_1786970992029_d3uv",
+      "level": "info",
+      "message": "Resim yüklendi: e76b43b4 (burn_token_test.png) - 70 bytes",
+      "timestamp": "2026-08-17T12:49:52.029Z"
+    },
+    {
+      "id": "log_1786970991999_29p6",
+      "level": "info",
+      "message": "Resim yüklendi: e7e94fdf (normal_file.png) - 70 bytes",
+      "timestamp": "2026-08-17T12:49:52.000Z"
+    },
+    {
       "id": "log_1786970459528_k3p6",
       "level": "info",
       "message": "🔥 1 Görüntüleme Sonrası İmha: Görsel oturumu tamamlandı ve kalıcı olarak imha edildi (ID: 183c0a1f)",
@@ -805,39 +859,19 @@
   ],
   "view_logs": [
     {
-      "image_id": "d6ac70a0",
+      "image_id": "e7e94fdf",
       "ip": "127.0.0.1",
-      "timestamp": 1786970432456
+      "timestamp": 1786970992017
     },
     {
-      "image_id": "ffab0806",
+      "image_id": "e76b43b4",
       "ip": "127.0.0.1",
-      "timestamp": 1786970432474
+      "timestamp": 1786970992037
     },
     {
-      "image_id": "36bb3791",
+      "image_id": "e5189ae0",
       "ip": "127.0.0.1",
-      "timestamp": 1786970432699
-    },
-    {
-      "image_id": "ab1f2800",
-      "ip": "127.0.0.1",
-      "timestamp": 1786970459035
-    },
-    {
-      "image_id": "4f08a6b8",
-      "ip": "127.0.0.1",
-      "timestamp": 1786970459056
-    },
-    {
-      "image_id": "e14ed788",
-      "ip": "127.0.0.1",
-      "timestamp": 1786970459231
-    },
-    {
-      "image_id": "183c0a1f",
-      "ip": "127.0.0.1",
-      "timestamp": 1786970459522
+      "timestamp": 1786970992319
     }
   ]
 }

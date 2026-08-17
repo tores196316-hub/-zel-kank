@@ -12,7 +12,15 @@ interface BurnViewerProps {
 export const BurnViewer: React.FC<BurnViewerProps> = ({ data, navigate }) => {
   const imageId = data.image.id;
   const sessionId = data.session_id || '';
-  
+  const sessionToken = data.session_token || '';
+
+  // Ensure the image URL is properly parameterized with the authentic signed session token
+  const viewUrl = sessionToken
+    ? `/api/images/${imageId}/view?token=${encodeURIComponent(sessionToken)}`
+    : data.direct_url && data.direct_url.includes('token=')
+    ? formatImageUrl(data.direct_url)
+    : '';
+
   const [remainingSeconds, setRemainingSeconds] = useState<number>(
     data.expires_in_seconds && data.expires_in_seconds > 0 ? data.expires_in_seconds : 300
   );
@@ -44,7 +52,7 @@ export const BurnViewer: React.FC<BurnViewerProps> = ({ data, navigate }) => {
 
   // Periodic heartbeat & leave listeners
   useEffect(() => {
-    if (burned) return;
+    if (burned || !sessionId) return;
 
     // 1. Heartbeat interval every 4 seconds
     const heartbeatInterval = setInterval(() => {
@@ -202,10 +210,10 @@ export const BurnViewer: React.FC<BurnViewerProps> = ({ data, navigate }) => {
         />
 
         {/* Loading Spinner */}
-        {!imageLoaded && !imageError && (
+        {(!viewUrl || (!imageLoaded && !imageError)) && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[#090D16] z-10">
             <div className="w-8 h-8 border-2 border-rose-500 border-t-transparent rounded-full animate-spin" />
-            <span className="text-xs text-slate-400 font-medium">Görsel güvenli akışla yükleniyor...</span>
+            <span className="text-xs text-slate-400 font-medium">Görsel güvenli oturumla yükleniyor...</span>
           </div>
         )}
 
@@ -225,10 +233,10 @@ export const BurnViewer: React.FC<BurnViewerProps> = ({ data, navigate }) => {
         )}
 
         {/* Protected Image */}
-        {!imageError && (
+        {viewUrl && !imageError && (
           <div className="relative max-w-full flex items-center justify-center">
             <img
-              src={formatImageUrl(data.direct_url)}
+              src={viewUrl}
               alt="IMGIVO Güvenli Tek Görüntüleme Görseli"
               onLoad={() => setImageLoaded(true)}
               onError={() => setImageError(true)}
