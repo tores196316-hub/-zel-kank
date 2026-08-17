@@ -672,88 +672,117 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
                   {/* Share Codes Box */}
                   <div className="md:col-span-2 space-y-3.5">
                     <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300">
-                      Paylaşım Kodları & Bağlantılar
+                      {res.is_one_time_view ? 'Güvenli Paylaşım Bağlantısı' : 'Paylaşım Kodları & Bağlantılar'}
                     </h3>
 
-                    {/* Direct Image Link */}
-                    <div className="space-y-1">
-                      <label className="text-[11px] text-slate-400 font-medium">Direkt Resim Bağlantısı (CDN)</label>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          readOnly
-                          value={res.direct_url}
-                          className="flex-1 bg-[#070B14] border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 font-mono focus:outline-none"
-                        />
-                        <button
-                          onClick={() => copyToClipboard(res.direct_url, 'Direkt URL')}
-                          className="min-h-[38px] px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer active:scale-95"
-                        >
-                          <Copy className="w-3.5 h-3.5" />
-                          <span>Kopyala</span>
-                        </button>
-                      </div>
-                    </div>
+                    {res.is_one_time_view ? (
+                      <div className="space-y-3">
+                        <div className="space-y-1">
+                          <label className="text-[11px] text-slate-400 font-medium">Tek Görüntüleme Bağlantısı (1 Kullanımlık)</label>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              readOnly
+                              value={res.share_url}
+                              className="flex-1 bg-[#070B14] border border-rose-500/30 rounded-xl px-3.5 py-2 text-xs text-rose-300 font-mono focus:outline-none"
+                            />
+                            <button
+                              onClick={() => copyToClipboard(res.share_url, 'Güvenli Paylaşım URL')}
+                              className="min-h-[38px] px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer active:scale-95"
+                            >
+                              <Copy className="w-3.5 h-3.5" />
+                              <span>Kopyala</span>
+                            </button>
+                          </div>
+                        </div>
 
-                    {/* Share Page Link */}
-                    <div className="space-y-1">
-                      <label className="text-[11px] text-slate-400 font-medium">Sayfa Bağlantısı</label>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          readOnly
-                          value={res.share_url}
-                          className="flex-1 bg-[#070B14] border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 font-mono focus:outline-none"
-                        />
-                        <button
-                          onClick={() => copyToClipboard(res.share_url, 'Sayfa URL')}
-                          className="min-h-[38px] px-4 py-2 rounded-xl bg-[#0F172A] hover:bg-[#131D2F] border border-slate-800 text-white text-xs font-semibold flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer active:scale-95"
-                        >
-                          <Copy className="w-3.5 h-3.5" />
-                          <span>Kopyala</span>
-                        </button>
+                        <div className="p-3 rounded-xl bg-rose-950/20 border border-rose-500/20 text-rose-300 text-[11px] leading-relaxed">
+                          🔥 <strong>Önemli Güvenlik Notu:</strong> Bu bağlantı alıcı tarafından bir kez açılıp kapatıldığında görsel kalıcı olarak imha edilecektir. Doğrudan CDN bağlantıları ve HTML gömme kodları güvenlik nedeniyle bu modda üretilmez.
+                        </div>
                       </div>
-                    </div>
+                    ) : (
+                      <>
+                        {/* Direct Image Link */}
+                        <div className="space-y-1">
+                          <label className="text-[11px] text-slate-400 font-medium">Direkt Resim Bağlantısı (CDN)</label>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              readOnly
+                              value={res.direct_url}
+                              className="flex-1 bg-[#070B14] border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 font-mono focus:outline-none"
+                            />
+                            <button
+                              onClick={() => copyToClipboard(res.direct_url, 'Direkt URL')}
+                              className="min-h-[38px] px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer active:scale-95"
+                            >
+                              <Copy className="w-3.5 h-3.5" />
+                              <span>Kopyala</span>
+                            </button>
+                          </div>
+                        </div>
 
-                    {/* HTML Code */}
-                    <div className="space-y-1">
-                      <label className="text-[11px] text-slate-400 font-medium">HTML Gömme Kodu</label>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          readOnly
-                          value={res.html_code}
-                          className="flex-1 bg-[#070B14] border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 font-mono focus:outline-none"
-                        />
-                        <button
-                          onClick={() => copyToClipboard(res.html_code, 'HTML Kodu')}
-                          className="min-h-[38px] px-4 py-2 rounded-xl bg-[#0F172A] hover:bg-[#131D2F] border border-slate-800 text-white text-xs font-semibold flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer active:scale-95"
-                        >
-                          <Copy className="w-3.5 h-3.5" />
-                          <span>Kopyala</span>
-                        </button>
-                      </div>
-                    </div>
+                        {/* Share Page Link */}
+                        <div className="space-y-1">
+                          <label className="text-[11px] text-slate-400 font-medium">Sayfa Bağlantısı</label>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              readOnly
+                              value={res.share_url}
+                              className="flex-1 bg-[#070B14] border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 font-mono focus:outline-none"
+                            />
+                            <button
+                              onClick={() => copyToClipboard(res.share_url, 'Sayfa URL')}
+                              className="min-h-[38px] px-4 py-2 rounded-xl bg-[#0F172A] hover:bg-[#131D2F] border border-slate-800 text-white text-xs font-semibold flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer active:scale-95"
+                            >
+                              <Copy className="w-3.5 h-3.5" />
+                              <span>Kopyala</span>
+                            </button>
+                          </div>
+                        </div>
 
-                    {/* Forum / BBCode */}
-                    <div className="space-y-1">
-                      <label className="text-[11px] text-slate-400 font-medium">Forum / BBCode (Tam Boyut)</label>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          readOnly
-                          value={res.bbcode}
-                          className="flex-1 bg-[#070B14] border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 font-mono focus:outline-none"
-                        />
-                        <button
-                          onClick={() => copyToClipboard(res.bbcode, 'BBCode')}
-                          className="min-h-[38px] px-4 py-2 rounded-xl bg-[#0F172A] hover:bg-[#131D2F] border border-slate-800 text-white text-xs font-semibold flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer active:scale-95"
-                        >
-                          <Copy className="w-3.5 h-3.5" />
-                          <span>Kopyala</span>
-                        </button>
-                      </div>
-                    </div>
+                        {/* HTML Code */}
+                        <div className="space-y-1">
+                          <label className="text-[11px] text-slate-400 font-medium">HTML Gömme Kodu</label>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              readOnly
+                              value={res.html_code}
+                              className="flex-1 bg-[#070B14] border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 font-mono focus:outline-none"
+                            />
+                            <button
+                              onClick={() => copyToClipboard(res.html_code, 'HTML Kodu')}
+                              className="min-h-[38px] px-4 py-2 rounded-xl bg-[#0F172A] hover:bg-[#131D2F] border border-slate-800 text-white text-xs font-semibold flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer active:scale-95"
+                            >
+                              <Copy className="w-3.5 h-3.5" />
+                              <span>Kopyala</span>
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Forum / BBCode */}
+                        <div className="space-y-1">
+                          <label className="text-[11px] text-slate-400 font-medium">Forum / BBCode (Tam Boyut)</label>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              readOnly
+                              value={res.bbcode}
+                              className="flex-1 bg-[#070B14] border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 font-mono focus:outline-none"
+                            />
+                            <button
+                              onClick={() => copyToClipboard(res.bbcode, 'BBCode')}
+                              className="min-h-[38px] px-4 py-2 rounded-xl bg-[#0F172A] hover:bg-[#131D2F] border border-slate-800 text-white text-xs font-semibold flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer active:scale-95"
+                            >
+                              <Copy className="w-3.5 h-3.5" />
+                              <span>Kopyala</span>
+                            </button>
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>

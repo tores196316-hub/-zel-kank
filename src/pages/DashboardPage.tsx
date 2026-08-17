@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, Upload, Images, Eye, Heart, HardDrive, Crown, ArrowUpRight, Plus, Folder, Calendar, ShieldCheck, Sparkles, RefreshCw } from 'lucide-react';
+import { LayoutDashboard, Upload, Images, Eye, Heart, HardDrive, Crown, ArrowUpRight, Plus, Folder, Calendar, ShieldCheck, Sparkles, RefreshCw, Flame } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { imageApi } from '../lib/api';
 import { UploadResult, Folder as FolderType } from '../types';
@@ -295,15 +295,22 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ navigate }) => {
               <div
                 key={item.image.id}
                 onClick={() => navigate(`/i/${item.image.id}`)}
-                className="group relative aspect-square rounded-2xl overflow-hidden bg-[#0B0F19] border border-slate-800 cursor-pointer hover:border-blue-500/50 transition-all shadow-md"
+                className="group relative aspect-square rounded-2xl overflow-hidden bg-[#0B0F19] border border-slate-800 cursor-pointer hover:border-blue-500/50 transition-all shadow-md flex items-center justify-center"
               >
-                <img
-                  src={formatImageUrl(item.thumbnail_url || item.direct_url)}
-                  alt={item.image.original_filename}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  loading="lazy"
-                  referrerPolicy="no-referrer"
-                />
+                {item.image.is_one_time_view ? (
+                  <div className="flex flex-col items-center justify-center p-2 text-center text-rose-400 select-none">
+                    <Flame className="w-6 h-6 animate-pulse mb-1" />
+                    <span className="text-[9px] font-bold">1 Görüntüleme</span>
+                  </div>
+                ) : (
+                  <img
+                    src={formatImageUrl(item.thumbnail_url || item.direct_url)}
+                    alt={item.image.original_filename}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
+                  />
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-2 flex flex-col justify-end">
                   <p className="text-[11px] text-white font-medium truncate">{item.image.original_filename}</p>
                   <p className="text-[9px] text-slate-400">{((item.image.size || 0) / 1024).toFixed(0)} KB</p>

@@ -14,12 +14,15 @@ export const BurnViewer: React.FC<BurnViewerProps> = ({ data, navigate }) => {
   const sessionId = data.session_id || '';
   const sessionToken = data.session_token || '';
 
+  // Debug logging
+  console.log('[BURN] session token hazır:', !!sessionToken);
+
   // Ensure the image URL is properly parameterized with the authentic signed session token
   const viewUrl = sessionToken
     ? `/api/images/${imageId}/view?token=${encodeURIComponent(sessionToken)}`
-    : data.direct_url && data.direct_url.includes('token=')
-    ? formatImageUrl(data.direct_url)
     : '';
+
+  console.log('[BURN] view URL:', viewUrl ? `/api/images/${imageId}/view?token=***` : '(bekleniyor)');
 
   const [remainingSeconds, setRemainingSeconds] = useState<number>(
     data.expires_in_seconds && data.expires_in_seconds > 0 ? data.expires_in_seconds : 300

@@ -685,11 +685,17 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({ navigate }) => {
                 className="flex items-center justify-between gap-4 p-3 rounded-2xl bg-[#0F172A] border border-slate-800 hover:border-slate-700 cursor-pointer transition-all"
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <img
-                    src={formatImageUrl(item.thumbnail_url || item.direct_url)}
-                    alt={item.image.original_filename}
-                    className="w-12 h-12 rounded-xl object-cover bg-[#0B0F19] shrink-0 border border-slate-800"
-                  />
+                  {item.image.is_one_time_view ? (
+                    <div className="w-12 h-12 rounded-xl bg-rose-950/30 text-rose-400 shrink-0 border border-rose-500/20 flex items-center justify-center select-none">
+                      <Flame className="w-5 h-5 animate-pulse" />
+                    </div>
+                  ) : (
+                    <img
+                      src={formatImageUrl(item.thumbnail_url || item.direct_url)}
+                      alt={item.image.original_filename}
+                      className="w-12 h-12 rounded-xl object-cover bg-[#0B0F19] shrink-0 border border-slate-800"
+                    />
+                  )}
                   <div className="min-w-0">
                     <p className="text-xs font-semibold text-white truncate">{item.image.original_filename}</p>
                     <p className="text-[11px] text-slate-400 mt-0.5">

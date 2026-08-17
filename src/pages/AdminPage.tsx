@@ -996,12 +996,19 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
                   className="group relative bg-[#0A1020] rounded-2xl overflow-hidden border border-slate-800 p-2 flex flex-col hover:border-sky-500/40 transition-all shadow-md"
                 >
                   <div className="aspect-square bg-[#070B14] rounded-xl overflow-hidden relative flex items-center justify-center">
-                    <img
-                      src={formatImageUrl(img.cloudinary_url)}
-                      alt={img.original_filename}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                    />
+                    {img.is_one_time_view ? (
+                      <div className="flex flex-col items-center justify-center p-2 text-center text-rose-400 select-none">
+                        <Flame className="w-6 h-6 animate-pulse mb-1" />
+                        <span className="text-[9px] font-bold">1 Kullanımlık</span>
+                      </div>
+                    ) : (
+                      <img
+                        src={formatImageUrl(img.cloudinary_url)}
+                        alt={img.original_filename}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    )}
 
                     <div className="absolute inset-0 bg-[#070B14]/85 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-2">
                       <button
@@ -1064,11 +1071,15 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
                             onClick={() => setPreviewImage(img)}
                             className="w-12 h-12 rounded-xl bg-black overflow-hidden cursor-pointer border border-slate-800 flex items-center justify-center shrink-0"
                           >
-                            <img
-                              src={formatImageUrl(img.cloudinary_url)}
-                              alt={img.original_filename}
-                              className="w-full h-full object-cover"
-                            />
+                            {img.is_one_time_view ? (
+                              <Flame className="w-5 h-5 text-rose-400 animate-pulse" />
+                            ) : (
+                              <img
+                                src={formatImageUrl(img.cloudinary_url)}
+                                alt={img.original_filename}
+                                className="w-full h-full object-cover"
+                              />
+                            )}
                           </div>
                         </td>
                         <td className="p-4 font-bold text-white max-w-xs truncate">{img.original_filename}</td>
@@ -1871,12 +1882,22 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
               </button>
             </div>
 
-            <div className="max-h-80 bg-black rounded-2xl overflow-hidden border border-slate-800 flex items-center justify-center">
-              <img
-                src={formatImageUrl(previewImage.cloudinary_url)}
-                alt={previewImage.original_filename}
-                className="max-h-80 w-auto object-contain"
-              />
+            <div className="max-h-80 min-h-[160px] bg-black rounded-2xl overflow-hidden border border-slate-800 flex items-center justify-center p-4">
+              {previewImage.is_one_time_view ? (
+                <div className="text-center space-y-2 text-rose-400">
+                  <Flame className="w-10 h-10 mx-auto animate-pulse" />
+                  <p className="text-xs font-bold text-white">1 Kullanımlık Güvenli Görsel</p>
+                  <p className="text-[11px] text-slate-400 max-w-sm">
+                    Bu görsel tek kullanımlık olarak ayarlandığı için yönetici panelinde önizleme akışı başlatılmaz.
+                  </p>
+                </div>
+              ) : (
+                <img
+                  src={formatImageUrl(previewImage.cloudinary_url)}
+                  alt={previewImage.original_filename}
+                  className="max-h-80 w-auto object-contain"
+                />
+              )}
             </div>
 
             {/* Direct Link Copy Input */}

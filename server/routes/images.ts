@@ -87,9 +87,14 @@ function buildUploadResult(
   let thumbnailUrl: string;
 
   if (isOneTime) {
-    const tokenQuery = sessionToken ? `?token=${encodeURIComponent(sessionToken)}` : '';
-    directUrl = `${baseUrl}/api/images/${img.id}/view${tokenQuery}`;
-    thumbnailUrl = `${baseUrl}/api/images/${img.id}/view${tokenQuery}`;
+    if (sessionToken) {
+      directUrl = `${baseUrl}/api/images/${img.id}/view?token=${encodeURIComponent(sessionToken)}`;
+      thumbnailUrl = `${baseUrl}/api/images/${img.id}/view?token=${encodeURIComponent(sessionToken)}`;
+    } else {
+      // Without active session token, the safe share link is the viewer page
+      directUrl = shareUrl;
+      thumbnailUrl = '';
+    }
   } else {
     directUrl = resolveImageUrl(img.cloudinary_url, baseUrl);
     thumbnailUrl = getCloudinaryThumbnailUrl(img.cloudinary_url, 400, 400, baseUrl);
@@ -461,7 +466,12 @@ router.get('/:id/view', async (req: Request, res: Response) => {
     // BURN AFTER READING SESSION VALIDATION
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     if (img.is_one_time_view) {
+      console.log(`[BURN /view] id: ${id}, hasToken: ${Boolean(token)}`);
+
       if (!token) {
+        if (req.accepts('html') && !req.xhr && !req.headers['sec-fetch-dest']?.includes('image')) {
+          return res.redirect(`/i/${id}`);
+        }
         return res.status(401).json({
           error: 'Bu tek kullanımlık görsel için oturum anahtarı (token) gereklidir.',
         });

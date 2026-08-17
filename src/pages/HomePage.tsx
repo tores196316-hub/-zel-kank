@@ -16,7 +16,8 @@ import {
   Maximize2,
   HardDrive,
   RefreshCw,
-  ExternalLink
+  ExternalLink,
+  Flame
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Logo } from '../components/Logo';
@@ -237,28 +238,35 @@ export const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center gap-4">
-                  <div className="w-20 h-20 rounded-xl bg-black border border-slate-800 overflow-hidden shrink-0">
-                    <img
-                      src={formatImageUrl(recentUploadResult.thumbnail_url || recentUploadResult.direct_url)}
-                      alt="Yüklenen resim"
-                      className="w-full h-full object-cover"
-                    />
+                  <div className="w-20 h-20 rounded-xl bg-black border border-slate-800 overflow-hidden shrink-0 flex items-center justify-center">
+                    {recentUploadResult.is_one_time_view ? (
+                      <div className="flex flex-col items-center justify-center p-2 text-center text-rose-400">
+                        <Flame className="w-7 h-7 animate-pulse" />
+                        <span className="text-[9px] font-bold mt-1">1 Görüntüleme</span>
+                      </div>
+                    ) : (
+                      <img
+                        src={formatImageUrl(recentUploadResult.thumbnail_url || recentUploadResult.direct_url)}
+                        alt="Yüklenen resim"
+                        className="w-full h-full object-cover"
+                      />
+                    )}
                   </div>
 
                   <div className="flex-1 w-full space-y-2">
                     <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                      Direkt Resim Bağlantısı (CDN)
+                      {recentUploadResult.is_one_time_view ? 'Güvenli Paylaşım Bağlantısı (Tek Kullanımlık)' : 'Direkt Resim Bağlantısı (CDN)'}
                     </label>
                     <div className="flex items-center gap-2">
                       <input
                         type="text"
                         readOnly
-                        value={recentUploadResult.direct_url}
+                        value={recentUploadResult.is_one_time_view ? recentUploadResult.share_url : recentUploadResult.direct_url}
                         className="flex-1 bg-[#070B14] border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-slate-200 focus:outline-none"
                       />
                       <button
-                        onClick={() => copyToClipboard(recentUploadResult.direct_url, 'Direkt URL')}
-                        className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer active:scale-95"
+                        onClick={() => copyToClipboard(recentUploadResult.is_one_time_view ? recentUploadResult.share_url : recentUploadResult.direct_url, recentUploadResult.is_one_time_view ? 'Güvenli Paylaşım Linki' : 'Direkt URL')}
+                        className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer active:scale-95 shrink-0"
                       >
                         <Copy className="w-3.5 h-3.5" />
                         <span>Kopyala</span>
