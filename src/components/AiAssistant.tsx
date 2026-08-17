@@ -87,7 +87,7 @@ const INSTANT_FAQS: QuickFaq[] = [
     shortLabel: 'Ctrl+V Yapıştırma',
     icon: <Zap className="w-3.5 h-3.5" />,
     instantAnswer: `**⚡ Panodan Hızlı Yapıştırma:**
-- **Evet!** Ekran alıntısı aracı (Win + Shift + S) veya panoda kopyalanmış herhangi bir resmi doğrudan AnlıkResim ana sayfasında **Ctrl + V** tuşlarına basarak saniyeler içinde yükleyebilirsiniz.
+- **Evet!** Ekran alıntısı aracı (Win + Shift + S) veya panoda kopyalanmış herhangi bir resmi doğrudan IMGIVO ana sayfasında **Ctrl + V** tuşlarına basarak saniyeler içinde yükleyebilirsiniz.
 - Hiçbir dosya kaydetme zahmetine girmeden anında paylaşım linki oluşturulur.`,
     action: {
       label: 'Hemen Dene',
@@ -116,7 +116,7 @@ const INSTANT_FAQS: QuickFaq[] = [
     shortLabel: 'Saklama Süresi',
     icon: <HelpCircle className="w-3.5 h-3.5" />,
     instantAnswer: `**⏳ Kalıcı ve Süresiz Saklama:**
-- AnlıkResim'e yüklenen tüm resimler kullanım koşullarını ihlal etmediği sürece **ömür boyu süresiz** olarak saklanır.
+- IMGIVO'ya yüklenen tüm resimler kullanım koşullarını ihlal etmediği sürece **ömür boyu süresiz** olarak saklanır.
 - Resimleriniz silinmez veya zaman aşımına uğramaz. Forumlarda, web sitelerinde veya projelerinizde güvenle kullanabilirsiniz.`,
   },
   {
@@ -253,7 +253,7 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({ navigate }) => {
     {
       id: 'welcome',
       role: 'model',
-      text: 'Merhaba! 👋 Ben **AnlıkResim AI Asistanıyım**.\n\nSitemiz hakkında aklınıza takılan her şeyi sorabilir veya aşağıdaki hazır sorulardan birine tıklayarak **ışık hızında** anında bilgi alabilirsiniz.',
+      text: 'Merhaba! 👋 Ben **IMGIVO AI Asistanıyım**.\n\nSitemiz hakkında aklınıza takılan her şeyi sorabilir veya aşağıdaki hazır sorulardan birine tıklayarak **ışık hızında** anında bilgi alabilirsiniz.',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     },
   ]);
@@ -419,7 +419,7 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({ navigate }) => {
       {
         id: 'welcome_' + Date.now(),
         role: 'model',
-        text: 'Sohbet temizlendi. ✨\n\nSize AnlıkResim özellikleri veya resim yükleme hakkında nasıl yardımcı olabilirim?',
+        text: 'Sohbet temizlendi. ✨\n\nSize IMGIVO özellikleri veya resim yükleme hakkında nasıl yardımcı olabilirim?',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       },
     ]);
@@ -503,7 +503,7 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({ navigate }) => {
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <h3 className="text-xs sm:text-sm font-bold text-white leading-none">AnlıkResim AI</h3>
+                    <h3 className="text-xs sm:text-sm font-bold text-white leading-none">IMGIVO AI</h3>
                     <span className="px-1.5 py-0.2 rounded bg-blue-500/20 border border-blue-500/30 text-[9px] font-semibold text-blue-300 flex items-center gap-1">
                       <Zap className="w-2.5 h-2.5" />
                       Işık Hızı

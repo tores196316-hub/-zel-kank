@@ -189,14 +189,14 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({ navigate }) => {
       let albumName = customAlbumName;
       if (!albumName) {
         if (activeFolderTab === 'favorites') {
-          albumName = 'AnlikResim_Favoriler';
+          albumName = 'IMGIVO_Favoriler';
         } else if (activeFolderTab !== 'all') {
           const currentFolder = folders.find((f) => f.id === activeFolderTab);
-          albumName = currentFolder ? `AnlikResim_Album_${currentFolder.name}` : 'AnlikResim_Album';
+          albumName = currentFolder ? `IMGIVO_Album_${currentFolder.name}` : 'IMGIVO_Album';
         } else if (selectedImageIds.size > 0) {
-          albumName = `AnlikResim_Secilen_${selectedImageIds.size}_Resim`;
+          albumName = `IMGIVO_Secilen_${selectedImageIds.size}_Resim`;
         } else {
-          albumName = 'AnlikResim_Tum_Galeri';
+          albumName = 'IMGIVO_Tum_Galeri';
         }
       }
 

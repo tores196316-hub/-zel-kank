@@ -39,7 +39,7 @@ export const AnnouncementsPage: React.FC = () => {
           <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">Sistem Duyuruları</h1>
         </div>
         <p className="text-xs text-slate-400">
-          AnlıkResim platformundaki güncellemeler, yeni özellikler ve sistem bakım duyuruları.
+          IMGIVO platformundaki güncellemeler, yeni özellikler ve sistem bakım duyuruları.
         </p>
       </div>
 

@@ -77,7 +77,7 @@ export async function compressAndConvertImage(
   };
   const targetExt = extensionMap[options.format] || '.webp';
   const baseName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
-  const compressedName = `${baseName}_anlik${targetExt}`;
+  const compressedName = `${baseName}_imgivo${targetExt}`;
 
   return new Promise((resolve) => {
     const img = new Image();

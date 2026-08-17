@@ -16,7 +16,7 @@ export const PrivacyPage: React.FC = () => {
         <section className="space-y-2">
           <h2 className="text-sm font-bold text-white">1. Toplanan Veriler</h2>
           <p className="text-slate-400">
-            AnlıkResim, hizmet kalitesini artırmak ve güvenliği sağlamak amacıyla sınırlı teknik ve hesap bilgisi toplar:
+            IMGIVO, hizmet kalitesini artırmak ve güvenliği sağlamak amacıyla sınırlı teknik ve hesap bilgisi toplar:
           </p>
           <ul className="list-disc list-inside space-y-1 pl-2 text-slate-400">
             <li>Kayıtlı kullanıcılar için e-posta adresi ve kullanıcı adı</li>

@@ -13,18 +13,18 @@ export const Logo: React.FC<LogoProps> = ({
   size = 'md',
   variant = 'horizontal',
   showSlogan = false,
-  badgeText = 'V5',
+  badgeText,
   className = '',
   glow = true,
 }) => {
   // Dimensions according to size
   const iconDimensions = {
     xs: 'w-6 h-6',
-    sm: 'w-8 h-8',
-    md: 'w-10 h-10',
-    lg: 'w-12 h-12',
-    xl: 'w-16 h-16',
-    hero: 'w-24 h-24 sm:w-28 sm:h-28',
+    sm: 'w-8 h-8 sm:w-9 sm:h-9',
+    md: 'w-10 h-10 sm:w-11 sm:h-11',
+    lg: 'w-14 h-14 sm:w-16 sm:h-16',
+    xl: 'w-20 h-20 sm:w-24 sm:h-24',
+    hero: 'w-28 h-28 sm:w-36 sm:h-36',
   }[size];
 
   const typographySizes = {
@@ -34,12 +34,12 @@ export const Logo: React.FC<LogoProps> = ({
       badge: 'text-[8px] px-1 py-0.2',
     },
     sm: {
-      brand: 'text-base font-black',
-      slogan: 'text-[8px]',
+      brand: 'text-base sm:text-lg font-black',
+      slogan: 'text-[8px] sm:text-[9px]',
       badge: 'text-[8px] px-1.5 py-0.5',
     },
     md: {
-      brand: 'text-lg sm:text-xl font-black',
+      brand: 'text-lg sm:text-xl md:text-2xl font-black',
       slogan: 'text-[9px] sm:text-[10px]',
       badge: 'text-[9px] px-1.5 py-0.5',
     },
@@ -60,7 +60,7 @@ export const Logo: React.FC<LogoProps> = ({
     },
   }[size];
 
-  // SVG Icon Component containing the glowing Cloud + Camera + Orbiting Upload Arrow
+  // SVG Icon Component containing the glowing Cloud + 3D Camera Lens + Floating Photo Card + Orbital Ring
   const LogoIcon = (
     <div
       className={`relative flex items-center justify-center shrink-0 ${iconDimensions} ${
@@ -69,120 +69,125 @@ export const Logo: React.FC<LogoProps> = ({
     >
       {/* Background ambient neon flare */}
       {glow && (
-        <div className="absolute inset-0 bg-cyan-500/25 rounded-2xl blur-md -z-10 group-hover:bg-cyan-400/40 transition-colors pointer-events-none" />
+        <div className="absolute inset-0 bg-cyan-500/20 rounded-2xl blur-md -z-10 group-hover:bg-cyan-400/35 transition-colors pointer-events-none" />
       )}
 
       <svg
-        viewBox="0 0 120 120"
+        viewBox="0 0 200 200"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        className="w-full h-full drop-shadow-[0_0_12px_rgba(0,180,255,0.45)]"
+        className="w-full h-full drop-shadow-[0_0_15px_rgba(0,210,255,0.5)]"
       >
         <defs>
-          <linearGradient id="cloudBodyGrad" x1="10%" y1="10%" x2="90%" y2="90%">
-            <stop offset="0%" stopColor="#0284C7" />
-            <stop offset="50%" stopColor="#0369A1" />
-            <stop offset="100%" stopColor="#082F49" />
-          </linearGradient>
-
-          <linearGradient id="neonRimGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#38BDF8" />
-            <stop offset="40%" stopColor="#00F2FE" />
-            <stop offset="80%" stopColor="#0284C7" />
-            <stop offset="100%" stopColor="#38BDF8" />
-          </linearGradient>
-
-          <linearGradient id="orbitArrowGrad" x1="0%" y1="100%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#0284C7" />
-            <stop offset="30%" stopColor="#38BDF8" />
-            <stop offset="80%" stopColor="#E0F2FE" />
-            <stop offset="100%" stopColor="#FFFFFF" />
-          </linearGradient>
-
-          <linearGradient id="lensGlassGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#0F172A" />
-            <stop offset="40%" stopColor="#0284C7" />
-            <stop offset="100%" stopColor="#00F2FE" />
-          </linearGradient>
-
-          <filter id="neonBlur" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="3.5" result="blur" />
+          {/* Ambient Neon Glow */}
+          <filter id="cortexNeonGlow" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="5" result="blur" />
             <feMerge>
               <feMergeNode in="blur" />
               <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>
+
+          <filter id="cortexSoftGlow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="2.5" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+
+          {/* Gradients */}
+          <linearGradient id="cloudGradComp" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#0284c7" />
+            <stop offset="60%" stopColor="#2563eb" />
+            <stop offset="100%" stopColor="#7c3aed" />
+          </linearGradient>
+
+          <linearGradient id="cloudRimComp" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#38bdf8" />
+            <stop offset="50%" stopColor="#818cf8" />
+            <stop offset="100%" stopColor="#c084fc" />
+          </linearGradient>
+
+          <radialGradient id="lensReflectComp" cx="45%" cy="40%" r="60%">
+            <stop offset="0%" stopColor="#38bdf8" />
+            <stop offset="35%" stopColor="#0284c7" />
+            <stop offset="70%" stopColor="#0f172a" />
+            <stop offset="100%" stopColor="#020617" />
+          </radialGradient>
+
+          <linearGradient id="orbitGradComp" x1="0%" y1="50%" x2="100%" y2="50%">
+            <stop offset="0%" stopColor="#38bdf8" />
+            <stop offset="50%" stopColor="#00f2fe" />
+            <stop offset="85%" stopColor="#a855f7" />
+            <stop offset="100%" stopColor="#ec4899" />
+          </linearGradient>
+
+          <linearGradient id="cardGradComp" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#0284c7" />
+            <stop offset="50%" stopColor="#6366f1" />
+            <stop offset="100%" stopColor="#a855f7" />
+          </linearGradient>
         </defs>
 
-        {/* 1. Glowing Cloud Layer */}
-        <g filter="url(#neonBlur)">
-          <path
-            d="M34 74 C20 74 14 61 21 49 C25 42 32 37 40 39 C44 26 60 20 73 26 C80 29 84 36 86 42 C97 41 106 50 103 61 C101 70 93 74 83 74 Z"
-            fill="url(#cloudBodyGrad)"
-            stroke="url(#neonRimGrad)"
-            strokeWidth="3.2"
-            strokeLinejoin="round"
-          />
+        {/* Ambient Cloud Aura */}
+        <path
+          d="M60 120 C35 120 25 102 36 84 C41 74 53 66 65 69 C72 49 98 38 118 48 C128 53 135 63 138 73 C155 72 169 86 165 103 C163 117 150 123 135 123 Z"
+          fill="url(#cloudGradComp)"
+          opacity="0.35"
+          filter="url(#cortexNeonGlow)"
+        />
+
+        {/* Cloud Body Rim */}
+        <path
+          d="M60 118 C38 118 30 102 39 86 C44 77 55 70 66 73 C72 54 96 44 115 53 C124 57 130 66 133 75 C149 74 161 87 157 102 C154 114 142 119 129 119 Z"
+          fill="url(#cloudGradComp)"
+          stroke="url(#cloudRimComp)"
+          strokeWidth="3.5"
+          filter="url(#cortexSoftGlow)"
+        />
+
+        {/* Camera Body */}
+        <g transform="translate(48, 56)">
+          <path d="M34 6 L39 1 L65 1 L70 6 Z" fill="#0A1020" stroke="#38bdf8" strokeWidth="2.2" strokeLinejoin="round" />
+          <circle cx="80" cy="16" r="3" fill="#38bdf8" filter="url(#cortexSoftGlow)" />
+          
+          <rect x="14" y="6" width="76" height="54" rx="14" fill="#070D1D" stroke="#38bdf8" strokeWidth="2.5" />
+          <rect x="16" y="8" width="72" height="50" rx="12" fill="#0A1020" />
+
+          <circle cx="52" cy="33" r="22" fill="#030712" stroke="#38bdf8" strokeWidth="2.5" />
+          <circle cx="52" cy="33" r="18" fill="url(#lensReflectComp)" stroke="#00f2fe" strokeWidth="1.8" />
+          
+          <circle cx="52" cy="33" r="10" fill="#020617" />
+          <circle cx="48" cy="29" r="4" fill="#38bdf8" opacity="0.85" />
+          <circle cx="55" cy="35" r="2" fill="#ffffff" opacity="0.95" />
         </g>
 
-        {/* 2. Sleek Dark Metallic Camera */}
-        <g transform="translate(33, 38)">
-          {/* Top Shutter Notch */}
-          <path
-            d="M17 6 L21 2 L33 2 L37 6 Z"
-            fill="#090E17"
-            stroke="#38BDF8"
-            strokeWidth="1.8"
-            strokeLinejoin="round"
-          />
-          {/* Flash Sensor */}
-          <circle cx="43" cy="11" r="2.5" fill="#38BDF8" />
-          <circle cx="43" cy="11" r="1" fill="#FFFFFF" />
-
-          {/* Camera Housing */}
-          <rect
-            x="6"
-            y="6"
-            width="42"
-            height="29"
-            rx="7"
-            fill="#0B132B"
-            stroke="#38BDF8"
-            strokeWidth="2.2"
-          />
-
-          {/* Outer Lens Bezel */}
-          <circle cx="27" cy="20.5" r="11" fill="#070D1D" stroke="#00F2FE" strokeWidth="2" />
-          {/* Inner Optics */}
-          <circle cx="27" cy="20.5" r="7.5" fill="url(#lensGlassGrad)" />
-          {/* Lens Glass Glint */}
-          <circle cx="29.5" cy="17.5" r="2.4" fill="#FFFFFF" opacity="0.9" />
+        {/* Floating Photo Card on Top-Right */}
+        <g transform="translate(108, 62) rotate(14)">
+          <rect x="0" y="0" width="38" height="38" rx="8" fill="#0A1020" stroke="#a855f7" strokeWidth="2.5" filter="url(#cortexSoftGlow)" />
+          <rect x="3" y="3" width="32" height="32" rx="6" fill="url(#cardGradComp)" opacity="0.9" />
+          <circle cx="24" cy="11" r="3.5" fill="#ffffff" opacity="0.9" />
+          <path d="M6 29 L16 16 L22 23 L26 19 L32 29 Z" fill="#070D1D" opacity="0.85" />
         </g>
 
-        {/* 3. Orbiting Upward Arrow (Fast Upload Motion) */}
-        <g filter="url(#neonBlur)">
-          {/* Swoosh Trail */}
+        {/* Orbiting Glowing Light Streak Ring */}
+        <g filter="url(#cortexNeonGlow)">
           <path
-            d="M26 80 C36 89 54 91 72 87 C83 83 91 75 99 64"
+            d="M38 100 C34 116 58 132 100 128 C136 125 158 108 160 92"
             fill="none"
-            stroke="url(#orbitArrowGrad)"
-            strokeWidth="5"
+            stroke="url(#orbitGradComp)"
+            strokeWidth="5.5"
             strokeLinecap="round"
           />
-          {/* Dynamic Arrowhead */}
-          <path
-            d="M86 58 L103 60 L97 77 Z"
-            fill="url(#orbitArrowGrad)"
-            stroke="#FFFFFF"
-            strokeWidth="1"
-            strokeLinejoin="round"
-          />
         </g>
 
-        {/* 4. Electric Flash Sparkles */}
-        <line x1="91" y1="26" x2="91" y2="19" stroke="#38BDF8" strokeWidth="2.4" strokeLinecap="round" />
-        <line x1="98" y1="30" x2="105" y2="25" stroke="#38BDF8" strokeWidth="2.4" strokeLinecap="round" />
-        <line x1="102" y1="39" x2="109" y2="39" stroke="#38BDF8" strokeWidth="2.4" strokeLinecap="round" />
+        {/* Sparkles */}
+        <g fill="#38bdf8" filter="url(#cortexSoftGlow)">
+          <path d="M142 42 Q144 48 150 50 Q144 52 142 58 Q140 52 134 50 Q140 48 142 42 Z" />
+          <path d="M48 48 Q49 53 54 54 Q49 55 48 60 Q47 55 42 54 Q47 53 48 48 Z" fill="#60a5fa" />
+          <path d="M168 118 Q169 121 172 122 Q169 123 168 126 Q167 123 164 122 Q167 121 168 118 Z" fill="#c084fc" />
+        </g>
       </svg>
     </div>
   );
@@ -205,13 +210,13 @@ export const Logo: React.FC<LogoProps> = ({
         {/* Brand Text */}
         <div className="mt-3 flex items-baseline justify-center gap-1.5">
           <span
-            className={`${typographySizes.brand} tracking-tight text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]`}
+            className={`${typographySizes.brand} tracking-tight text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]`}
           >
-            Anlık<span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-cyan-300 to-blue-500 drop-shadow-[0_0_15px_rgba(56,189,248,0.6)]">Resim</span>
+            IMG<span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-indigo-400 to-fuchsia-400 drop-shadow-[0_0_18px_rgba(56,189,248,0.7)]">IVO</span>
           </span>
           {badgeText && (
             <span
-              className={`${typographySizes.badge} font-extrabold rounded-md bg-blue-500/15 text-blue-400 border border-blue-500/30 uppercase tracking-wider`}
+              className={`${typographySizes.badge} font-extrabold rounded-md bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 uppercase tracking-wider`}
             >
               {badgeText}
             </span>
@@ -220,14 +225,14 @@ export const Logo: React.FC<LogoProps> = ({
 
         {/* Subtitle / Slogan */}
         {(showSlogan || variant === 'banner' || variant === 'full') && (
-          <div className="mt-2 flex items-center justify-center gap-2.5 w-full max-w-xs sm:max-w-sm">
-            <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-cyan-500/60 to-transparent" />
+          <div className="mt-2.5 flex items-center justify-center gap-3 w-full max-w-xs sm:max-w-sm">
+            <div className="h-[1.5px] flex-1 bg-gradient-to-r from-transparent via-cyan-400 to-cyan-500/50" />
             <span
-              className={`${typographySizes.slogan} font-black text-slate-300 uppercase tracking-[0.18em] whitespace-nowrap`}
+              className={`${typographySizes.slogan} font-black text-slate-300 uppercase tracking-[0.2em] whitespace-nowrap`}
             >
-              HIZLI <span className="text-cyan-400">•</span> GÜVENLİ <span className="text-cyan-400">•</span> SINIRSIZ
+              SHARE <span className="text-cyan-400">•</span> STORE <span className="text-purple-400">•</span> ENJOY
             </span>
-            <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-cyan-500/60 to-transparent" />
+            <div className="h-[1.5px] flex-1 bg-gradient-to-l from-transparent via-fuchsia-400 to-purple-500/50" />
           </div>
         )}
       </div>
@@ -242,13 +247,13 @@ export const Logo: React.FC<LogoProps> = ({
       <div className="flex flex-col justify-center text-left">
         <div className="flex items-center gap-1.5 leading-none">
           <span
-            className={`${typographySizes.brand} tracking-tight text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.5)]`}
+            className={`${typographySizes.brand} tracking-tight text-white drop-shadow-[0_1px_6px_rgba(0,0,0,0.6)]`}
           >
-            Anlık<span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-cyan-300 drop-shadow-[0_0_10px_rgba(56,189,248,0.5)]">Resim</span>
+            IMG<span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-indigo-300 to-fuchsia-400 drop-shadow-[0_0_12px_rgba(56,189,248,0.6)]">IVO</span>
           </span>
           {badgeText && (
             <span
-              className={`${typographySizes.badge} font-black rounded-md bg-blue-500/15 text-blue-400 border border-blue-500/30 uppercase tracking-wider`}
+              className={`${typographySizes.badge} font-black rounded-md bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 uppercase tracking-wider`}
             >
               {badgeText}
             </span>
@@ -258,7 +263,7 @@ export const Logo: React.FC<LogoProps> = ({
         {showSlogan && (
           <div className="mt-1 flex items-center gap-1">
             <span className={`${typographySizes.slogan} font-bold text-slate-400 uppercase tracking-widest leading-none`}>
-              HIZLI • GÜVENLİ • SINIRSIZ
+              SHARE • STORE • ENJOY
             </span>
           </div>
         )}
@@ -266,3 +271,4 @@ export const Logo: React.FC<LogoProps> = ({
     </div>
   );
 };
+

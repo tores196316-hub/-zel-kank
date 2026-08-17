@@ -11,7 +11,7 @@ export const AboutPage: React.FC = () => {
         </div>
         <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">Hakkımızda</h1>
         <p className="text-slate-300 text-xs sm:text-sm max-w-xl mx-auto leading-relaxed">
-          AnlıkResim, kullanıcıların yüksek kalitede resimlerini saniyeler içinde yükleyip tüm dijital platformlarda paylaşabilmesi için tasarlanmış yeni nesil resim barındırma servisidir.
+          IMGIVO, kullanıcıların yüksek kalitede resimlerini saniyeler içinde yükleyip tüm dijital platformlarda paylaşabilmesi için tasarlanmış yeni nesil resim barındırma servisidir.
         </p>
       </div>
 

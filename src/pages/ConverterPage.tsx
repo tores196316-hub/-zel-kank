@@ -177,7 +177,7 @@ export const ConverterPage: React.FC<ConverterPageProps> = ({ navigate }) => {
 
       const timestamp = new Date().toISOString().slice(0, 10);
       const formatLabel = targetFormat.replace('image/', '').toUpperCase();
-      await exportImagesToZip(itemsToZip, `AnlikResim_${formatLabel}_Sikistirilmis_${timestamp}.zip`, (p) => {
+      await exportImagesToZip(itemsToZip, `IMGIVO_${formatLabel}_Sikistirilmis_${timestamp}.zip`, (p) => {
         setZipProgress(p);
       });
 
@@ -190,7 +190,7 @@ export const ConverterPage: React.FC<ConverterPageProps> = ({ navigate }) => {
     }
   };
 
-  // Upload compressed files directly to AnlıkResim gallery
+  // Upload compressed files directly to IMGIVO gallery
   const handleUploadAllToGallery = async () => {
     if (!user) {
       showToast('Resimleri galerinize yüklemek için lütfen giriş yapın.', 'info');
@@ -544,7 +544,7 @@ export const ConverterPage: React.FC<ConverterPageProps> = ({ navigate }) => {
                 <span>{isZipping ? `ZIP Hazırlanıyor (${zipProgress?.percent || 0}%)...` : 'Tümünü ZIP Olarak İndir'}</span>
               </button>
 
-              {/* Direct Upload to AnlıkResim */}
+              {/* Direct Upload to IMGIVO */}
               <button
                 type="button"
                 onClick={handleUploadAllToGallery}

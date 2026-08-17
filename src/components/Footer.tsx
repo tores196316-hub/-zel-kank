@@ -110,7 +110,7 @@ export const Footer: React.FC<FooterProps> = ({ navigate }) => {
 
         {/* Bottom Trust & Copyright Row */}
         <div className="pt-8 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
-          <p>© 2026 AnlıkResim. Tüm hakları saklıdır.</p>
+          <p>© 2026 IMGIVO. Tüm hakları saklıdır.</p>
           <div className="flex items-center gap-6">
             <span className="flex items-center gap-1.5 text-slate-300">
               <Zap className="w-3.5 h-3.5 text-sky-400" />

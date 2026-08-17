@@ -741,7 +741,7 @@ export const ImageEditorModal: React.FC<ImageEditorModalProps> = ({
                       type="text"
                       value={watermarkText}
                       onChange={(e) => setWatermarkText(e.target.value)}
-                      placeholder="Örn: © AnlıkResim / Ahmet"
+                      placeholder="Örn: © IMGIVO / Ahmet"
                       className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-xs placeholder-slate-500 focus:ring-1 focus:ring-blue-500"
                     />
                   </div>

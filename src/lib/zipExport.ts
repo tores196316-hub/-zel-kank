@@ -12,11 +12,11 @@ export interface ZipExportProgress {
  */
 export async function exportImagesToZip(
   items: Array<{ url: string; filename: string }>,
-  zipName = 'AnlikResim_Export.zip',
+  zipName = 'IMGIVO_Export.zip',
   onProgress?: (progress: ZipExportProgress) => void
 ): Promise<void> {
   const zip = new JSZip();
-  const folder = zip.folder('AnlikResim') || zip;
+  const folder = zip.folder('IMGIVO') || zip;
   const usedNames = new Set<string>();
 
   for (let i = 0; i < items.length; i++) {

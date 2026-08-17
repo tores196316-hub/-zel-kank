@@ -43,6 +43,7 @@ import {
   Megaphone,
   Check,
   X,
+  Zap,
   Calendar,
   Smartphone
 } from 'lucide-react';
@@ -466,7 +467,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
           <div>
             <div className="flex items-center gap-2.5 flex-wrap">
               <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-                AnlıkResim V6 — Admin Paneli
+                IMGIVO — Admin Paneli
               </h1>
               <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
                 PRO V1

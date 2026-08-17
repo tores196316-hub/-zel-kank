@@ -332,11 +332,11 @@ export const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
       </section>
 
       {/* ━━━━━━━━━━━━━━━━━━━━
-          6. "NEDEN ANLIKRESİM?" SECTION
+          6. "NEDEN IMGIVO?" SECTION
           ━━━━━━━━━━━━━━━━━━━━ */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 space-y-10">
         <div className="text-center space-y-2">
-          <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight">Neden AnlıkResim?</h2>
+          <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight">Neden IMGIVO?</h2>
           <p className="text-slate-400 text-xs sm:text-sm max-w-lg mx-auto">
             Hızlı yükleme. Kolay paylaşım. Gereksiz karmaşa yok.
           </p>

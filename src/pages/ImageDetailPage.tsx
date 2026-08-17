@@ -262,7 +262,7 @@ export const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId, navig
     );
   }
 
-  const shareText = encodeURIComponent(`${data.image.original_filename} - AnlıkResim resim barındırma servisi`);
+  const shareText = encodeURIComponent(`${data.image.original_filename} - IMGIVO resim barındırma servisi`);
   const sharePageUrl = encodeURIComponent(data.share_url);
 
   return (

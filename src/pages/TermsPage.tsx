@@ -16,7 +16,7 @@ export const TermsPage: React.FC = () => {
         <section className="space-y-2">
           <h2 className="text-sm font-bold text-white">1. Hizmet Şartlarının Kabulü</h2>
           <p className="text-slate-400">
-            AnlıkResim web sitesini ve servislerini kullanarak aşağıdaki kullanım şartlarını kabul etmiş sayılırsınız. Şartları kabul etmiyorsanız lütfen servisi kullanmayınız.
+            IMGIVO web sitesini ve servislerini kullanarak aşağıdaki kullanım şartlarını kabul etmiş sayılırsınız. Şartları kabul etmiyorsanız lütfen servisi kullanmayınız.
           </p>
         </section>
 
@@ -34,7 +34,7 @@ export const TermsPage: React.FC = () => {
         <section className="space-y-2 pt-4 border-t border-slate-800">
           <h2 className="text-sm font-bold text-white">3. Sorumluluk Reddi</h2>
           <p className="text-slate-400">
-            AnlıkResim, kullanıcılar tarafından yüklenen resimlerin içeriğinden sorumlu tutulamaz. Telif veya hak ihlali bildirimleri için bildirim modülünü kullanabilirsiniz.
+            IMGIVO, kullanıcılar tarafından yüklenen resimlerin içeriğinden sorumlu tutulamaz. Telif veya hak ihlali bildirimleri için bildirim modülünü kullanabilirsiniz.
           </p>
         </section>
       </div>
