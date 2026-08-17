@@ -31,7 +31,7 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
   // Security & Expiration settings
   const [uploadPassword, setUploadPassword] = useState<string>('');
   const [uploadExpiration, setUploadExpiration] = useState<string>('none');
-  const [showSecurityOptions, setShowSecurityOptions] = useState<boolean>(false);
+  const [isPasswordOpen, setIsPasswordOpen] = useState<boolean>(false);
 
   // Editor Modal state
   const [editingFile, setEditingFile] = useState<UploadProgressFile | null>(null);
@@ -272,121 +272,25 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
       {completedResults.length === 0 && (
         <div className="space-y-6">
           
-          {/* Top Options Bar: Folder Selection & Security Settings Toggle */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {isLoggedIn && folders.length > 0 ? (
-              <div className="bg-[#0A1020] border border-slate-800 rounded-2xl p-3.5 flex items-center justify-between gap-3 shadow-sm">
-                <div className="flex items-center gap-2 text-slate-300 text-xs font-semibold">
-                  <FolderIcon className="w-4 h-4 text-sky-400" />
-                  <span>Hedef Klasör:</span>
-                </div>
-                <select
-                  value={selectedFolderId}
-                  onChange={(e) => setSelectedFolderId(e.target.value)}
-                  className="bg-[#070B14] text-slate-200 border border-slate-700/80 rounded-xl px-3 py-1.5 text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none"
-                >
-                  <option value="">Klasörsüz (Genel Galeri)</option>
-                  {folders.map((f) => (
-                    <option key={f.id} value={f.id}>
-                      📁 {f.name}
-                    </option>
-                  ))}
-                </select>
+          {/* Target Folder Selection (if logged in and user has folders) */}
+          {isLoggedIn && folders.length > 0 && (
+            <div className="bg-[#0A1020] border border-slate-800 rounded-2xl p-3 sm:p-3.5 flex items-center justify-between gap-3 shadow-sm">
+              <div className="flex items-center gap-2 text-slate-300 text-xs font-semibold">
+                <FolderIcon className="w-4 h-4 text-sky-400 shrink-0" />
+                <span>Hedef Klasör:</span>
               </div>
-            ) : (
-              <div className="hidden sm:block" />
-            )}
-
-            {/* Security Options Toggle Button */}
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={() => setShowSecurityOptions((prev) => !prev)}
-                className={`w-full sm:w-auto px-4 py-2.5 rounded-2xl border text-xs font-bold flex items-center justify-center sm:justify-start gap-2 transition cursor-pointer ${
-                  showSecurityOptions || uploadPassword || uploadExpiration !== 'none'
-                    ? 'bg-sky-500/15 border-sky-500/40 text-sky-300'
-                    : 'bg-[#0A1020] border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800/80'
-                }`}
+              <select
+                value={selectedFolderId}
+                onChange={(e) => setSelectedFolderId(e.target.value)}
+                className="bg-[#070B14] text-slate-200 border border-slate-700/80 rounded-xl px-3 py-1.5 text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none cursor-pointer"
               >
-                <Shield className="w-4 h-4 text-sky-400" />
-                <span>Güvenlik & Süre Ayarları</span>
-                {(uploadPassword || uploadExpiration !== 'none') && (
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                )}
-              </button>
-            </div>
-          </div>
-
-          {/* Security & Expiration Accordion Panel */}
-          {showSecurityOptions && (
-            <div className="bg-[#0A1020] border border-sky-500/30 rounded-3xl p-5 sm:p-6 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                <div className="flex items-center gap-2 text-white text-xs sm:text-sm font-bold">
-                  <Lock className="w-4 h-4 text-sky-400" />
-                  <span>Şifreli Paylaşım & Otomatik İmha Ayarları</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowSecurityOptions(false)}
-                  className="text-xs text-slate-400 hover:text-white cursor-pointer"
-                >
-                  Kapat
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
-                {/* 1. Password Protection */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                    <Key className="w-3.5 h-3.5 text-amber-400" />
-                    <span>Şifre Koruması (İsteğe Bağlı)</span>
-                  </label>
-                  <p className="text-[11px] text-slate-400">
-                    Belirlediğiniz şifreyi bilmeyenler resmi görüntüleyemez.
-                  </p>
-                  <input
-                    type="password"
-                    value={uploadPassword}
-                    onChange={(e) => setUploadPassword(e.target.value)}
-                    placeholder="Resim için şifre belirleyin..."
-                    className="w-full bg-[#070B14] border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:ring-2 focus:ring-sky-500 focus:outline-none"
-                  />
-                </div>
-
-                {/* 2. Auto Expiration / Self-Destruct */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-rose-400" />
-                    <span>Otomatik Silinme & İmha Süresi</span>
-                  </label>
-                  <p className="text-[11px] text-slate-400">
-                    Süre dolduğunda resim kalıcı olarak sistemden silinir.
-                  </p>
-                  <select
-                    value={uploadExpiration}
-                    onChange={(e) => setUploadExpiration(e.target.value)}
-                    className="w-full bg-[#070B14] text-slate-200 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none"
-                  >
-                    <option value="none">⏳ Süresiz (Kalıcı Saklama)</option>
-                    <option value="1view">🔥 1 Görüntüleme Sonrası İmha (Burn after reading)</option>
-                    <option value="10m">⚡ 10 Dakika Sonra Sil</option>
-                    <option value="1h">⏱️ 1 Saat Sonra Sil</option>
-                    <option value="24h">📅 24 Saat Sonra Sil</option>
-                    <option value="7d">🗓️ 7 Gün Sonra Sil</option>
-                    <option value="30d">📆 30 Gün Sonra Sil</option>
-                  </select>
-                </div>
-              </div>
-
-              {(uploadPassword || uploadExpiration !== 'none') && (
-                <div className="p-3 rounded-xl bg-sky-500/10 border border-sky-500/20 text-xs text-sky-300 flex items-center gap-2">
-                  <Shield className="w-4 h-4 shrink-0 text-sky-400" />
-                  <span>
-                    Aktif Güvenlik: {uploadPassword ? '🔒 Şifreli' : ''} {uploadPassword && uploadExpiration !== 'none' ? ' ve ' : ''}
-                    {uploadExpiration === '1view' ? '🔥 Tek Görüntüleme Sonrası İmha' : uploadExpiration !== 'none' ? `⏳ ${uploadExpiration} Süreli` : ''}
-                  </span>
-                </div>
-              )}
+                <option value="">Klasörsüz (Genel Galeri)</option>
+                {folders.map((f) => (
+                  <option key={f.id} value={f.id}>
+                    📁 {f.name}
+                  </option>
+                ))}
+              </select>
             </div>
           )}
 
@@ -463,6 +367,279 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
                 ))}
               </div>
             </div>
+          </div>
+
+          {/* Paylaşım Ayarları (V5 Midnight Redesign) */}
+          <div className="bg-[#0A1020] border border-slate-800/80 rounded-3xl p-4 sm:p-6 space-y-4 shadow-xl">
+            <div className="space-y-1">
+              <h2 className="text-xs sm:text-sm font-bold text-white tracking-tight flex items-center gap-2">
+                <Shield className="w-4 h-4 text-cyan-400" />
+                <span>Paylaşım Ayarları</span>
+              </h2>
+              <p className="text-[11px] text-slate-400">
+                Resmin bağlantısını ne kadar süreyle ve nasıl paylaşmak istediğini seç.
+              </p>
+            </div>
+
+            {/* 4 Modern Selectable Cards (2 columns on mobile, 4 on desktop) */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
+              {/* 1. Normal Paylaşım */}
+              <button
+                type="button"
+                onClick={() => {
+                  setUploadExpiration('none');
+                  setUploadPassword('');
+                  setIsPasswordOpen(false);
+                }}
+                className={`p-3 sm:p-4 rounded-2xl border text-left flex flex-col justify-between transition-all duration-200 cursor-pointer min-h-[110px] sm:min-h-[120px] ${
+                  uploadExpiration === 'none' && !uploadPassword && !isPasswordOpen
+                    ? 'bg-cyan-950/20 border-cyan-500/60 shadow-lg shadow-cyan-500/10 ring-1 ring-cyan-500/30'
+                    : 'bg-[#070B14] border-slate-800 hover:border-slate-700 hover:bg-[#0C1222]'
+                }`}
+              >
+                <div className="flex items-center justify-between w-full">
+                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
+                    uploadExpiration === 'none' && !uploadPassword && !isPasswordOpen
+                      ? 'bg-cyan-500/20 text-cyan-400'
+                      : 'bg-slate-800/60 text-slate-400'
+                  }`}>
+                    <ImageIcon className="w-4 h-4" />
+                  </div>
+                  {uploadExpiration === 'none' && !uploadPassword && !isPasswordOpen && (
+                    <div className="w-4 h-4 rounded-full bg-cyan-500 text-black flex items-center justify-center">
+                      <Check className="w-2.5 h-2.5 stroke-[3]" />
+                    </div>
+                  )}
+                </div>
+                <div className="mt-2 space-y-0.5">
+                  <p className={`text-xs font-bold ${
+                    uploadExpiration === 'none' && !uploadPassword && !isPasswordOpen ? 'text-cyan-300' : 'text-white'
+                  }`}>
+                    Normal Paylaşım
+                  </p>
+                  <p className="text-[10px] sm:text-[11px] text-slate-400 line-clamp-2 leading-tight">
+                    Resmin bağlantısı normal şekilde kullanılabilir.
+                  </p>
+                </div>
+              </button>
+
+              {/* 2. 1 Görüntüleme Sonrası İmha */}
+              <button
+                type="button"
+                onClick={() => {
+                  setUploadExpiration('1view');
+                }}
+                className={`p-3 sm:p-4 rounded-2xl border text-left flex flex-col justify-between transition-all duration-200 cursor-pointer min-h-[110px] sm:min-h-[120px] ${
+                  uploadExpiration === '1view'
+                    ? 'bg-rose-950/25 border-rose-500/60 shadow-lg shadow-rose-500/10 ring-1 ring-rose-500/30'
+                    : 'bg-[#070B14] border-slate-800 hover:border-slate-700 hover:bg-[#0C1222]'
+                }`}
+              >
+                <div className="flex items-center justify-between w-full">
+                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
+                    uploadExpiration === '1view'
+                      ? 'bg-rose-500/20 text-rose-400'
+                      : 'bg-slate-800/60 text-slate-400'
+                  }`}>
+                    <Flame className={`w-4 h-4 ${uploadExpiration === '1view' ? 'animate-pulse' : ''}`} />
+                  </div>
+                  {uploadExpiration === '1view' ? (
+                    <div className="w-4 h-4 rounded-full bg-rose-500 text-white flex items-center justify-center">
+                      <Check className="w-2.5 h-2.5 stroke-[3]" />
+                    </div>
+                  ) : (
+                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                      TEK
+                    </span>
+                  )}
+                </div>
+                <div className="mt-2 space-y-0.5">
+                  <div className="flex items-center gap-1">
+                    <p className={`text-xs font-bold ${
+                      uploadExpiration === '1view' ? 'text-rose-300' : 'text-white'
+                    }`}>
+                      1 Görüntüleme
+                    </p>
+                  </div>
+                  <p className="text-[10px] sm:text-[11px] text-slate-400 line-clamp-2 leading-tight">
+                    Resim bir kez görüntülendikten sonra kalıcı olarak silinir.
+                  </p>
+                </div>
+              </button>
+
+              {/* 3. Süreli Paylaşım */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (uploadExpiration === 'none' || uploadExpiration === '1view') {
+                    setUploadExpiration('24h');
+                  }
+                }}
+                className={`p-3 sm:p-4 rounded-2xl border text-left flex flex-col justify-between transition-all duration-200 cursor-pointer min-h-[110px] sm:min-h-[120px] ${
+                  ['10m', '1h', '24h', '7d', '30d'].includes(uploadExpiration)
+                    ? 'bg-sky-950/20 border-sky-500/60 shadow-lg shadow-sky-500/10 ring-1 ring-sky-500/30'
+                    : 'bg-[#070B14] border-slate-800 hover:border-slate-700 hover:bg-[#0C1222]'
+                }`}
+              >
+                <div className="flex items-center justify-between w-full">
+                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
+                    ['10m', '1h', '24h', '7d', '30d'].includes(uploadExpiration)
+                      ? 'bg-sky-500/20 text-sky-400'
+                      : 'bg-slate-800/60 text-slate-400'
+                  }`}>
+                    <Clock className="w-4 h-4" />
+                  </div>
+                  {['10m', '1h', '24h', '7d', '30d'].includes(uploadExpiration) && (
+                    <div className="w-4 h-4 rounded-full bg-sky-500 text-black flex items-center justify-center">
+                      <Check className="w-2.5 h-2.5 stroke-[3]" />
+                    </div>
+                  )}
+                </div>
+                <div className="mt-2 space-y-0.5">
+                  <p className={`text-xs font-bold ${
+                    ['10m', '1h', '24h', '7d', '30d'].includes(uploadExpiration) ? 'text-sky-300' : 'text-white'
+                  }`}>
+                    Süreli Paylaşım
+                  </p>
+                  <p className="text-[10px] sm:text-[11px] text-slate-400 line-clamp-2 leading-tight">
+                    Resim belirlediğin sürenin sonunda otomatik olarak silinir.
+                  </p>
+                </div>
+              </button>
+
+              {/* 4. Şifreli Paylaşım */}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsPasswordOpen((prev) => !prev);
+                }}
+                className={`p-3 sm:p-4 rounded-2xl border text-left flex flex-col justify-between transition-all duration-200 cursor-pointer min-h-[110px] sm:min-h-[120px] ${
+                  uploadPassword || isPasswordOpen
+                    ? 'bg-amber-950/20 border-amber-500/60 shadow-lg shadow-amber-500/10 ring-1 ring-amber-500/30'
+                    : 'bg-[#070B14] border-slate-800 hover:border-slate-700 hover:bg-[#0C1222]'
+                }`}
+              >
+                <div className="flex items-center justify-between w-full">
+                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
+                    uploadPassword || isPasswordOpen
+                      ? 'bg-amber-500/20 text-amber-400'
+                      : 'bg-slate-800/60 text-slate-400'
+                  }`}>
+                    <Key className="w-4 h-4" />
+                  </div>
+                  {uploadPassword ? (
+                    <div className="w-4 h-4 rounded-full bg-amber-500 text-black flex items-center justify-center">
+                      <Check className="w-2.5 h-2.5 stroke-[3]" />
+                    </div>
+                  ) : isPasswordOpen ? (
+                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300">
+                      AÇIK
+                    </span>
+                  ) : null}
+                </div>
+                <div className="mt-2 space-y-0.5">
+                  <p className={`text-xs font-bold ${
+                    uploadPassword || isPasswordOpen ? 'text-amber-300' : 'text-white'
+                  }`}>
+                    Şifre Koy
+                  </p>
+                  <p className="text-[10px] sm:text-[11px] text-slate-400 line-clamp-2 leading-tight">
+                    Resmi görüntülemek için şifre gerektir.
+                  </p>
+                </div>
+              </button>
+            </div>
+
+            {/* Contextual Info & Control Panels */}
+            
+            {/* A) Burn After Reading Notice Banner */}
+            {uploadExpiration === '1view' && (
+              <div className="p-3.5 rounded-2xl bg-rose-950/25 border border-rose-500/30 text-rose-300 text-xs flex items-start gap-3 animate-in fade-in duration-200">
+                <Flame className="w-4 h-4 text-rose-400 shrink-0 mt-0.5 animate-pulse" />
+                <div className="space-y-0.5">
+                  <p className="font-bold text-rose-200">🔥 Tek kullanımlık bağlantı</p>
+                  <p className="text-[11px] text-rose-300/90 leading-relaxed">
+                    Bu resim yalnızca bir kez görüntülenebilir. Görüntüleme oturumu sona erdiğinde resim kalıcı olarak imha edilir.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* B) Timed Expiration Selector Pills */}
+            {['10m', '1h', '24h', '7d', '30d'].includes(uploadExpiration) && (
+              <div className="p-3.5 rounded-2xl bg-[#070B14] border border-sky-500/30 space-y-2 animate-in fade-in duration-200">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-sky-400" />
+                    <span>Otomatik Silinme Süresi:</span>
+                  </span>
+                  <span className="text-[11px] font-mono text-sky-400 font-bold">
+                    {uploadExpiration === '10m' && '10 Dakika'}
+                    {uploadExpiration === '1h' && '1 Saat'}
+                    {uploadExpiration === '24h' && '24 Saat'}
+                    {uploadExpiration === '7d' && '7 Gün'}
+                    {uploadExpiration === '30d' && '30 Gün'}
+                  </span>
+                </div>
+                <div className="grid grid-cols-5 gap-1.5">
+                  {[
+                    { id: '10m', label: '10 dk' },
+                    { id: '1h', label: '1 saat' },
+                    { id: '24h', label: '24 saat' },
+                    { id: '7d', label: '7 gün' },
+                    { id: '30d', label: '30 gün' },
+                  ].map((dur) => (
+                    <button
+                      key={dur.id}
+                      type="button"
+                      onClick={() => setUploadExpiration(dur.id)}
+                      className={`py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        uploadExpiration === dur.id
+                          ? 'bg-sky-500 text-white shadow-md shadow-sky-500/25 ring-1 ring-sky-400'
+                          : 'bg-[#0B0F19] hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800'
+                      }`}
+                    >
+                      {dur.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* C) Password Input Field */}
+            {(isPasswordOpen || uploadPassword) && (
+              <div className="p-3.5 rounded-2xl bg-[#070B14] border border-amber-500/30 space-y-2 animate-in fade-in duration-200">
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-bold text-amber-300 flex items-center gap-1.5">
+                    <Key className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Görsel Erişim Şifresi</span>
+                  </label>
+                  {uploadPassword && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setUploadPassword('');
+                        setIsPasswordOpen(false);
+                      }}
+                      className="text-[10px] text-slate-400 hover:text-rose-400 cursor-pointer transition-colors"
+                    >
+                      Şifreyi İptal Et
+                    </button>
+                  )}
+                </div>
+                <input
+                  type="password"
+                  value={uploadPassword}
+                  onChange={(e) => setUploadPassword(e.target.value)}
+                  placeholder="Görseli açmak için gereken şifreyi girin..."
+                  className="w-full bg-[#0A1020] border border-slate-700/80 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 focus:outline-none"
+                  autoFocus
+                />
+                <p className="text-[10px] text-slate-400">
+                  Resim linkini açan kişilerden bu şifreyi girmeleri istenecektir.
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Selected Files Progress List */}
