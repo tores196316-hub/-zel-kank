@@ -1577,6 +1577,24 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
             </div>
 
             <div className="flex items-center justify-between p-3.5 rounded-2xl bg-[#070B14] border border-slate-800">
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-slate-200 block">Soru Sor & AI Asistanı</span>
+                  <span className={`text-[10px] font-bold px-2 py-0.2 rounded-full border ${siteSettings.ai_assistant_enabled !== false ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'}`}>
+                    {siteSettings.ai_assistant_enabled !== false ? 'Aktif' : 'Kapalı'}
+                  </span>
+                </div>
+                <span className="text-[10px] text-slate-400">Sol alttaki "Soru Sor & AI Asistan" canlı destek baloncuğunu ve soru-cevap asistanını açıp kapatır</span>
+              </div>
+              <input
+                type="checkbox"
+                checked={siteSettings.ai_assistant_enabled !== false}
+                onChange={(e) => setSiteSettings({ ...siteSettings, ai_assistant_enabled: e.target.checked })}
+                className="w-4 h-4 rounded bg-[#070B14] border-slate-800 text-sky-600 cursor-pointer"
+              />
+            </div>
+
+            <div className="flex items-center justify-between p-3.5 rounded-2xl bg-[#070B14] border border-slate-800">
               <div>
                 <span className="text-xs font-semibold text-slate-200 block">Bakım Modu</span>
                 <span className="text-[10px] text-slate-400">Sadece yöneticilerin siteyi kullanmasına izin verir</span>

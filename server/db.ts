@@ -113,6 +113,7 @@ export interface SiteSettingsRecord {
   allow_guest_upload: boolean;
   allow_user_registration: boolean;
   maintenance_mode: boolean;
+  ai_assistant_enabled?: boolean;
   announcement_enabled: boolean;
   announcement_text: string;
   allowed_formats?: string[];
@@ -177,6 +178,7 @@ const defaultSettings: SiteSettingsRecord = {
   allow_guest_upload: true,
   allow_user_registration: true,
   maintenance_mode: false,
+  ai_assistant_enabled: true,
   announcement_enabled: true,
   announcement_text: 'AnlıkResim V3 yayında! Kullanıcı Paneli, Plan Altyapısı, Gelişmiş Ayarlar ve Bildirimler aktif.',
   allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'gif'],

@@ -134,6 +134,13 @@ Size nasıl yardımcı olabilirim?`;
 
 router.post('/ask', async (req: Request, res: Response) => {
   try {
+    const settings = db.getSettings();
+    if (settings.ai_assistant_enabled === false) {
+      return res.status(403).json({
+        error: 'AI Asistanı sistem yöneticisi tarafından geçici olarak devre dışı bırakılmıştır.',
+      });
+    }
+
     const { question, history } = req.body;
 
     if (!question || typeof question !== 'string' || !question.trim()) {
@@ -142,8 +149,7 @@ router.post('/ask', async (req: Request, res: Response) => {
 
     const trimmedQuestion = question.trim().slice(0, 500);
 
-    // Fetch live system settings for up-to-date knowledge
-    const settings = db.getSettings();
+    // Fetch live plan limits for up-to-date knowledge
     const planLimits = {
       free: db.getPlanLimits('free'),
       pro: db.getPlanLimits('pro'),

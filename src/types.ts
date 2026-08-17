@@ -127,6 +127,7 @@ export interface SiteSettings {
   allow_guest_upload: boolean;
   allow_user_registration: boolean;
   maintenance_mode: boolean;
+  ai_assistant_enabled?: boolean;
   announcement_enabled: boolean;
   announcement_text: string;
   allowed_formats?: string[];

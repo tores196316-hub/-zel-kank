@@ -75,5 +75,6 @@
         "Tam Yönetim Yetkisi"
       ]
     }
-  }
+  },
+  "ai_assistant_enabled": false
 }

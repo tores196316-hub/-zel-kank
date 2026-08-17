@@ -26,7 +26,7 @@ import {
   ThumbsDown,
   Info,
 } from 'lucide-react';
-import { assistantApi } from '../lib/api';
+import { assistantApi, publicApi } from '../lib/api';
 import { Logo } from './Logo';
 
 interface Message {
@@ -242,6 +242,7 @@ interface AiAssistantProps {
 }
 
 export const AiAssistant: React.FC<AiAssistantProps> = ({ navigate }) => {
+  const [isEnabled, setIsEnabled] = useState<boolean>(true);
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string>('all');
@@ -261,6 +262,22 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({ navigate }) => {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Check if AI assistant is enabled in site settings
+  useEffect(() => {
+    let isMounted = true;
+    publicApi
+      .getSettings()
+      .then((settings) => {
+        if (isMounted && typeof settings.ai_assistant_enabled === 'boolean') {
+          setIsEnabled(settings.ai_assistant_enabled);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Rotate tips occasionally
   useEffect(() => {
@@ -456,6 +473,10 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({ navigate }) => {
   const filteredFaqs = activeCategory === 'all'
     ? INSTANT_FAQS
     : INSTANT_FAQS.filter((f) => f.category === activeCategory);
+
+  if (!isEnabled) {
+    return null;
+  }
 
   return (
     <>

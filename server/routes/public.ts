@@ -14,6 +14,7 @@ router.get('/settings', (req: Request, res: Response) => {
     allow_guest_upload: settings.allow_guest_upload,
     allow_user_registration: settings.allow_user_registration,
     maintenance_mode: settings.maintenance_mode,
+    ai_assistant_enabled: settings.ai_assistant_enabled !== false,
     announcement_enabled: settings.announcement_enabled,
     announcement_text: settings.announcement_text,
     plans: settings.plans || {},
