@@ -7,6 +7,7 @@ import { createServer as createViteServer } from 'vite';
 
 import authRoutes from './server/routes/auth.js';
 import imageRoutes from './server/routes/images.js';
+import albumRoutes from './server/routes/albums.js';
 import adminRoutes from './server/routes/admin.js';
 import publicRoutes from './server/routes/public.js';
 import assistantRoutes from './server/routes/assistant.js';
@@ -90,6 +91,7 @@ async function startServer() {
   // API Routes
   app.use('/api/auth', authRoutes);
   app.use('/api/images', imageRoutes);
+  app.use('/api/albums', albumRoutes);
   app.use('/api/admin', adminRoutes);
   app.use('/api/public', publicRoutes);
   app.use('/api/assistant', assistantRoutes);

@@ -1,4 +1,4 @@
-import { AdminStats, AnalyticsData, Announcement, AuditLog, Folder, ImageMetadata, Notification, PlanConfig, Report, SiteSettings, UploadResult, User } from '../types';
+import { Album, AlbumCreateInput, AlbumUpdateInput, AdminStats, AnalyticsData, Announcement, AuditLog, Folder, ImageMetadata, Notification, PlanConfig, Report, SiteSettings, UploadResult, User } from '../types';
 
 const TOKEN_KEY = 'hizliyukle_auth_token';
 
@@ -255,6 +255,71 @@ export const imageApi = {
   },
 };
 
+// Album API
+export const albumApi = {
+  createAlbum: (input: AlbumCreateInput) =>
+    request<{ message: string; album: Album }>('/api/albums', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
+
+  getMyAlbums: () =>
+    request<{
+      albums: Album[];
+      limits: { total: number; max_albums: number; max_images_per_album: number };
+    }>('/api/albums/my'),
+
+  getAlbum: (idOrShareId: string, unlockToken?: string) => {
+    const qs = unlockToken ? `?unlock_token=${encodeURIComponent(unlockToken)}` : '';
+    return request<{
+      is_locked: boolean;
+      is_password_protected: boolean;
+      is_owner?: boolean;
+      is_admin?: boolean;
+      is_expired?: boolean;
+      album: Album;
+    }>(`/api/albums/${idOrShareId}${qs}`);
+  },
+
+  unlockAlbum: (idOrShareId: string, password: string) =>
+    request<{
+      unlocked: boolean;
+      unlock_token: string;
+      album: Album;
+    }>(`/api/albums/${idOrShareId}/unlock`, {
+      method: 'POST',
+      body: JSON.stringify({ password }),
+    }),
+
+  updateAlbum: (id: string, input: AlbumUpdateInput) =>
+    request<{ message: string; album: Album }>(`/api/albums/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(input),
+    }),
+
+  deleteAlbum: (id: string) =>
+    request<{ message: string }>(`/api/albums/${id}`, {
+      method: 'DELETE',
+    }),
+
+  addImages: (id: string, imageIds: string[]) =>
+    request<{ message: string; album: Album }>(`/api/albums/${id}/images`, {
+      method: 'POST',
+      body: JSON.stringify({ image_ids: imageIds }),
+    }),
+
+  removeImage: (id: string, imageId: string) =>
+    request<{ message: string; album: Album }>(`/api/albums/${id}/images/${imageId}`, {
+      method: 'DELETE',
+    }),
+
+  reorderImages: (id: string, imageIds: string[]) =>
+    request<{ message: string; album: Album }>(`/api/albums/${id}/reorder`, {
+      method: 'PUT',
+      body: JSON.stringify({ image_ids: imageIds }),
+    }),
+};
+
 // Public API
 export const publicApi = {
   getSettings: () => request<SiteSettings>('/api/public/settings'),
@@ -347,6 +412,17 @@ export const adminApi = {
   getAuditLogs: () => request<{ audit_logs: AuditLog[] }>('/api/admin/audit-logs'),
 
   getAnalytics: () => request<{ analytics: AnalyticsData }>('/api/admin/analytics'),
+
+  getAlbums: () =>
+    request<{
+      albums: Album[];
+      stats: { total: number; active: number; expired: number; deleted: number };
+    }>('/api/admin/albums'),
+
+  deleteAlbum: (id: string) =>
+    request<{ message: string }>(`/api/admin/albums/${id}`, {
+      method: 'DELETE',
+    }),
 
   getHealth: () =>
     request<{

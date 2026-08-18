@@ -25,6 +25,7 @@ import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { AdminPage } from './pages/AdminPage';
 import { ConverterPage } from './pages/ConverterPage';
+import { AlbumDetailPage } from './pages/AlbumDetailPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 const AppContent: React.FC = () => {
@@ -67,7 +68,7 @@ const AppContent: React.FC = () => {
     if (path === '/yukle') {
       return <UploadPage navigate={navigate} />;
     }
-    if (path === '/galerim') {
+    if (path === '/galerim' || path === '/galeri' || path === '/albumlar') {
       return <GalleryPage navigate={navigate} />;
     }
     if (path === '/donusturucu') {
@@ -118,6 +119,20 @@ const AppContent: React.FC = () => {
       const imageId = path.replace('/i/', '').trim();
       if (imageId) {
         return <ImageDetailPage imageId={imageId} navigate={navigate} />;
+      }
+    }
+
+    // Match /a/:shareId or /album/:id
+    if (path.startsWith('/a/')) {
+      const shareId = path.replace('/a/', '').trim();
+      if (shareId) {
+        return <AlbumDetailPage albumKey={shareId} navigate={navigate} />;
+      }
+    }
+    if (path.startsWith('/album/')) {
+      const albumId = path.replace('/album/', '').trim();
+      if (albumId) {
+        return <AlbumDetailPage albumKey={albumId} navigate={navigate} />;
       }
     }
 

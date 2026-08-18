@@ -72,6 +72,7 @@ type AdminTab =
   | 'stats'
   | 'users'
   | 'images'
+  | 'albums'
   | 'reports'
   | 'announcements'
   | 'plans'
@@ -94,6 +95,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [usersList, setUsersList] = useState<User[]>([]);
   const [imagesList, setImagesList] = useState<ImageMetadata[]>([]);
+  const [albumsList, setAlbumsList] = useState<any[]>([]);
   const [reportsList, setReportsList] = useState<Report[]>([]);
   const [announcementsList, setAnnouncementsList] = useState<Announcement[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
@@ -101,6 +103,9 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null);
   const [systemHealth, setSystemHealth] = useState<any>(null);
+
+  // Albums Tab Search
+  const [albumSearch, setAlbumSearch] = useState('');
 
   // Users Tab Filters & Modals
   const [userSearch, setUserSearch] = useState('');
@@ -155,11 +160,12 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
     else setLoading(true);
 
     try {
-      const [sRes, uRes, iRes, rRes, aRes, stRes, hRes, plansRes, auditRes, analyticsRes] =
+      const [sRes, uRes, iRes, albRes, rRes, aRes, stRes, hRes, plansRes, auditRes, analyticsRes] =
         await Promise.all([
           adminApi.getStats().catch(() => null),
           adminApi.getUsers().catch(() => ({ users: [] })),
           adminApi.getImages().catch(() => ({ images: [] })),
+          adminApi.getAlbums().catch(() => ({ albums: [] })),
           adminApi.getReports().catch(() => ({ reports: [] })),
           adminApi.getAnnouncements().catch(() => ({ announcements: [] })),
           adminApi.getSettings().catch(() => ({ settings: null })),
@@ -172,6 +178,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
       if (sRes) setStats(sRes);
       setUsersList(uRes.users || []);
       setImagesList(iRes.images || []);
+      setAlbumsList(albRes.albums || []);
       setReportsList(rRes.reports || []);
       setAnnouncementsList(aRes.announcements || []);
       if (stRes.settings) {
@@ -452,6 +459,34 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
     });
   }, [imagesList, imageSearch, imageFormatFilter]);
 
+  const filteredAlbums = useMemo(() => {
+    return albumsList.filter((alb) => {
+      const matchesQuery =
+        alb.title.toLowerCase().includes(albumSearch.toLowerCase()) ||
+        (alb.creator_username && alb.creator_username.toLowerCase().includes(albumSearch.toLowerCase())) ||
+        (alb.description && alb.description.toLowerCase().includes(albumSearch.toLowerCase()));
+      return matchesQuery;
+    });
+  }, [albumsList, albumSearch]);
+
+  const handleDeleteAdminAlbum = async (albumId: string, albumTitle: string) => {
+    if (
+      !window.confirm(
+        `"${albumTitle}" albümünü silmek istediğinize emin misiniz?\n\n(Not: Albüm içindeki resimler kullanıcıların galerisinde korunur, sadece albüm koleksiyonu kaldırılır.)`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await adminApi.deleteAlbum(albumId);
+      showToast('Albüm başarıyla silindi.', 'success');
+      setAlbumsList((prev) => prev.filter((a) => a.id !== albumId));
+    } catch (err: any) {
+      showToast(err.message || 'Albüm silinemedi.', 'error');
+    }
+  };
+
   const filteredReports = useMemo(() => {
     return reportsList.filter((rep) => {
       if (reportFilter === 'all') return true;
@@ -533,6 +568,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
             { id: 'stats', label: 'Genel İstatistikler', icon: Activity },
             { id: 'users', label: 'Kullanıcı Yönetimi', icon: Users, badge: usersList.length },
             { id: 'images', label: 'Resim Yönetimi', icon: Images, badge: imagesList.length },
+            { id: 'albums', label: 'Albüm Yönetimi', icon: Sparkles, badge: albumsList.length },
             { id: 'reports', label: 'Şikâyet Yönetimi', icon: Flag, badge: pendingReportsCount, badgeColor: 'rose' },
             { id: 'announcements', label: 'Duyurular', icon: Bell, badge: announcementsList.length },
             { id: 'plans', label: 'Premium/VIP Yönetimi', icon: Crown },
@@ -1131,6 +1167,170 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
                               onClick={() => handleDeleteImage(img.id)}
                               className="p-1.5 text-rose-400 hover:bg-rose-500/10 rounded-xl transition-colors cursor-pointer"
                               title="Sil"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ━━━━━━━━━━━━━━━━━━━━
+          SECTION: ALBÜM YÖNETİMİ (COLLECTIONS & ALBUMS)
+          ━━━━━━━━━━━━━━━━━━━━ */}
+      {activeTab === 'albums' && (
+        <div className="space-y-6 animate-in fade-in">
+          {/* Albums Top Stats */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="p-4 rounded-2xl bg-[#0A1020] border border-slate-800 space-y-1">
+              <span className="text-slate-400 text-xs font-semibold">Toplam Albüm</span>
+              <p className="text-2xl font-black text-white font-mono">{albumsList.length}</p>
+            </div>
+            <div className="p-4 rounded-2xl bg-[#0A1020] border border-slate-800 space-y-1">
+              <span className="text-slate-400 text-xs font-semibold">Toplam Albüm İzlenmesi</span>
+              <p className="text-2xl font-black text-cyan-400 font-mono">
+                {albumsList.reduce((sum, a) => sum + (a.views || 0), 0)}
+              </p>
+            </div>
+            <div className="p-4 rounded-2xl bg-[#0A1020] border border-slate-800 space-y-1">
+              <span className="text-slate-400 text-xs font-semibold">Şifreli Albümler</span>
+              <p className="text-2xl font-black text-amber-400 font-mono">
+                {albumsList.filter((a) => a.is_password_protected).length}
+              </p>
+            </div>
+            <div className="p-4 rounded-2xl bg-[#0A1020] border border-slate-800 space-y-1">
+              <span className="text-slate-400 text-xs font-semibold">Süreli Albümler</span>
+              <p className="text-2xl font-black text-rose-400 font-mono">
+                {albumsList.filter((a) => a.expires_at).length}
+              </p>
+            </div>
+          </div>
+
+          {/* Search Filter Bar */}
+          <div className="flex items-center justify-between gap-4 bg-[#0A1020] border border-slate-800 p-3.5 rounded-2xl">
+            <div className="relative flex-1 max-w-md">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+              <input
+                type="text"
+                value={albumSearch}
+                onChange={(e) => setAlbumSearch(e.target.value)}
+                placeholder="Albüm başlığı veya kullanıcı adına göre ara..."
+                className="w-full bg-[#070B14] border border-slate-700/80 rounded-xl pl-9 pr-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+              />
+            </div>
+            <span className="text-xs text-slate-400 font-semibold">
+              {filteredAlbums.length} / {albumsList.length} Albüm
+            </span>
+          </div>
+
+          {/* Albums Table */}
+          {filteredAlbums.length === 0 ? (
+            <div className="p-16 text-center rounded-3xl bg-[#0A1020] border border-slate-800 text-xs text-slate-400 space-y-2">
+              <p className="font-bold text-white text-sm">Albüm Bulunamadı</p>
+              <p>Arama kriterlerinize uyan kayıtlı albüm bulunmuyor.</p>
+            </div>
+          ) : (
+            <div className="rounded-3xl bg-[#0A1020] border border-slate-800 overflow-hidden shadow-2xl">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-[#070B14] text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+                    <tr>
+                      <th className="p-4">Kapak</th>
+                      <th className="p-4">Albüm Başlığı</th>
+                      <th className="p-4">Oluşturan</th>
+                      <th className="p-4">Görsel Sayısı</th>
+                      <th className="p-4">Gizlilik</th>
+                      <th className="p-4">Durum / Süre</th>
+                      <th className="p-4">Görüntülenme</th>
+                      <th className="p-4">Tarih</th>
+                      <th className="p-4 text-right">İşlemler</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                    {filteredAlbums.map((alb) => (
+                      <tr key={alb.id} className="hover:bg-slate-800/30 transition-colors">
+                        <td className="p-4">
+                          <div className="w-12 h-10 rounded-xl bg-black overflow-hidden border border-slate-800 shrink-0">
+                            {alb.cover_image_url ? (
+                              <img
+                                src={formatImageUrl(alb.cover_image_url)}
+                                alt=""
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-slate-600 bg-slate-900">
+                                <Sparkles className="w-4 h-4" />
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <p className="font-bold text-white max-w-xs truncate">{alb.title}</p>
+                          {alb.description && (
+                            <p className="text-[10px] text-slate-400 line-clamp-1">{alb.description}</p>
+                          )}
+                        </td>
+                        <td className="p-4 font-semibold text-cyan-400">
+                          @{alb.creator_username || 'Kullanıcı'}
+                        </td>
+                        <td className="p-4 font-mono font-bold text-slate-200">
+                          {alb.image_ids?.length || 0} resim
+                        </td>
+                        <td className="p-4">
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                              alb.privacy === 'public'
+                                ? 'bg-blue-500/20 text-blue-300'
+                                : alb.privacy === 'unlisted'
+                                ? 'bg-cyan-500/20 text-cyan-300'
+                                : 'bg-amber-500/20 text-amber-300'
+                            }`}
+                          >
+                            {alb.privacy}
+                          </span>
+                        </td>
+                        <td className="p-4">
+                          <div className="space-y-0.5">
+                            {alb.is_password_protected ? (
+                              <span className="inline-block px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[10px] font-bold mr-1">
+                                🔒 Şifreli
+                              </span>
+                            ) : null}
+                            {alb.expires_at ? (
+                              <span className="inline-block text-[10px] text-rose-300 font-semibold">
+                                Son: {new Date(alb.expires_at).toLocaleDateString('tr-TR')}
+                              </span>
+                            ) : (
+                              <span className="text-[10px] text-slate-400">Süresiz</span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="p-4 font-mono font-bold text-slate-200">
+                          {alb.views || 0}
+                        </td>
+                        <td className="p-4 text-[11px] text-slate-400 whitespace-nowrap">
+                          {new Date(alb.created_at).toLocaleDateString('tr-TR')}
+                        </td>
+                        <td className="p-4 text-right whitespace-nowrap">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              onClick={() => navigate(`/a/${alb.share_id || alb.id}`)}
+                              className="p-1.5 rounded-lg bg-[#070B14] hover:bg-slate-800 text-sky-400 transition-colors"
+                              title="Albümü Aç"
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteAdminAlbum(alb.id, alb.title)}
+                              className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-600 text-rose-400 hover:text-white transition-colors"
+                              title="Albümü Sil"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>

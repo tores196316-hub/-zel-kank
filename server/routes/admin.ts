@@ -349,6 +349,69 @@ router.get('/analytics', (req: AuthRequest, res: Response) => {
   return res.json({ analytics });
 });
 
+// Admin Albums Management
+router.get('/albums', (req: AuthRequest, res: Response) => {
+  const albums = db.getAllAlbumsForAdmin();
+  const baseUrl = `${req.protocol}://${req.get('host')}`;
+  const now = Date.now();
+
+  const formatted = albums.map((alb) => {
+    const isExpired = alb.expires_at ? new Date(alb.expires_at).getTime() <= now : false;
+    let coverUrl = alb.cover_image_url || null;
+    if (!coverUrl && alb.image_ids && alb.image_ids.length > 0) {
+      const firstImg = db.getImageById(alb.image_ids[0]);
+      if (firstImg) {
+        coverUrl = resolveImageUrl(firstImg.cloudinary_url, baseUrl);
+      }
+    }
+    return {
+      id: alb.id,
+      share_id: alb.share_id,
+      user_id: alb.user_id,
+      creator_username: alb.creator_username,
+      title: alb.title,
+      description: alb.description,
+      image_count: (alb.image_ids || []).length,
+      privacy: alb.privacy,
+      view_mode: alb.view_mode,
+      is_password_protected: !!alb.password_hash,
+      expires_at: alb.expires_at,
+      is_expired: isExpired,
+      status: alb.status,
+      views: alb.views || 0,
+      created_at: alb.created_at,
+      updated_at: alb.updated_at,
+      cover_image_url: coverUrl,
+      share_url: `${baseUrl}/a/${alb.share_id}`,
+    };
+  });
+
+  return res.json({
+    albums: formatted,
+    stats: {
+      total: formatted.length,
+      active: formatted.filter((a) => a.status === 'active' && !a.is_expired).length,
+      expired: formatted.filter((a) => a.is_expired).length,
+      deleted: formatted.filter((a) => a.status === 'deleted').length,
+    },
+  });
+});
+
+router.delete('/albums/:id', (req: AuthRequest, res: Response) => {
+  const { id } = req.params;
+  const album = db.getAlbumById(id) || db.getAllAlbumsForAdmin().find((a) => a.id === id);
+  if (!album) {
+    return res.status(404).json({ error: 'Albüm bulunamadı.' });
+  }
+
+  db.deleteAlbum(id, undefined, true);
+  db.addAuditLog('ADMIN_ALBUM_DELETED', req.user!.id, req.user!.username, id, `Admin "${album.title}" albümünü sildi (görseller korundu).`);
+
+  return res.json({
+    message: 'Albüm silindi. Görseller veri tabanında ve kullanıcının galerisinde korunmaktadır.',
+  });
+});
+
 // System Health
 router.get('/health', async (req: AuthRequest, res: Response) => {
   const cloudHealth = await checkCloudinaryHealth();

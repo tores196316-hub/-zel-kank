@@ -13,6 +13,7 @@ const DB_FOLDERS_ARCHIVE = path.join(DATA_DIR, 'hizliyukle_folders_archive.json'
 const DB_SETTINGS_ARCHIVE = path.join(DATA_DIR, 'hizliyukle_settings_archive.json');
 const DB_REPORTS_ARCHIVE = path.join(DATA_DIR, 'hizliyukle_reports_archive.json');
 const DB_ANNOUNCEMENTS_ARCHIVE = path.join(DATA_DIR, 'hizliyukle_announcements_archive.json');
+const DB_ALBUMS_ARCHIVE = path.join(DATA_DIR, 'hizliyukle_albums_archive.json');
 
 export interface UserRecord {
   id: string;
@@ -31,6 +32,27 @@ export interface FolderRecord {
   name: string;
   color?: string;
   created_at: string;
+}
+
+export interface AlbumRecord {
+  id: string;
+  share_id: string;
+  user_id: string;
+  creator_username: string;
+  title: string;
+  description?: string;
+  cover_image_id?: string | null;
+  cover_image_url?: string | null;
+  image_ids: string[];
+  privacy: 'public' | 'unlisted' | 'private';
+  view_mode: 'grid' | 'masonry' | 'slideshow' | 'modern';
+  password_hash?: string | null;
+  expires_at?: string | null;
+  views: number;
+  view_history?: { timestamp: number; ip: string }[];
+  created_at: string;
+  updated_at: string;
+  status: 'active' | 'deleted';
 }
 
 export interface ImageRecord {
@@ -127,6 +149,7 @@ export interface DatabaseSchema {
   users: UserRecord[];
   images: ImageRecord[];
   folders: FolderRecord[];
+  albums: AlbumRecord[];
   reports: ReportRecord[];
   announcements: AnnouncementRecord[];
   notifications: NotificationRecord[];
@@ -196,6 +219,7 @@ class Database {
       users: [],
       images: [],
       folders: [],
+      albums: [],
       reports: [],
       announcements: [],
       notifications: [],
@@ -339,6 +363,23 @@ class Database {
         }
       }
 
+      // 9. Dedicated Albums Archive
+      if (fs.existsSync(DB_ALBUMS_ARCHIVE)) {
+        try {
+          const content = fs.readFileSync(DB_ALBUMS_ARCHIVE, 'utf-8');
+          if (content && content.trim().length > 0) {
+            const parsed = JSON.parse(content);
+            if (Array.isArray(parsed)) {
+              sources.push({ albums: parsed });
+            } else if (parsed && Array.isArray(parsed.albums)) {
+              sources.push({ albums: parsed.albums });
+            }
+          }
+        } catch (e) {
+          console.warn('[DB] Failed reading albums archive:', e);
+        }
+      }
+
       this.mergeFromSources(sources);
       this.recoverLocalUploadsFromDisk();
       this.seedInitialData();
@@ -410,6 +451,7 @@ class Database {
     const userMap = new Map<string, UserRecord>();
     const imageMap = new Map<string, ImageRecord>();
     const folderMap = new Map<string, FolderRecord>();
+    const albumMap = new Map<string, AlbumRecord>();
     const reportMap = new Map<string, ReportRecord>();
     const announcementMap = new Map<string, AnnouncementRecord>();
     const notificationMap = new Map<string, NotificationRecord>();
@@ -458,6 +500,13 @@ class Database {
         }
       }
 
+      // Albums merging
+      if (Array.isArray(src.albums)) {
+        for (const a of src.albums) {
+          if (a && a.id && !albumMap.has(a.id)) albumMap.set(a.id, a);
+        }
+      }
+
       // Reports merging
       if (Array.isArray(src.reports)) {
         for (const r of src.reports) {
@@ -502,6 +551,7 @@ class Database {
       users: Array.from(userMap.values()),
       images: Array.from(imageMap.values()),
       folders: Array.from(folderMap.values()),
+      albums: Array.from(albumMap.values()),
       reports: Array.from(reportMap.values()),
       announcements: Array.from(announcementMap.values()),
       notifications: Array.from(notificationMap.values()),
@@ -520,6 +570,7 @@ class Database {
     if (!this.data.users) this.data.users = [];
     if (!this.data.images) this.data.images = [];
     if (!this.data.folders) this.data.folders = [];
+    if (!this.data.albums) this.data.albums = [];
     if (!this.data.reports) this.data.reports = [];
     if (!this.data.announcements) this.data.announcements = [];
     if (!this.data.notifications) this.data.notifications = [];
@@ -670,6 +721,11 @@ class Database {
       // 8. Persistent Reports Archive
       if (this.data.reports && this.data.reports.length > 0) {
         fs.writeFileSync(DB_REPORTS_ARCHIVE, JSON.stringify(this.data.reports, null, 2), 'utf-8');
+      }
+
+      // 9. Persistent Albums Archive
+      if (this.data.albums && this.data.albums.length > 0) {
+        fs.writeFileSync(DB_ALBUMS_ARCHIVE, JSON.stringify(this.data.albums, null, 2), 'utf-8');
       }
     } catch (err) {
       console.error('[DB] Database save error:', err);
@@ -1133,6 +1189,193 @@ class Database {
     img.folder_id = folderId;
     this.save();
     return true;
+  }
+
+  // Albums
+  public getAlbums(): AlbumRecord[] {
+    return (this.data.albums || []).filter((a) => a.status !== 'deleted');
+  }
+
+  public getAllAlbumsForAdmin(): AlbumRecord[] {
+    return this.data.albums || [];
+  }
+
+  public getAlbumById(id: string): AlbumRecord | undefined {
+    const alb = (this.data.albums || []).find((a) => a.id === id);
+    if (!alb || alb.status === 'deleted') return undefined;
+    return alb;
+  }
+
+  public getAlbumByShareId(shareId: string): AlbumRecord | undefined {
+    const alb = (this.data.albums || []).find((a) => (a.share_id === shareId || a.id === shareId) && a.status !== 'deleted');
+    return alb;
+  }
+
+  public getAlbumsByUserId(userId: string): AlbumRecord[] {
+    return (this.data.albums || []).filter((a) => a.user_id === userId && a.status !== 'deleted');
+  }
+
+  public createAlbum(album: AlbumRecord): AlbumRecord {
+    if (!this.data.albums) this.data.albums = [];
+    this.data.albums.unshift(album);
+    this.save();
+    return album;
+  }
+
+  public updateAlbum(id: string, updates: Partial<AlbumRecord>): AlbumRecord | undefined {
+    if (!this.data.albums) this.data.albums = [];
+    const idx = this.data.albums.findIndex((a) => a.id === id);
+    if (idx !== -1) {
+      this.data.albums[idx] = {
+        ...this.data.albums[idx],
+        ...updates,
+        updated_at: new Date().toISOString(),
+      };
+      this.save();
+      return this.data.albums[idx];
+    }
+    return undefined;
+  }
+
+  /**
+   * Delete album (soft-delete).
+   * CRITICAL: Album deletion only removes the album collection record.
+   * None of the underlying images in this.data.images are modified or deleted!
+   */
+  public deleteAlbum(id: string, userId?: string, isAdmin: boolean = false): boolean {
+    if (!this.data.albums) return false;
+    const album = this.data.albums.find((a) => a.id === id);
+    if (!album) return false;
+    if (userId && album.user_id !== userId && !isAdmin) {
+      return false;
+    }
+    album.status = 'deleted';
+    album.updated_at = new Date().toISOString();
+    this.save();
+    return true;
+  }
+
+  public addImagesToAlbum(albumId: string, imageIds: string[], userId?: string, isAdmin: boolean = false): AlbumRecord | null {
+    const album = this.getAlbumById(albumId);
+    if (!album) return null;
+    if (userId && album.user_id !== userId && !isAdmin) return null;
+
+    const currentSet = new Set(album.image_ids || []);
+    for (const imgId of imageIds) {
+      // Ensure image actually exists and is active
+      const img = this.getImageById(imgId);
+      if (img && !currentSet.has(imgId)) {
+        album.image_ids.push(imgId);
+        currentSet.add(imgId);
+      }
+    }
+
+    album.updated_at = new Date().toISOString();
+    // If no cover is set, set first image as cover
+    if (!album.cover_image_id && album.image_ids.length > 0) {
+      album.cover_image_id = album.image_ids[0];
+    }
+    this.save();
+    return album;
+  }
+
+  /**
+   * Remove image from album.
+   * CRITICAL: Removing an image from an album NEVER deletes the original image file or record.
+   */
+  public removeImageFromAlbum(albumId: string, imageId: string, userId?: string, isAdmin: boolean = false): AlbumRecord | null {
+    const album = this.getAlbumById(albumId);
+    if (!album) return null;
+    if (userId && album.user_id !== userId && !isAdmin) return null;
+
+    album.image_ids = (album.image_ids || []).filter((id) => id !== imageId);
+    if (album.cover_image_id === imageId) {
+      album.cover_image_id = album.image_ids[0] || null;
+      album.cover_image_url = null;
+    }
+    album.updated_at = new Date().toISOString();
+    this.save();
+    return album;
+  }
+
+  public reorderAlbumImages(albumId: string, imageIds: string[], userId?: string, isAdmin: boolean = false): AlbumRecord | null {
+    const album = this.getAlbumById(albumId);
+    if (!album) return null;
+    if (userId && album.user_id !== userId && !isAdmin) return null;
+
+    // Filter to only include image IDs that exist in current album
+    const existingSet = new Set(album.image_ids);
+    const newOrdered = imageIds.filter((id) => existingSet.has(id));
+
+    // Append any existing image IDs that were not in the provided new order
+    for (const id of album.image_ids) {
+      if (!newOrdered.includes(id)) {
+        newOrdered.push(id);
+      }
+    }
+
+    album.image_ids = newOrdered;
+    album.updated_at = new Date().toISOString();
+    this.save();
+    return album;
+  }
+
+  public incrementAlbumViewsThrottled(id: string, ip: string): void {
+    const album = this.getAlbumById(id);
+    if (!album) return;
+
+    if (!album.view_history) album.view_history = [];
+    const now = Date.now();
+    const fiveMinutes = 5 * 60 * 1000;
+
+    const recentView = album.view_history.find((v) => v.ip === ip && now - v.timestamp < fiveMinutes);
+    if (!recentView) {
+      album.views = (album.views || 0) + 1;
+      album.view_history.push({ ip, timestamp: now });
+      // Keep only last 200 view entries
+      if (album.view_history.length > 200) {
+        album.view_history = album.view_history.slice(-200);
+      }
+      this.save();
+    }
+  }
+
+  public getAlbumStats(albumId: string) {
+    const album = this.getAlbumById(albumId);
+    if (!album) return null;
+
+    const now = Date.now();
+    const dayAgo = now - 24 * 60 * 60 * 1000;
+    const weekAgo = now - 7 * 24 * 60 * 60 * 1000;
+
+    const history = album.view_history || [];
+    const views24h = history.filter((v) => v.timestamp >= dayAgo).length;
+    const views7d = history.filter((v) => v.timestamp >= weekAgo).length;
+
+    // Find top image in album by views
+    let topImage: { id: string; filename: string; views: number; thumbnail_url?: string } | null = null;
+    let maxViews = -1;
+
+    for (const imgId of album.image_ids || []) {
+      const img = this.getImageById(imgId);
+      if (img && img.views > maxViews) {
+        maxViews = img.views;
+        topImage = {
+          id: img.id,
+          filename: img.original_filename,
+          views: img.views,
+          thumbnail_url: img.cloudinary_url,
+        };
+      }
+    }
+
+    return {
+      total_views: album.views || 0,
+      views_24h: Math.max(views24h, 1),
+      views_7d: Math.max(views7d, 1),
+      image_count: (album.image_ids || []).length,
+      top_image: topImage,
+    };
   }
 
   // Throttled View Increment (1 view per IP per image every 5 minutes)

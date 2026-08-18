@@ -188,3 +188,66 @@ export interface UploadProgressFile {
   previewUrl?: string;
   abortController?: AbortController;
 }
+
+export interface Album {
+  id: string;
+  share_id: string;
+  user_id: string;
+  creator_username?: string;
+  title: string;
+  description?: string;
+  cover_image_id?: string | null;
+  cover_image_url?: string | null;
+  image_ids: string[];
+  privacy: 'public' | 'unlisted' | 'private';
+  view_mode: 'grid' | 'masonry' | 'slideshow' | 'modern';
+  is_password_protected?: boolean;
+  expires_at?: string | null;
+  views: number;
+  created_at: string;
+  updated_at: string;
+  status: 'active' | 'deleted';
+  images?: UploadResult[];
+  image_count?: number;
+  is_owner?: boolean;
+  is_locked?: boolean;
+  is_expired?: boolean;
+  share_url?: string;
+  stats?: {
+    total_views: number;
+    views_24h: number;
+    views_7d: number;
+    image_count: number;
+    top_image?: {
+      id: string;
+      filename: string;
+      views: number;
+      thumbnail_url?: string;
+    } | null;
+  };
+}
+
+export type AlbumImageItem = UploadResult;
+
+export interface AlbumCreateInput {
+  title: string;
+  description?: string;
+  cover_image_id?: string | null;
+  privacy?: 'public' | 'unlisted' | 'private';
+  view_mode?: 'grid' | 'masonry' | 'slideshow' | 'modern';
+  password?: string;
+  expiration?: string; // 'none' | '10m' | '1h' | '24h' | '7d' | '30d'
+  image_ids?: string[];
+}
+
+export interface AlbumUpdateInput {
+  title?: string;
+  description?: string;
+  cover_image_id?: string | null;
+  privacy?: 'public' | 'unlisted' | 'private';
+  view_mode?: 'grid' | 'masonry' | 'slideshow' | 'modern';
+  password?: string;
+  remove_password?: boolean;
+  expiration?: string;
+}
+

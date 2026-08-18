@@ -25,12 +25,13 @@ import {
   Download,
   Flame
 } from 'lucide-react';
-import { imageApi } from '../lib/api';
-import { Folder, UploadResult } from '../types';
+import { Folder, UploadResult, Album } from '../types';
+import { imageApi, albumApi } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 import { formatImageUrl } from '../lib/imageUrl';
 import { exportImagesToZip, ZipExportProgress } from '../lib/zipExport';
+import { CreateAlbumModal } from '../components/CreateAlbumModal';
 
 interface GalleryPageProps {
   navigate: (path: string) => void;
@@ -42,11 +43,12 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({ navigate }) => {
 
   const [images, setImages] = useState<UploadResult[]>([]);
   const [folders, setFolders] = useState<Folder[]>([]);
+  const [albums, setAlbums] = useState<Album[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Filters & Controls
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeFolderTab, setActiveFolderTab] = useState<string>('all'); // 'all' | 'favorites' | folder_id
+  const [activeFolderTab, setActiveFolderTab] = useState<string>('all'); // 'all' | 'favorites' | 'albums' | folder_id
   const [formatFilter, setFormatFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'largest' | 'most_viewed'>('newest');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -63,6 +65,10 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({ navigate }) => {
   const [showFolderModal, setShowFolderModal] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
 
+  // Create Album Modal State
+  const [showAlbumModal, setShowAlbumModal] = useState(false);
+  const [albumPreselectedIds, setAlbumPreselectedIds] = useState<string[]>([]);
+
   const fetchGallery = async () => {
     if (!user) {
       setLoading(false);
@@ -71,9 +77,18 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({ navigate }) => {
 
     try {
       setLoading(true);
-      const res = await imageApi.getMyImages();
-      setImages(res.images || []);
-      setFolders(res.folders || []);
+      const [imgRes, albRes] = await Promise.allSettled([
+        imageApi.getMyImages(),
+        albumApi.getMyAlbums(),
+      ]);
+
+      if (imgRes.status === 'fulfilled') {
+        setImages(imgRes.value.images || []);
+        setFolders(imgRes.value.folders || []);
+      }
+      if (albRes.status === 'fulfilled') {
+        setAlbums(albRes.value.albums || []);
+      }
     } catch (err: any) {
       showToast(err.message || 'Galeri yüklenemedi.', 'error');
     } finally {
@@ -322,6 +337,17 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({ navigate }) => {
 
         <div className="flex items-center gap-3 flex-wrap sm:flex-nowrap">
           <button
+            onClick={() => {
+              setAlbumPreselectedIds([]);
+              setShowAlbumModal(true);
+            }}
+            className="min-h-[40px] px-4 py-2 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30 font-semibold text-xs shadow-sm flex items-center gap-1.5 transition-colors cursor-pointer"
+          >
+            <Sparkles className="w-4 h-4 text-cyan-400" />
+            <span>Yeni Albüm</span>
+          </button>
+
+          <button
             onClick={() => setShowFolderModal(true)}
             className="min-h-[40px] px-4 py-2 rounded-xl bg-[#0F172A] hover:bg-slate-800 text-slate-200 border border-slate-800 font-semibold text-xs shadow-sm flex items-center gap-1.5 transition-colors"
           >
@@ -339,7 +365,7 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({ navigate }) => {
         </div>
       </div>
 
-      {/* Folder Tabs Navigation */}
+      {/* Folder & Album Tabs Navigation */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none border-b border-slate-800/80">
         <button
           onClick={() => setActiveFolderTab('all')}
@@ -350,6 +376,18 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({ navigate }) => {
           }`}
         >
           Tüm Resimler ({images.length})
+        </button>
+
+        <button
+          onClick={() => setActiveFolderTab('albums')}
+          className={`px-4 py-2 rounded-xl text-xs font-semibold shrink-0 flex items-center gap-1.5 transition-all ${
+            activeFolderTab === 'albums'
+              ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-sm'
+              : 'bg-[#0F172A] text-cyan-300 hover:bg-slate-800 border border-cyan-500/30'
+          }`}
+        >
+          <FolderIcon className="w-3.5 h-3.5 text-cyan-400" />
+          <span>Albümlerim ({albums.length})</span>
         </button>
 
         <button
@@ -475,6 +513,19 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({ navigate }) => {
           <div className="flex items-center gap-2">
             <button
               type="button"
+              disabled={selectedImageIds.size === 0}
+              onClick={() => {
+                setAlbumPreselectedIds(Array.from(selectedImageIds));
+                setShowAlbumModal(true);
+              }}
+              className="px-3.5 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-cyan-600/20 disabled:opacity-40 cursor-pointer"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Seçilenlerle Albüm Oluştur ({selectedImageIds.size})</span>
+            </button>
+
+            <button
+              type="button"
               disabled={selectedImageIds.size === 0 || isZipping}
               onClick={() => handleExportZip()}
               className="px-4 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-blue-600/20 disabled:opacity-40 cursor-pointer"
@@ -575,6 +626,112 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({ navigate }) => {
           {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
             <div key={i} className="aspect-square rounded-2xl bg-[#0F172A] animate-pulse border border-slate-800" />
           ))}
+        </div>
+      ) : activeFolderTab === 'albums' ? (
+        /* Albums Section */
+        <div>
+          {albums.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {/* Create Album Card Action */}
+              <div
+                onClick={() => {
+                  setAlbumPreselectedIds([]);
+                  setShowAlbumModal(true);
+                }}
+                className="group p-6 rounded-2xl border-2 border-dashed border-slate-800 hover:border-cyan-500/50 bg-[#0F172A]/40 hover:bg-[#0F172A] flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 min-h-[220px]"
+              >
+                <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 text-cyan-400 group-hover:bg-cyan-500 group-hover:text-slate-950 flex items-center justify-center mb-3 transition-all duration-300">
+                  <Plus className="w-6 h-6" />
+                </div>
+                <h4 className="text-sm font-bold text-white group-hover:text-cyan-300 transition-colors">
+                  Yeni Albüm Oluştur
+                </h4>
+                <p className="text-[11px] text-slate-400 mt-1 max-w-[180px]">
+                  Resimlerinizi şifreli veya süreli koleksiyonlarda toplayın.
+                </p>
+              </div>
+
+              {/* User Album Cards */}
+              {albums.map((album) => (
+                <div
+                  key={album.id}
+                  onClick={() => navigate(`/a/${album.share_id}`)}
+                  className="group bg-[#0F172A] border border-slate-800 rounded-2xl overflow-hidden cursor-pointer hover:border-cyan-500/50 transition-all duration-300 flex flex-col shadow-lg"
+                >
+                  {/* Album Cover */}
+                  <div className="relative aspect-[16/10] bg-[#0B0F19] overflow-hidden">
+                    {album.cover_image_url ? (
+                      <img
+                        src={formatImageUrl(album.cover_image_url)}
+                        alt={album.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#0B0F19] to-blue-950/20 text-slate-500">
+                        <FolderIcon className="w-10 h-10 text-slate-600 mb-1" />
+                        <span className="text-[10px] text-slate-500">Kapak Yok</span>
+                      </div>
+                    )}
+
+                    {/* Privacy / Password Pills */}
+                    <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5">
+                      {album.is_password_protected && (
+                        <span className="p-1 rounded-lg bg-black/70 text-amber-400 backdrop-blur" title="Parolalı Albüm">
+                          <Lock className="w-3.5 h-3.5" />
+                        </span>
+                      )}
+                      <span className="px-2 py-0.5 rounded-lg bg-black/70 text-white backdrop-blur text-[10px] font-bold">
+                        {album.image_ids?.length || 0} Resim
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Album Meta */}
+                  <div className="p-4 flex-1 flex flex-col justify-between space-y-2">
+                    <div>
+                      <h4 className="text-xs sm:text-sm font-bold text-white group-hover:text-cyan-300 transition-colors truncate">
+                        {album.title}
+                      </h4>
+                      {album.description && (
+                        <p className="text-[11px] text-slate-400 line-clamp-1 mt-0.5">
+                          {album.description}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-between text-[10px] text-slate-400 pt-2 border-t border-slate-800/80">
+                      <span>{new Date(album.created_at).toLocaleDateString('tr-TR')}</span>
+                      <span className="font-semibold text-cyan-400">{album.views || 0} görüntüleme</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-[#0F172A] border border-slate-800 rounded-3xl p-12 text-center space-y-4 max-w-lg mx-auto">
+              <div className="w-16 h-16 rounded-2xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center mx-auto border border-cyan-500/20">
+                <FolderIcon className="w-8 h-8" />
+              </div>
+              <div className="space-y-1.5">
+                <h3 className="text-base font-bold text-white">Henüz Albüm Oluşturmadınız</h3>
+                <p className="text-slate-400 text-xs leading-relaxed">
+                  Fotoğraflarınızı tematik albümler altında toplayabilir, şifreleyebilir ve tek bağlantıyla paylaşabilirsiniz.
+                </p>
+              </div>
+              <div className="pt-2">
+                <button
+                  onClick={() => {
+                    setAlbumPreselectedIds([]);
+                    setShowAlbumModal(true);
+                  }}
+                  className="min-h-[44px] px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-bold text-xs shadow-md shadow-blue-600/25 inline-flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span>İlk Albümünüzü Oluşturun</span>
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       ) : processedImages.length > 0 ? (
         viewMode === 'grid' ? (
@@ -797,6 +954,19 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({ navigate }) => {
             </form>
           </div>
         </div>
+      )}
+      {/* Create Album Modal */}
+      {showAlbumModal && (
+        <CreateAlbumModal
+          isOpen={showAlbumModal}
+          onClose={() => setShowAlbumModal(false)}
+          preSelectedImageIds={albumPreselectedIds}
+          onAlbumCreated={(newAlbum) => {
+            setAlbums((prev) => [newAlbum, ...prev]);
+            setActiveFolderTab('albums');
+            fetchGallery();
+          }}
+        />
       )}
     </div>
   );
