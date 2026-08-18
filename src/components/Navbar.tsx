@@ -24,8 +24,6 @@ import {
   Check,
   Home,
   FileArchive,
-  Compass,
-  Heart,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { authApi, publicApi } from '../lib/api';
@@ -186,7 +184,6 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPath, navigate }) => {
   const navLinks = [
     { label: 'Ana Sayfa', path: '/', icon: Home },
     { label: 'Resim Yükle', path: '/yukle', icon: Upload },
-    { label: 'Keşfet', path: '/kesfet', icon: Compass, badge: 'Yeni' },
     { label: 'Galeri', path: '/galerim', icon: Images },
     { label: 'Sıkıştır & Dönüştür', path: '/donusturucu', icon: FileArchive, badge: 'WebP' },
     { label: 'Premium', path: '/premium', icon: Crown },
@@ -497,14 +494,6 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPath, navigate }) => {
                       </button>
 
                       <button
-                        onClick={() => handleNav('/favoriler')}
-                        className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/70 transition-colors cursor-pointer"
-                      >
-                        <Heart className="w-3.5 h-3.5 text-rose-400" />
-                        <span>Favorilerim</span>
-                      </button>
-
-                      <button
                         onClick={() => handleNav('/profil')}
                         className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/70 transition-colors cursor-pointer"
                       >
@@ -744,19 +733,6 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPath, navigate }) => {
                       <div className="flex items-center gap-3">
                         <LayoutDashboard className="w-4 h-4 text-sky-400" />
                         <span>Kullanıcı Paneli</span>
-                      </div>
-                      <ChevronRight className="w-3.5 h-3.5 text-slate-600" />
-                    </button>
-
-                    <button
-                      onClick={() => handleNav('/favoriler')}
-                      className={`w-full min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer ${
-                        currentPath === '/favoriler' ? 'bg-cyan-950/40 border border-cyan-500/40 text-cyan-300' : 'text-slate-300 hover:bg-slate-800/50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <Heart className="w-4 h-4 text-rose-400" />
-                        <span>Favorilerim</span>
                       </div>
                       <ChevronRight className="w-3.5 h-3.5 text-slate-600" />
                     </button>

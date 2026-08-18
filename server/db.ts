@@ -23,11 +23,6 @@ export interface UserRecord {
   created_at: string;
   status: 'active' | 'banned';
   plan?: 'free' | 'premium' | 'vip' | 'admin';
-  bio?: string;
-  avatar_url?: string;
-  two_factor_enabled?: boolean;
-  two_factor_secret?: string;
-  favorites?: string[];
 }
 
 export interface FolderRecord {
@@ -35,16 +30,6 @@ export interface FolderRecord {
   user_id: string;
   name: string;
   color?: string;
-  created_at: string;
-}
-
-export interface CommentRecord {
-  id: string;
-  image_id: string;
-  user_id?: string | null;
-  username: string;
-  avatar_url?: string;
-  text: string;
   created_at: string;
 }
 
@@ -71,11 +56,6 @@ export interface ImageRecord {
   expires_at?: string | null;
   view_limit?: number | null;
   is_one_time_view?: boolean;
-  likes?: number;
-  liked_by?: string[];
-  protect_copy?: boolean;
-  comments?: CommentRecord[];
-  tags?: string[];
 }
 
 export interface ReportRecord {
@@ -867,165 +847,6 @@ class Database {
       img.downloads = (img.downloads || 0) + 1;
       this.save();
     }
-  }
-
-  // Likes & Favorites
-  public toggleLikeImage(id: string, identifier: string): { liked: boolean; likes_count: number } | null {
-    const img = this.getImageById(id);
-    if (!img) return null;
-
-    if (!img.liked_by) img.liked_by = [];
-    if (!img.likes) img.likes = img.liked_by.length;
-
-    const existingIdx = img.liked_by.indexOf(identifier);
-    let liked = false;
-
-    if (existingIdx !== -1) {
-      img.liked_by.splice(existingIdx, 1);
-      img.likes = Math.max(0, img.likes - 1);
-      liked = false;
-    } else {
-      img.liked_by.push(identifier);
-      img.likes = img.likes + 1;
-      liked = true;
-    }
-
-    this.save();
-    return { liked, likes_count: img.likes };
-  }
-
-  public isImageLikedBy(id: string, identifier: string): boolean {
-    const img = this.getImageById(id);
-    if (!img || !img.liked_by) return false;
-    return img.liked_by.includes(identifier);
-  }
-
-  public toggleFavoriteUserImage(userId: string, imageId: string): boolean {
-    const user = this.getUserById(userId);
-    if (!user) return false;
-    if (!user.favorites) user.favorites = [];
-
-    const idx = user.favorites.indexOf(imageId);
-    let isFav = false;
-    if (idx !== -1) {
-      user.favorites.splice(idx, 1);
-      isFav = false;
-    } else {
-      user.favorites.push(imageId);
-      isFav = true;
-    }
-    this.save();
-    return isFav;
-  }
-
-  public getUserFavorites(userId: string): ImageRecord[] {
-    const user = this.getUserById(userId);
-    if (!user || !user.favorites || user.favorites.length === 0) return [];
-    return this.getImages().filter((img) => user.favorites!.includes(img.id));
-  }
-
-  // Comments
-  public addCommentToImage(imageId: string, comment: CommentRecord): CommentRecord | null {
-    const img = this.getImageById(imageId);
-    if (!img) return null;
-
-    if (!img.comments) img.comments = [];
-    img.comments.push(comment);
-    this.save();
-    return comment;
-  }
-
-  public deleteCommentFromImage(
-    imageId: string,
-    commentId: string,
-    userId?: string,
-    isAdmin?: boolean
-  ): boolean {
-    const img = this.getImageById(imageId);
-    if (!img || !img.comments) return false;
-
-    const commentIdx = img.comments.findIndex((c) => c.id === commentId);
-    if (commentIdx === -1) return false;
-
-    const comment = img.comments[commentIdx];
-    // Can delete if user is comment author, image owner, or admin
-    if (isAdmin || (userId && (comment.user_id === userId || img.user_id === userId))) {
-      img.comments.splice(commentIdx, 1);
-      this.save();
-      return true;
-    }
-    return false;
-  }
-
-  // Explore & Community Feed
-  public getPublicExplore(options: {
-    sort?: 'popular' | 'trending' | 'newest';
-    format?: string;
-    query?: string;
-    limit?: number;
-    offset?: number;
-  }): { images: ImageRecord[]; total: number } {
-    const { sort = 'newest', format, query, limit = 50, offset = 0 } = options;
-    const now = Date.now();
-
-    let list = this.getImages().filter((img) => {
-      // Must not be deleted
-      if (img.status === 'deleted') return false;
-      // Must not be expired
-      if (img.expires_at && new Date(img.expires_at).getTime() <= now) return false;
-      // Must not be one-time burn image
-      if (img.is_one_time_view) return false;
-      // Must not be password protected
-      if (img.password_hash) return false;
-      // Must be public (is_public must be true or undefined/default true, NOT false)
-      if (img.is_public === false) return false;
-      return true;
-    });
-
-    if (format && format !== 'all') {
-      list = list.filter((img) => img.format.toLowerCase() === format.toLowerCase());
-    }
-
-    if (query && query.trim().length > 0) {
-      const q = query.toLowerCase().trim();
-      list = list.filter(
-        (img) =>
-          img.original_filename.toLowerCase().includes(q) ||
-          (img.uploader_username && img.uploader_username.toLowerCase().includes(q))
-      );
-    }
-
-    if (sort === 'newest') {
-      list.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-    } else if (sort === 'trending') {
-      list.sort((a, b) => {
-        const timeA = new Date(a.created_at).getTime();
-        const timeB = new Date(b.created_at).getTime();
-        const ageHoursA = Math.max(0.1, (now - timeA) / (1000 * 60 * 60));
-        const ageHoursB = Math.max(0.1, (now - timeB) / (1000 * 60 * 60));
-        // High freshness boost + interactions gravity score
-        const scoreA = ((a.likes || 0) * 10 + (a.views || 0) * 2 + 25) / Math.pow(ageHoursA + 1, 0.6);
-        const scoreB = ((b.likes || 0) * 10 + (b.views || 0) * 2 + 25) / Math.pow(ageHoursB + 1, 0.6);
-        if (Math.abs(scoreB - scoreA) < 0.001) {
-          return timeB - timeA;
-        }
-        return scoreB - scoreA;
-      });
-    } else {
-      // popular
-      list.sort((a, b) => {
-        const scoreA = (a.views || 0) + (a.likes || 0) * 5;
-        const scoreB = (b.views || 0) + (b.likes || 0) * 5;
-        if (scoreA === scoreB) {
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-        }
-        return scoreB - scoreA;
-      });
-    }
-
-    const total = list.length;
-    const paginated = list.slice(offset, offset + limit);
-    return { images: paginated, total };
   }
 
   // Reports
