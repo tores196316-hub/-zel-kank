@@ -965,8 +965,22 @@ class Database {
     limit?: number;
     offset?: number;
   }): { images: ImageRecord[]; total: number } {
-    const { sort = 'popular', format, query, limit = 30, offset = 0 } = options;
-    let list = this.getImages().filter((img) => img.is_public && !img.password_hash && !img.is_one_time_view);
+    const { sort = 'newest', format, query, limit = 50, offset = 0 } = options;
+    const now = Date.now();
+
+    let list = this.getImages().filter((img) => {
+      // Must not be deleted
+      if (img.status === 'deleted') return false;
+      // Must not be expired
+      if (img.expires_at && new Date(img.expires_at).getTime() <= now) return false;
+      // Must not be one-time burn image
+      if (img.is_one_time_view) return false;
+      // Must not be password protected
+      if (img.password_hash) return false;
+      // Must be public (is_public must be true or undefined/default true, NOT false)
+      if (img.is_public === false) return false;
+      return true;
+    });
 
     if (format && format !== 'all') {
       list = list.filter((img) => img.format.toLowerCase() === format.toLowerCase());
@@ -985,13 +999,28 @@ class Database {
       list.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     } else if (sort === 'trending') {
       list.sort((a, b) => {
-        const scoreA = (a.likes || 0) * 3 + (a.views || 0) * 1;
-        const scoreB = (b.likes || 0) * 3 + (b.views || 0) * 1;
+        const timeA = new Date(a.created_at).getTime();
+        const timeB = new Date(b.created_at).getTime();
+        const ageHoursA = Math.max(0.1, (now - timeA) / (1000 * 60 * 60));
+        const ageHoursB = Math.max(0.1, (now - timeB) / (1000 * 60 * 60));
+        // High freshness boost + interactions gravity score
+        const scoreA = ((a.likes || 0) * 10 + (a.views || 0) * 2 + 25) / Math.pow(ageHoursA + 1, 0.6);
+        const scoreB = ((b.likes || 0) * 10 + (b.views || 0) * 2 + 25) / Math.pow(ageHoursB + 1, 0.6);
+        if (Math.abs(scoreB - scoreA) < 0.001) {
+          return timeB - timeA;
+        }
         return scoreB - scoreA;
       });
     } else {
       // popular
-      list.sort((a, b) => (b.views || 0) + (b.likes || 0) * 5 - ((a.views || 0) + (a.likes || 0) * 5));
+      list.sort((a, b) => {
+        const scoreA = (a.views || 0) + (a.likes || 0) * 5;
+        const scoreB = (b.views || 0) + (b.likes || 0) * 5;
+        if (scoreA === scoreB) {
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        }
+        return scoreB - scoreA;
+      });
     }
 
     const total = list.length;

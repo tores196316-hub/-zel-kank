@@ -31,7 +31,7 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({ navigate }) => {
   const [images, setImages] = useState<ImageMetadata[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [sort, setSort] = useState<'popular' | 'trending' | 'newest'>('trending');
+  const [sort, setSort] = useState<'newest' | 'trending' | 'popular'>('newest');
   const [selectedFormat, setSelectedFormat] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [likingIds, setLikingIds] = useState<Record<string, boolean>>({});
@@ -129,8 +129,19 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({ navigate }) => {
             {/* Sort Tabs */}
             <div className="flex items-center gap-1.5 p-1 bg-slate-900/90 rounded-xl border border-slate-800">
               <button
+                onClick={() => setSort('newest')}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                  sort === 'newest'
+                    ? 'bg-cyan-500 text-slate-950 font-semibold shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>En Yeniler</span>
+              </button>
+              <button
                 onClick={() => setSort('trending')}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                   sort === 'trending'
                     ? 'bg-cyan-500 text-slate-950 font-semibold shadow-sm'
                     : 'text-slate-400 hover:text-slate-200'
@@ -141,7 +152,7 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({ navigate }) => {
               </button>
               <button
                 onClick={() => setSort('popular')}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                   sort === 'popular'
                     ? 'bg-cyan-500 text-slate-950 font-semibold shadow-sm'
                     : 'text-slate-400 hover:text-slate-200'
@@ -149,17 +160,6 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({ navigate }) => {
               >
                 <TrendingUp className="w-3.5 h-3.5" />
                 <span>En Popüler</span>
-              </button>
-              <button
-                onClick={() => setSort('newest')}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                  sort === 'newest'
-                    ? 'bg-cyan-500 text-slate-950 font-semibold shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>En Yeniler</span>
               </button>
             </div>
 
@@ -182,7 +182,15 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({ navigate }) => {
                 ))}
               </div>
 
-              {/* Search Box */}
+              {/* Refresh Button */}
+              <button
+                onClick={fetchExplore}
+                disabled={loading}
+                className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-cyan-400 hover:border-cyan-500/30 transition-all cursor-pointer"
+                title="Keşfet Akışını Yenile"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-cyan-400' : ''}`} />
+              </button>
               <form onSubmit={handleSearchSubmit} className="relative flex-1 sm:w-64">
                 <input
                   type="text"
