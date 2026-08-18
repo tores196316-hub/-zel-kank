@@ -20,6 +20,7 @@ import {
   Flame
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useSettings } from '../context/SettingsContext';
 import { Logo } from '../components/Logo';
 import { imageApi } from '../lib/api';
 import { useToast } from '../components/Toast';
@@ -32,8 +33,11 @@ interface HomePageProps {
 
 export const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
   const { user, refreshUser } = useAuth();
+  const { settings } = useSettings();
   const { showToast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const isGuestUploadAllowed = settings ? settings.allow_guest_upload !== false : true;
 
   const [isDragging, setIsDragging] = useState(false);
   const [isQuickUploading, setIsQuickUploading] = useState(false);
@@ -60,10 +64,15 @@ export const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
 
     window.addEventListener('paste', handlePaste);
     return () => window.removeEventListener('paste', handlePaste);
-  }, [recentUploadResult]);
+  }, [recentUploadResult, user, isGuestUploadAllowed]);
 
   const handleQuickUpload = async (file: File) => {
     if (!file) return;
+
+    if (!user && !isGuestUploadAllowed) {
+      showToast('Anonim yükleme şu anda devre dışı. Resim yüklemek için lütfen giriş yapın.', 'error');
+      return;
+    }
 
     if (file.size > 20 * 1024 * 1024) {
       showToast('Dosya boyutu maksimum 20 MB olabilir.', 'error');

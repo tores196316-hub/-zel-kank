@@ -135,6 +135,11 @@ Size nasıl yardımcı olabilirim?`;
 router.post('/ask', async (req: Request, res: Response) => {
   try {
     const settings = db.getSettings();
+    if (settings.maintenance_mode) {
+      return res.status(503).json({
+        error: 'Sistem şu anda bakım modundadır.',
+      });
+    }
     if (settings.ai_assistant_enabled === false) {
       return res.status(403).json({
         error: 'AI Asistanı sistem yöneticisi tarafından geçici olarak devre dışı bırakılmıştır.',

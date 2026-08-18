@@ -13,6 +13,9 @@ router.post('/register', authRateLimiter, async (req: AuthRequest, res: Response
     const { email, username, password } = req.body;
 
     const settings = db.getSettings();
+    if (settings.maintenance_mode) {
+      return res.status(503).json({ error: 'Sistem şu anda bakım modundadır. Yeni kayıt işlemi geçici olarak kapalıdır.' });
+    }
     if (!settings.allow_user_registration) {
       return res.status(403).json({ error: 'Yeni kullanıcı kayıtları geçici olarak durdurulmuştur.' });
     }

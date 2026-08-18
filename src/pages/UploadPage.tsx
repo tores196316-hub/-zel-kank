@@ -8,6 +8,7 @@ import { imageApi, getStoredToken } from '../lib/api';
 import { Folder, UploadProgressFile, UploadResult } from '../types';
 import { useToast } from '../components/Toast';
 import { useAuth } from '../context/AuthContext';
+import { useSettings } from '../context/SettingsContext';
 import { formatImageUrl } from '../lib/imageUrl';
 import { ImageEditorModal } from '../components/ImageEditorModal';
 
@@ -18,6 +19,7 @@ interface UploadPageProps {
 export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
   const { showToast } = useToast();
   const { refreshUser } = useAuth();
+  const { settings } = useSettings();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
@@ -37,6 +39,7 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
   const [editingFile, setEditingFile] = useState<UploadProgressFile | null>(null);
 
   const isLoggedIn = !!getStoredToken();
+  const isGuestUploadAllowed = settings ? settings.allow_guest_upload !== false : true;
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -74,6 +77,11 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
 
   const handleFileSelect = (selectedFiles: FileList | File[] | null) => {
     if (!selectedFiles || (selectedFiles as any).length === 0) return;
+
+    if (!isLoggedIn && !isGuestUploadAllowed) {
+      showToast('Anonim yükleme şu anda devre dışı. Resim yüklemek için lütfen giriş yapın.', 'error');
+      return;
+    }
 
     const newFiles: UploadProgressFile[] = [];
     const validExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
@@ -272,6 +280,39 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
       {completedResults.length === 0 && (
         <div className="space-y-6">
           
+          {/* Guest Upload Disabled Notice */}
+          {!isLoggedIn && !isGuestUploadAllowed && (
+            <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/30 text-amber-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl animate-in fade-in">
+              <div className="flex items-start gap-3">
+                <div className="w-9 h-9 rounded-2xl bg-amber-500/20 text-amber-300 flex items-center justify-center shrink-0 border border-amber-500/30">
+                  <Shield className="w-5 h-5" />
+                </div>
+                <div className="space-y-1">
+                  <span className="font-bold text-white text-xs sm:text-sm block">Misafir Yüklemesi Devre Dışı</span>
+                  <span className="text-[11px] sm:text-xs text-amber-200/80 leading-relaxed block">
+                    Anonim resim yükleme şu anda kapalıdır. Resim yüklemek için lütfen giriş yapın veya ücretsiz hesap oluşturun.
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+                <button
+                  type="button"
+                  onClick={() => navigate('/giris')}
+                  className="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-md transition-all cursor-pointer"
+                >
+                  Giriş Yap
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate('/kayit')}
+                  className="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs border border-slate-700 transition-all cursor-pointer"
+                >
+                  Kayıt Ol
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Target Folder Selection (if logged in and user has folders) */}
           {isLoggedIn && folders.length > 0 && (
             <div className="bg-[#0A1020] border border-slate-800 rounded-2xl p-3 sm:p-3.5 flex items-center justify-between gap-3 shadow-sm">

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { SettingsProvider, useSettings } from './context/SettingsContext';
 import { ToastProvider } from './components/Toast';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { AiAssistant } from './components/AiAssistant';
+import { MaintenanceScreen } from './components/MaintenanceScreen';
 
 import { HomePage } from './pages/HomePage';
 import { UploadPage } from './pages/UploadPage';
@@ -25,8 +27,10 @@ import { AdminPage } from './pages/AdminPage';
 import { ConverterPage } from './pages/ConverterPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
-export default function App() {
+const AppContent: React.FC = () => {
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
+  const { user } = useAuth();
+  const { settings } = useSettings();
 
   useEffect(() => {
     const handlePopState = () => {
@@ -44,7 +48,17 @@ export default function App() {
     }
   };
 
+  // Maintenance mode guard:
+  // If maintenance mode is ON and user is NOT admin:
+  // Allow /giris (so admin can log in) and /admin, block everything else with MaintenanceScreen.
+  const isMaintenanceActive = settings?.maintenance_mode === true && user?.role !== 'admin';
+  const isAllowedMaintenancePath = currentPath === '/giris' || currentPath === '/admin';
+
   const renderCurrentView = () => {
+    if (isMaintenanceActive && !isAllowedMaintenancePath) {
+      return <MaintenanceScreen navigate={navigate} />;
+    }
+
     const path = currentPath.toLowerCase();
 
     if (path === '/' || path === '') {
@@ -111,15 +125,23 @@ export default function App() {
   };
 
   return (
+    <div className="min-h-screen flex flex-col bg-[#0B0F19] text-slate-100 font-sans antialiased selection:bg-blue-600 selection:text-white">
+      <Navbar currentPath={currentPath} navigate={navigate} />
+      <main className="flex-1">{renderCurrentView()}</main>
+      <Footer navigate={navigate} />
+      <AiAssistant navigate={navigate} />
+    </div>
+  );
+};
+
+export default function App() {
+  return (
     <AuthProvider>
-      <ToastProvider>
-        <div className="min-h-screen flex flex-col bg-[#0B0F19] text-slate-100 font-sans antialiased selection:bg-blue-600 selection:text-white">
-          <Navbar currentPath={currentPath} navigate={navigate} />
-          <main className="flex-1">{renderCurrentView()}</main>
-          <Footer navigate={navigate} />
-          <AiAssistant navigate={navigate} />
-        </div>
-      </ToastProvider>
+      <SettingsProvider>
+        <ToastProvider>
+          <AppContent />
+        </ToastProvider>
+      </SettingsProvider>
     </AuthProvider>
   );
 }

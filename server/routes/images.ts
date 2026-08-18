@@ -154,8 +154,18 @@ router.post('/upload', uploadRateLimiter, authenticateToken, upload.array('files
   try {
     const settings = db.getSettings();
 
+    // 1. Maintenance Mode Check: Non-admins cannot upload during maintenance
+    if (settings.maintenance_mode && req.user?.role !== 'admin') {
+      return res.status(503).json({
+        error: 'Sistem şu anda bakım modundadır. Resim yükleme işlemi geçici olarak durdurulmuştur.',
+      });
+    }
+
+    // 2. Guest Upload Check: Anonymous uploads blocked if allow_guest_upload is false
     if (!req.user && !settings.allow_guest_upload) {
-      return res.status(403).json({ error: 'Misafir resim yüklemesi kapalıdır. Lütfen giriş yapın.' });
+      return res.status(403).json({
+        error: 'Anonim yükleme şu anda devre dışı. Resim yüklemek için lütfen giriş yapın.',
+      });
     }
 
     const files = req.files as Express.Multer.File[];

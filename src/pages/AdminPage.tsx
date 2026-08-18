@@ -61,6 +61,7 @@ import {
 } from '../types';
 import { useToast } from '../components/Toast';
 import { useAuth } from '../context/AuthContext';
+import { useSettings, SETTINGS_UPDATED_EVENT } from '../context/SettingsContext';
 import { formatImageUrl } from '../lib/imageUrl';
 
 interface AdminPageProps {
@@ -81,10 +82,13 @@ type AdminTab =
 export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
   const { user } = useAuth();
   const { showToast } = useToast();
+  const { updateSettingsLocally } = useSettings();
 
   const [activeTab, setActiveTab] = useState<AdminTab>('stats');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [savingAds, setSavingAds] = useState(false);
 
   // Core Data States
   const [stats, setStats] = useState<AdminStats | null>(null);
@@ -386,17 +390,26 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
     e.preventDefault();
     if (!siteSettings) return;
 
+    setSavingSettings(true);
     try {
       const res = await adminApi.updateSettings(siteSettings);
-      showToast(res.message || 'Site ayarları kaydedildi.', 'success');
+      if (res.settings) {
+        setSiteSettings(res.settings);
+        updateSettingsLocally(res.settings);
+        window.dispatchEvent(new CustomEvent(SETTINGS_UPDATED_EVENT, { detail: res.settings }));
+      }
+      showToast(res.message || 'Site ayarları başarıyla kaydedildi.', 'success');
     } catch (err: any) {
-      showToast('Site ayarları güncellenemedi.', 'error');
+      showToast(err.message || 'Site ayarları güncellenemedi.', 'error');
+    } finally {
+      setSavingSettings(false);
     }
   };
 
   // 7. Ad Management Handlers
   const handleSaveAdSettings = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSavingAds(true);
     try {
       const res = await adminApi.updateSettings({
         ...siteSettings,
@@ -404,10 +417,16 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
         sidebar_ad_code: adSettings.sidebar_ad_code,
         image_page_ad_code: adSettings.image_page_ad_code,
       });
-      if (res.settings) setSiteSettings(res.settings);
+      if (res.settings) {
+        setSiteSettings(res.settings);
+        updateSettingsLocally(res.settings);
+        window.dispatchEvent(new CustomEvent(SETTINGS_UPDATED_EVENT, { detail: res.settings }));
+      }
       showToast('Reklam kodları ve ayarları başarıyla kaydedildi.', 'success');
     } catch (err: any) {
-      showToast('Reklam ayarları kaydedilemedi.', 'error');
+      showToast(err.message || 'Reklam ayarları kaydedilemedi.', 'error');
+    } finally {
+      setSavingAds(false);
     }
   };
 
@@ -1610,9 +1629,17 @@ export const AdminPage: React.FC<AdminPageProps> = ({ navigate }) => {
 
           <button
             type="submit"
-            className="w-full min-h-[48px] py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-sky-500 hover:from-blue-500 hover:to-sky-400 text-white font-bold text-xs shadow-lg shadow-sky-500/20 mt-4 transition-all active:scale-95 cursor-pointer"
+            disabled={savingSettings}
+            className="w-full min-h-[48px] py-3 rounded-2xl bg-gradient-to-r from-blue-600 via-sky-500 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-bold text-xs shadow-lg shadow-cyan-500/20 mt-4 transition-all active:scale-95 disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
           >
-            Site Ayarlarını Kaydet
+            {savingSettings ? (
+              <>
+                <RefreshCw className="w-4 h-4 animate-spin" />
+                <span>Kaydediliyor...</span>
+              </>
+            ) : (
+              <span>Site Ayarlarını Kaydet</span>
+            )}
           </button>
         </form>
       )}

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { UserPlus, User, Mail, Lock, ArrowRight, Eye, EyeOff, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { authApi } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
+import { useSettings } from '../context/SettingsContext';
 import { useToast } from '../components/Toast';
 import { Logo } from '../components/Logo';
 
@@ -11,7 +12,10 @@ interface RegisterPageProps {
 
 export const RegisterPage: React.FC<RegisterPageProps> = ({ navigate }) => {
   const { user, login } = useAuth();
+  const { settings } = useSettings();
   const { showToast } = useToast();
+
+  const isRegistrationAllowed = settings ? settings.allow_user_registration !== false : true;
 
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
@@ -35,6 +39,12 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ navigate }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
+
+    if (!isRegistrationAllowed) {
+      setErrorMessage('Yeni kullanıcı kayıtları geçici olarak durdurulmuştur.');
+      showToast('Yeni kullanıcı kayıtları geçici olarak durdurulmuştur.', 'error');
+      return;
+    }
 
     const cleanEmail = email.trim().toLowerCase();
     const cleanUsername = username.trim();
@@ -101,6 +111,18 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ navigate }) => {
       </div>
 
       <form onSubmit={handleSubmit} className="bg-[#0A1020] border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-4 shadow-2xl">
+        {!isRegistrationAllowed && (
+          <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-start gap-2.5 animate-in fade-in duration-200">
+            <AlertCircle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <span className="font-bold block text-white">Kayıtlar Geçici Olarak Kapalıdır</span>
+              <span className="leading-relaxed text-amber-200/90 block">
+                Yeni üye alımı sistem yöneticisi tarafından geçici olarak durdurulmuştur. Mevcut bir hesabınız varsa giriş yapabilirsiniz.
+              </span>
+            </div>
+          </div>
+        )}
+
         {errorMessage && (
           <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-start gap-2.5 animate-in fade-in duration-200">
             <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
@@ -218,8 +240,8 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ navigate }) => {
 
         <button
           type="submit"
-          disabled={submitting}
-          className="w-full min-h-[48px] py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-sky-500 hover:from-blue-500 hover:to-sky-400 text-white font-bold text-xs sm:text-sm shadow-lg shadow-sky-500/20 flex items-center justify-center gap-2 transition-all mt-2 active:scale-95 disabled:opacity-50 cursor-pointer"
+          disabled={submitting || !isRegistrationAllowed}
+          className="w-full min-h-[48px] py-3 rounded-2xl bg-gradient-to-r from-blue-600 via-sky-500 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-bold text-xs sm:text-sm shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-2 transition-all mt-2 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
           {submitting ? (
             <span className="flex items-center gap-2">
@@ -229,6 +251,8 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ navigate }) => {
               </svg>
               Kayıt Yapılıyor...
             </span>
+          ) : !isRegistrationAllowed ? (
+            <span>Kayıtlar Geçici Olarak Kapalı</span>
           ) : (
             <>
               <span>Ücretsiz Kayıt Ol</span>
