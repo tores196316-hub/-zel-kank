@@ -17,7 +17,10 @@ import {
   HardDrive,
   RefreshCw,
   ExternalLink,
-  Flame
+  Flame,
+  Globe,
+  Compass,
+  EyeOff
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
@@ -43,6 +46,7 @@ export const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
   const [isQuickUploading, setIsQuickUploading] = useState(false);
   const [quickUploadProgress, setQuickUploadProgress] = useState(0);
   const [recentUploadResult, setRecentUploadResult] = useState<UploadResult | null>(null);
+  const [showInExplore, setShowInExplore] = useState<boolean>(true);
 
   // Paste support on home page
   useEffect(() => {
@@ -86,7 +90,9 @@ export const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
       const res = await imageApi.uploadFile(
         file,
         (percent) => setQuickUploadProgress(percent),
-        null
+        null,
+        undefined,
+        { is_public: showInExplore }
       );
 
       setRecentUploadResult(res);
@@ -227,6 +233,32 @@ export const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
                       <span>•</span>
                       <span>Maks. 20 MB</span>
                     </div>
+
+                    {/* Quick Keşfet Visibility Toggle Button */}
+                    <div 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowInExplore((prev) => !prev);
+                      }}
+                      className={`mt-2 inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-[11px] transition-all cursor-pointer ${
+                        showInExplore
+                          ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/20'
+                          : 'bg-slate-800/80 border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-slate-300'
+                      }`}
+                      title="Keşfet görünürlüğünü değiştir"
+                    >
+                      {showInExplore ? (
+                        <>
+                          <Compass className="w-3.5 h-3.5 text-cyan-400" />
+                          <span className="font-semibold">Keşfet'te Göster (Herkese Açık)</span>
+                        </>
+                      ) : (
+                        <>
+                          <EyeOff className="w-3.5 h-3.5 text-amber-400" />
+                          <span className="font-semibold">🔒 Gizli Paylaşım (Keşfet Dışı)</span>
+                        </>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
@@ -238,12 +270,23 @@ export const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
                     <CheckCircle2 className="w-4 h-4" />
                     <span>Yükleme Tamamlandı!</span>
                   </div>
-                  <button
-                    onClick={() => setRecentUploadResult(null)}
-                    className="text-xs text-slate-400 hover:text-white cursor-pointer font-medium"
-                  >
-                    Yeni Yükle
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {recentUploadResult.image.is_public ? (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/30">
+                        Keşfet'te Yayında
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">
+                        Gizli Bağlantı
+                      </span>
+                    )}
+                    <button
+                      onClick={() => setRecentUploadResult(null)}
+                      className="text-xs text-slate-400 hover:text-white cursor-pointer font-medium"
+                    >
+                      Yeni Yükle
+                    </button>
+                  </div>
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center gap-4">

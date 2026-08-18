@@ -187,14 +187,53 @@ router.get('/me', authenticateToken, (req: AuthRequest, res: Response) => {
       stats,
       plan_limits: planLimits,
       today_uploads: todayUploads,
+      bio: dbUser.bio || '',
+      avatar_url: dbUser.avatar_url || '',
+      two_factor_enabled: dbUser.two_factor_enabled || false,
+      favorites: dbUser.favorites || [],
     },
   });
+});
+
+// Public Creator Profile & Portfolio
+router.get('/public/profile/:username', (req: AuthRequest, res: Response) => {
+  try {
+    const { username } = req.params;
+    const user = db.getUserByUsername(username);
+    if (!user || user.status === 'banned') {
+      return res.status(404).json({ error: 'İçerik üreticisi bulunamadı.' });
+    }
+
+    const publicImages = db.getImagesByUserId(user.id).filter((img) => img.is_public && !img.password_hash && !img.is_one_time_view);
+    const totalViews = publicImages.reduce((acc, i) => acc + (i.views || 0), 0);
+    const totalLikes = publicImages.reduce((acc, i) => acc + (i.likes || 0), 0);
+
+    return res.json({
+      user: {
+        id: user.id,
+        username: user.username,
+        role: user.role,
+        plan: user.plan || 'free',
+        bio: user.bio || '',
+        avatar_url: user.avatar_url || '',
+        created_at: user.created_at,
+      },
+      images: publicImages,
+      stats: {
+        total_public_images: publicImages.length,
+        total_views: totalViews,
+        total_likes: totalLikes,
+      },
+    });
+  } catch (err: any) {
+    return res.status(500).json({ error: 'Profil bilgisi yüklenemedi.' });
+  }
 });
 
 // Update Profile
 router.put('/profile', authenticateToken, requireAuth, async (req: AuthRequest, res: Response) => {
   try {
-    const { password, new_password, email } = req.body;
+    const { password, new_password, email, bio, avatar_url, two_factor_enabled } = req.body;
     const userId = req.user!.id;
 
     const user = db.getUserById(userId);
@@ -208,6 +247,10 @@ router.put('/profile', authenticateToken, requireAuth, async (req: AuthRequest, 
     }
 
     const updates: Partial<UserRecord> = {};
+
+    if (typeof bio === 'string') updates.bio = bio.slice(0, 300);
+    if (typeof avatar_url === 'string') updates.avatar_url = avatar_url;
+    if (typeof two_factor_enabled === 'boolean') updates.two_factor_enabled = two_factor_enabled;
 
     // If changing password
     if (new_password) {
@@ -229,10 +272,24 @@ router.put('/profile', authenticateToken, requireAuth, async (req: AuthRequest, 
 
     if (Object.keys(updates).length > 0) {
       db.updateUser(userId, updates);
-      db.addAuditLog('USER_PROFILE_UPDATED', user.id, user.username, user.username, 'Kullanıcı şifresini güncelledi');
+      db.addAuditLog('USER_PROFILE_UPDATED', user.id, user.username, user.username, 'Kullanıcı profilini ve ayarlarını güncelledi');
     }
 
-    return res.json({ message: 'Şifreniz ve güvenlik bilgileriniz başarıyla güncellendi.' });
+    const updatedUser = db.getUserById(userId);
+
+    return res.json({
+      message: 'Profiliniz ve ayarlarınız başarıyla güncellendi.',
+      user: updatedUser ? {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        username: updatedUser.username,
+        role: updatedUser.role,
+        plan: updatedUser.plan || 'free',
+        bio: updatedUser.bio || '',
+        avatar_url: updatedUser.avatar_url || '',
+        two_factor_enabled: updatedUser.two_factor_enabled || false,
+      } : null,
+    });
   } catch (err: any) {
     return res.status(500).json({ error: 'Profil güncellenirken hata oluştu.' });
   }

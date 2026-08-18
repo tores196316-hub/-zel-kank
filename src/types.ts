@@ -36,6 +36,20 @@ export interface User {
   plan_limits?: PlanConfig;
   today_uploads?: number;
   storage_bytes?: number;
+  bio?: string;
+  avatar_url?: string;
+  two_factor_enabled?: boolean;
+  favorites?: string[];
+}
+
+export interface Comment {
+  id: string;
+  image_id: string;
+  user_id?: string | null;
+  username: string;
+  avatar_url?: string;
+  text: string;
+  created_at: string;
 }
 
 export interface ImageMetadata {
@@ -60,6 +74,29 @@ export interface ImageMetadata {
   expires_at?: string | null;
   is_one_time_view?: boolean;
   is_password_protected?: boolean;
+  likes?: number;
+  is_liked?: boolean;
+  protect_copy?: boolean;
+  comments?: Comment[];
+  tags?: string[];
+}
+
+export interface PublicCreatorProfile {
+  user: {
+    id: string;
+    username: string;
+    role: string;
+    plan: string;
+    bio?: string;
+    avatar_url?: string;
+    created_at: string;
+  };
+  images: ImageMetadata[];
+  stats: {
+    total_public_images: number;
+    total_views: number;
+    total_likes: number;
+  };
 }
 
 export interface UploadResult {

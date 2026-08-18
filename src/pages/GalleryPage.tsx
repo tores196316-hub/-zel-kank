@@ -23,7 +23,9 @@ import {
   RefreshCw,
   Sliders,
   Download,
-  Flame
+  Flame,
+  Globe,
+  EyeOff
 } from 'lucide-react';
 import { imageApi } from '../lib/api';
 import { Folder, UploadResult } from '../types';
@@ -141,6 +143,21 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({ navigate }) => {
       showToast('Resim klasörü güncellendi.', 'success');
     } catch (err) {
       showToast('Klasör güncellenemedi.', 'error');
+    }
+  };
+
+  const handleToggleVisibility = async (id: string, currentPublic: boolean, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const res = await imageApi.updateVisibility(id, !currentPublic);
+      setImages((prev) =>
+        prev.map((item) =>
+          item.image.id === id ? { ...item, image: { ...item.image, is_public: res.is_public } } : item
+        )
+      );
+      showToast(res.message, 'info');
+    } catch (err: any) {
+      showToast(err.message || 'Görünürlük güncellenemedi.', 'error');
     }
   };
 
@@ -651,7 +668,27 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({ navigate }) => {
 
                   <div className="flex items-center justify-between text-[10px] text-slate-400">
                     <span>{formatSize(item.image.size)}</span>
-                    <span>{new Date(item.image.created_at).toLocaleDateString('tr-TR')}</span>
+                    <button
+                      onClick={(e) => handleToggleVisibility(item.image.id, !!item.image.is_public, e)}
+                      className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold border transition-colors cursor-pointer ${
+                        item.image.is_public
+                          ? 'bg-cyan-500/10 text-cyan-300 border-cyan-500/25 hover:bg-cyan-500/20'
+                          : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700 hover:text-slate-300'
+                      }`}
+                      title="Keşfet görünürlüğünü aç / kapat"
+                    >
+                      {item.image.is_public ? (
+                        <>
+                          <Globe className="w-2.5 h-2.5 text-cyan-400" />
+                          <span>Keşfet</span>
+                        </>
+                      ) : (
+                        <>
+                          <EyeOff className="w-2.5 h-2.5 text-amber-400" />
+                          <span>Gizli</span>
+                        </>
+                      )}
+                    </button>
                   </div>
 
                   {/* Folder Switcher dropdown */}
@@ -705,6 +742,27 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({ navigate }) => {
                 </div>
 
                 <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                  <button
+                    onClick={(e) => handleToggleVisibility(item.image.id, !!item.image.is_public, e)}
+                    className={`px-2.5 py-1.5 rounded-xl border text-[10px] font-bold flex items-center gap-1 transition-colors cursor-pointer ${
+                      item.image.is_public
+                        ? 'bg-cyan-500/10 text-cyan-300 border-cyan-500/25 hover:bg-cyan-500/20'
+                        : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700 hover:text-slate-300'
+                    }`}
+                    title="Keşfet görünürlüğünü değiştir"
+                  >
+                    {item.image.is_public ? (
+                      <>
+                        <Globe className="w-3 h-3 text-cyan-400" />
+                        <span>Keşfet'te</span>
+                      </>
+                    ) : (
+                      <>
+                        <EyeOff className="w-3 h-3 text-amber-400" />
+                        <span>Gizli</span>
+                      </>
+                    )}
+                  </button>
                   <button
                     onClick={(e) => handleToggleFavorite(item.image.id, e)}
                     className="p-2 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-rose-400 transition-colors"

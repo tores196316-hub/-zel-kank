@@ -185,6 +185,14 @@ router.post('/upload', uploadRateLimiter, authenticateToken, upload.array('files
     const passwordInput = req.body.password ? String(req.body.password).trim() : null;
     const expirationInput = req.body.expiration ? String(req.body.expiration).trim() : 'none';
 
+    // Explore / Public visibility setting
+    let isPublic = true;
+    if (req.body.is_public !== undefined) {
+      isPublic = req.body.is_public === 'true' || req.body.is_public === true;
+    } else if (req.body.show_in_explore !== undefined) {
+      isPublic = req.body.show_in_explore === 'true' || req.body.show_in_explore === true;
+    }
+
     let passwordHash: string | null = null;
     if (passwordInput && passwordInput.length > 0) {
       passwordHash = await bcrypt.hash(passwordInput, 10);
@@ -273,7 +281,7 @@ router.post('/upload', uploadRateLimiter, authenticateToken, upload.array('files
         created_at: new Date().toISOString(),
         views: 0,
         downloads: 0,
-        is_public: true,
+        is_public: isPublic,
         status: 'active',
         delete_token: deleteToken,
         is_favorite: false,
@@ -768,6 +776,169 @@ router.post('/:id/report', contactRateLimiter, (req: AuthRequest, res: Response)
     return res.json({ message: 'Şikayetiniz alındı. İnceleme ekiplerimize iletildi.' });
   } catch (err: any) {
     return res.status(500).json({ error: 'Rapor iletilirken bir hata oluştu.' });
+  }
+});
+
+// Explore & Public Community
+router.get('/explore', (req: Request, res: Response) => {
+  try {
+    const { sort, format, query, limit, offset } = req.query;
+    const result = db.getPublicExplore({
+      sort: (sort as any) || 'popular',
+      format: format as string,
+      query: query as string,
+      limit: limit ? parseInt(limit as string, 10) : 30,
+      offset: offset ? parseInt(offset as string, 10) : 0,
+    });
+    return res.json(result);
+  } catch (err: any) {
+    return res.status(500).json({ error: 'Keşfet akışı yüklenemedi.' });
+  }
+});
+
+// User favorites
+router.get('/favorites', requireAuth, (req: AuthRequest, res: Response) => {
+  try {
+    const images = db.getUserFavorites(req.user!.id);
+    return res.json({ images });
+  } catch (err: any) {
+    return res.status(500).json({ error: 'Favoriler yüklenemedi.' });
+  }
+});
+
+// Like / Unlike Image
+router.post('/:id/like', authenticateToken, (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const identifier = req.user ? `usr_${req.user.id}` : `ip_${(req.headers['x-forwarded-for'] as string) || req.ip || '127.0.0.1'}`;
+    const result = db.toggleLikeImage(id, identifier);
+    if (!result) {
+      return res.status(404).json({ error: 'Resim bulunamadı.' });
+    }
+    return res.json(result);
+  } catch (err: any) {
+    return res.status(500).json({ error: 'Beğeni işlemi başarısız.' });
+  }
+});
+
+// User toggle favorite
+router.post('/:id/favorite', requireAuth, (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const isFav = db.toggleFavoriteUserImage(req.user!.id, id);
+    return res.json({ is_favorite: isFav });
+  } catch (err: any) {
+    return res.status(500).json({ error: 'Favori durumu güncellenemedi.' });
+  }
+});
+
+// Comments: Get comments
+router.get('/:id/comments', (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const img = db.getImageById(id);
+    if (!img) return res.status(404).json({ error: 'Resim bulunamadı.' });
+    return res.json({ comments: img.comments || [] });
+  } catch (err: any) {
+    return res.status(500).json({ error: 'Yorumlar yüklenemedi.' });
+  }
+});
+
+// Comments: Post comment
+router.post('/:id/comments', authenticateToken, (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { text, guest_name } = req.body;
+
+    if (!text || String(text).trim().length < 2) {
+      return res.status(400).json({ error: 'Lütfen geçerli bir yorum yazın (en az 2 karakter).' });
+    }
+    if (String(text).length > 500) {
+      return res.status(400).json({ error: 'Yorum en fazla 500 karakter olabilir.' });
+    }
+
+    const img = db.getImageById(id);
+    if (!img) return res.status(404).json({ error: 'Resim bulunamadı.' });
+
+    const username = req.user ? req.user.username : (guest_name?.trim() || 'Misafir');
+    const user_id = req.user ? req.user.id : null;
+    const avatar_url = req.user ? (db.getUserById(req.user.id)?.avatar_url) : undefined;
+
+    const comment = db.addCommentToImage(id, {
+      id: 'cmt_' + Date.now() + '_' + crypto.randomBytes(3).toString('hex'),
+      image_id: id,
+      user_id,
+      username,
+      avatar_url,
+      text: String(text).trim(),
+      created_at: new Date().toISOString(),
+    });
+
+    return res.json({ message: 'Yorumunuz eklendi.', comment });
+  } catch (err: any) {
+    return res.status(500).json({ error: 'Yorum eklenirken hata oluştu.' });
+  }
+});
+
+// Comments: Delete comment
+router.delete('/:id/comments/:commentId', authenticateToken, (req: AuthRequest, res: Response) => {
+  try {
+    const { id, commentId } = req.params;
+    const userId = req.user ? req.user.id : undefined;
+    const isAdmin = req.user && req.user.role === 'admin';
+
+    const deleted = db.deleteCommentFromImage(id, commentId, userId, isAdmin);
+    if (!deleted) {
+      return res.status(403).json({ error: 'Bu yorumu silme yetkiniz yok.' });
+    }
+    return res.json({ message: 'Yorum silindi.' });
+  } catch (err: any) {
+    return res.status(500).json({ error: 'Yorum silinemedi.' });
+  }
+});
+
+// Toggle Right Click & Copy Protection
+router.put('/:id/protection', requireAuth, (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { protect_copy } = req.body;
+    const img = db.getImageById(id);
+    if (!img) return res.status(404).json({ error: 'Resim bulunamadı.' });
+
+    if (img.user_id !== req.user!.id && req.user!.role !== 'admin') {
+      return res.status(403).json({ error: 'Yetkiniz yok.' });
+    }
+
+    img.protect_copy = Boolean(protect_copy);
+    db.save();
+    return res.json({ message: 'Koruma ayarı güncellendi.', protect_copy: img.protect_copy });
+  } catch (err: any) {
+    return res.status(500).json({ error: 'Koruma ayarı kaydedilemedi.' });
+  }
+});
+
+// Toggle Public / Explore Visibility (Keşfet'te Göster / Gizle)
+router.put('/:id/visibility', requireAuth, (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { is_public } = req.body;
+    const img = db.getImageById(id);
+    if (!img) return res.status(404).json({ error: 'Resim bulunamadı.' });
+
+    if (img.user_id !== req.user!.id && req.user!.role !== 'admin') {
+      return res.status(403).json({ error: 'Bu görselin görünürlük ayarlarını değiştirme yetkiniz yok.' });
+    }
+
+    img.is_public = Boolean(is_public);
+    db.save();
+    return res.json({
+      message: img.is_public
+        ? '🌐 Görsel Keşfet ve toplulukta herkese açık olarak yayınlandı.'
+        : '🔒 Görsel Keşfet ve aramalardan gizlendi (Yalnızca doğrudan linki olanlar görebilir).',
+      is_public: img.is_public,
+    });
+  } catch (err: any) {
+    return res.status(500).json({ error: 'Görünürlük durumu güncellenemedi.' });
   }
 });
 

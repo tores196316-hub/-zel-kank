@@ -25,6 +25,9 @@ import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { AdminPage } from './pages/AdminPage';
 import { ConverterPage } from './pages/ConverterPage';
+import { ExplorePage } from './pages/ExplorePage';
+import { CreatorProfilePage } from './pages/CreatorProfilePage';
+import { FavoritesPage } from './pages/FavoritesPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 const AppContent: React.FC = () => {
@@ -73,11 +76,23 @@ const AppContent: React.FC = () => {
     if (path === '/donusturucu') {
       return <ConverterPage navigate={navigate} />;
     }
+    if (path === '/kesfet') {
+      return <ExplorePage navigate={navigate} />;
+    }
+    if (path === '/favoriler') {
+      return <FavoritesPage navigate={navigate} />;
+    }
     if (path === '/panel') {
       return <DashboardPage navigate={navigate} />;
     }
     if (path === '/profil') {
       return <ProfilePage navigate={navigate} />;
+    }
+    if (path.startsWith('/profil/')) {
+      const username = path.replace('/profil/', '').trim();
+      if (username) {
+        return <CreatorProfilePage username={username} navigate={navigate} />;
+      }
     }
     if (path === '/ayarlar') {
       return <SettingsPage navigate={navigate} />;

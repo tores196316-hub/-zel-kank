@@ -90,8 +90,16 @@ export const authApi = {
 
   getMe: () => request<{ user: User | null }>('/api/auth/me'),
 
-  updateProfile: (params: { password?: string; new_password?: string; email?: string; username?: string }) =>
-    request<{ message: string }>('/api/auth/profile', {
+  updateProfile: (params: {
+    password?: string;
+    new_password?: string;
+    email?: string;
+    username?: string;
+    bio?: string;
+    avatar_url?: string;
+    two_factor_enabled?: boolean;
+  }) =>
+    request<{ message: string; user?: User }>('/api/auth/profile', {
       method: 'PUT',
       body: JSON.stringify(params),
     }),
@@ -127,7 +135,7 @@ export const imageApi = {
     onProgress?: (percent: number) => void,
     folderId?: string | null,
     xhrRef?: { current: XMLHttpRequest | null },
-    options?: { password?: string; expiration?: string }
+    options?: { password?: string; expiration?: string; is_public?: boolean }
   ): Promise<UploadResult> => {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
@@ -143,6 +151,9 @@ export const imageApi = {
       }
       if (options?.expiration && options.expiration !== 'none') {
         formData.append('expiration', options.expiration);
+      }
+      if (options?.is_public !== undefined) {
+        formData.append('is_public', String(options.is_public));
       }
 
       xhr.upload.addEventListener('progress', (e) => {
@@ -234,6 +245,50 @@ export const imageApi = {
       method: 'POST',
     }),
 
+  getExplore: (params?: { sort?: 'popular' | 'trending' | 'newest'; format?: string; query?: string; limit?: number; offset?: number }) => {
+    const q = new URLSearchParams();
+    if (params?.sort) q.append('sort', params.sort);
+    if (params?.format) q.append('format', params.format);
+    if (params?.query) q.append('query', params.query);
+    if (params?.limit) q.append('limit', String(params.limit));
+    if (params?.offset) q.append('offset', String(params.offset));
+    const qs = q.toString();
+    return request<{ images: ImageMetadata[]; total: number }>(`/api/images/explore${qs ? `?${qs}` : ''}`);
+  },
+
+  getFavorites: () => request<{ images: ImageMetadata[] }>('/api/images/favorites'),
+
+  toggleLike: (id: string) =>
+    request<{ liked: boolean; likes_count: number }>(`/api/images/${id}/like`, {
+      method: 'POST',
+    }),
+
+  getComments: (id: string) =>
+    request<{ comments: import('../types').Comment[] }>(`/api/images/${id}/comments`),
+
+  addComment: (id: string, text: string, guestName?: string) =>
+    request<{ message: string; comment: import('../types').Comment }>(`/api/images/${id}/comments`, {
+      method: 'POST',
+      body: JSON.stringify({ text, guest_name: guestName }),
+    }),
+
+  deleteComment: (id: string, commentId: string) =>
+    request<{ message: string }>(`/api/images/${id}/comments/${commentId}`, {
+      method: 'DELETE',
+    }),
+
+  updateProtection: (id: string, protectCopy: boolean) =>
+    request<{ message: string; protect_copy: boolean }>(`/api/images/${id}/protection`, {
+      method: 'PUT',
+      body: JSON.stringify({ protect_copy: protectCopy }),
+    }),
+
+  updateVisibility: (id: string, isPublic: boolean) =>
+    request<{ message: string; is_public: boolean }>(`/api/images/${id}/visibility`, {
+      method: 'PUT',
+      body: JSON.stringify({ is_public: isPublic }),
+    }),
+
   sendBurnHeartbeat: (id: string, sessionId: string) =>
     request<{ ok: boolean; active: boolean }>(`/api/images/${id}/burn-session/heartbeat`, {
       method: 'POST',
@@ -259,6 +314,8 @@ export const imageApi = {
 export const publicApi = {
   getSettings: () => request<SiteSettings>('/api/public/settings'),
   getAnnouncements: () => request<{ announcements: Announcement[] }>('/api/public/announcements'),
+  getCreatorProfile: (username: string) =>
+    request<import('../types').PublicCreatorProfile>(`/api/auth/public/profile/${encodeURIComponent(username)}`),
   sendContactMessage: (name: string, email: string, subject: string, message: string) =>
     request<{ message: string }>('/api/public/contact', {
       method: 'POST',

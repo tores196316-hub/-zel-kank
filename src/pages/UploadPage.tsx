@@ -2,7 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { 
   Upload, X, Check, Copy, ExternalLink, Image as ImageIcon, AlertCircle, 
   FileCheck, RefreshCw, Layers, Folder as FolderIcon, Camera, Ban, 
-  RotateCcw, Sparkles, Sliders, Lock, Clock, Flame, Shield, Key
+  RotateCcw, Sparkles, Sliders, Lock, Clock, Flame, Shield, Key,
+  Globe, Compass, EyeOff
 } from 'lucide-react';
 import { imageApi, getStoredToken } from '../lib/api';
 import { Folder, UploadProgressFile, UploadResult } from '../types';
@@ -34,6 +35,7 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
   const [uploadPassword, setUploadPassword] = useState<string>('');
   const [uploadExpiration, setUploadExpiration] = useState<string>('none');
   const [isPasswordOpen, setIsPasswordOpen] = useState<boolean>(false);
+  const [showInExplore, setShowInExplore] = useState<boolean>(true);
 
   // Editor Modal state
   const [editingFile, setEditingFile] = useState<UploadProgressFile | null>(null);
@@ -179,6 +181,7 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
         {
           password: uploadPassword.trim() || undefined,
           expiration: uploadExpiration,
+          is_public: showInExplore,
         }
       );
 
@@ -681,6 +684,63 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
                 </p>
               </div>
             )}
+
+            {/* D) Keşfet & Topluluk Görünürlüğü Toggle Switch */}
+            <div className={`p-4 rounded-2xl border transition-all duration-200 ${
+              showInExplore
+                ? 'bg-gradient-to-r from-blue-950/30 via-[#0C1222] to-cyan-950/20 border-cyan-500/40 ring-1 ring-cyan-500/20'
+                : 'bg-[#070B14] border-slate-800'
+            }`}>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                    showInExplore
+                      ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
+                      : 'bg-slate-800 text-slate-400 border border-slate-700'
+                  }`}>
+                    {showInExplore ? <Compass className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
+                  </div>
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs sm:text-sm font-bold text-white">
+                        Keşfet Duvarında Göster
+                      </span>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        showInExplore
+                          ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
+                          : 'bg-slate-800 text-slate-400 border border-slate-700'
+                      }`}>
+                        {showInExplore ? 'HERKESE AÇIK' : 'ÖZEL / GİZLİ'}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-400 max-w-xl leading-relaxed">
+                      {showInExplore
+                        ? 'Resminiz topluluk Keşfet akışında ve genel aramalarda yayınlanır. Herkes görebilir ve beğenebilir.'
+                        : '🔒 Gizli Tut: Resminiz Keşfet sayfasına ve arama sonuçlarına KESİNLİKLE düşmez. Yalnızca doğrudan bağlantıyı paylaştığınız kişiler açabilir.'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Modern Switch Toggle Button */}
+                <button
+                  type="button"
+                  onClick={() => setShowInExplore((prev) => !prev)}
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none self-end sm:self-center ${
+                    showInExplore ? 'bg-cyan-500' : 'bg-slate-700'
+                  }`}
+                  role="switch"
+                  aria-checked={showInExplore}
+                  title="Keşfet görünürlüğünü aç/kapat"
+                >
+                  <span
+                    aria-hidden="true"
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                      showInExplore ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Selected Files Progress List */}
@@ -875,6 +935,19 @@ export const UploadPage: React.FC<UploadPageProps> = ({ navigate }) => {
                       <p className="text-[11px] text-slate-400 mt-0.5">
                         {res.image.width} x {res.image.height} px • {formatSize(res.image.size)} • {res.image.format.toUpperCase()}
                       </p>
+                      <div className="flex items-center gap-2 mt-1.5">
+                        {res.image.is_public ? (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/25">
+                            <Globe className="w-3 h-3 text-cyan-400" />
+                            <span>Keşfet'te Yayında</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                            <EyeOff className="w-3 h-3 text-amber-400" />
+                            <span>Gizli Paylaşım</span>
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <div className="pt-1 flex items-center justify-center md:justify-start gap-2">
                       <button
